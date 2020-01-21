@@ -1,0 +1,16 @@
+all:
+	echo "Running Files 2 to 13..."
+	runipy "2_Pull_out_specific_columns.ipynb"
+	runipy "3_Calculate_Total_Floor_Area.ipynb"
+	runipy "4_Reformat_data.ipynb"
+	runipy "5_Create_Census_Period_Built_column.ipynb"
+	runipy "6_Create_Census_Dwelling_Type_column.ipynb"
+	runipy "7_Make_Main_SH_independent_of_boiler_tech.ipynb"
+	runipy "8_Make_Main_HW_independent_of_boiler_tech.ipynb"
+	runipy "9_Make_Sec_SH_independent_of_boiler_tech.ipynb"
+	runipy "10_Make_Sec_HW_independent_of_boiler_tech.ipynb"
+	runipy "11_Eliminate_HW_outliers_py.ipynb"
+	runipy "12_Eliminate_SH_outliers_py.ipynb"
+	runipy "13_Store_Data.ipynb"
+	
+	# runipy "1_Pull_out_Dublin_data.ipynb"

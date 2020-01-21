@@ -1,0 +1,14 @@
+## import custom functions
+
+import sys
+from pathlib import Path
+
+funcs_path = Path.cwd().parents[1] # Create path to custom functions
+sys.path.insert(1, str(funcs_path))
+from funcs import admin
+
+# A = file number from which to change
+# B = amount to add/subtract to each file name 
+# admin.add_or_subtract_to_all_file_numbers(A,B)
+
+admin.remove_whitespace_from_names()
