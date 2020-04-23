@@ -70,16 +70,18 @@ target/
 .ipynb_checkpoints/
 
 # exclude data from source control by default
-/data/nominatimdata/*
-/data/raw/*
-/data/interim/*
-/data/processed/*
-/data/external/*
-/data/data_information/*
+/data/*
 /models/*
 /plots/*
 /logs/*
+/results/*
 
 # exclude all cached files
 .mypy_cache/
 .pytest_cache/
+
+# exclude config files
+.vscode
+
+# exclude dask files
+dask-worker-space
