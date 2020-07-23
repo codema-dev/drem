@@ -1,9 +1,15 @@
-pandas>=1.0.0,
-geopandas>=0.7.0,
-prefect>=0.10.7,
-pipeop>=0.3.0,
-icontract>=2.3.2,
+pandas
+numpy
+geopandas
+prefect
+icontract
 
-pandas-vet>=0.2.2,
-pyicontract-lint>=2.0.0,
-wemake-python-styleguide>=0.14.0
+pandas-vet
+pyicontract-lint
+wemake-python-styleguide
+black
+mypy
+flake8
+pytest
+
+-e git://github.com:rdmolony/fuzzymatch-records.git
