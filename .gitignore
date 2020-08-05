@@ -71,10 +71,14 @@ target/
 
 # exclude data from source control by default
 /data/*
-/models/*
-/plots/*
-/logs/*
-/results/*
+!/data/external
+/data/external/*
+!/data/interim
+/data/interim/*
+!/data/raw
+/data/raw/*
+!/data/processed
+/data/processed/*
 
 # exclude all cached files
 .mypy_cache/
@@ -85,3 +89,11 @@ target/
 
 # exclude dask files
 dask-worker-space
+
+# include to keep folder structure
+!.gitignore
+!.gitkeep
+
+# exclude data files...
+*.csv
+~*.ods

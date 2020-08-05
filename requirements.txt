@@ -4,6 +4,8 @@ geopandas
 prefect
 icontract
 
+ipython
+ipdb
 pandas-vet
 pyicontract-lint
 wemake-python-styleguide
@@ -12,4 +14,5 @@ mypy
 flake8
 pytest
 
--e git://github.com:rdmolony/fuzzymatch-records.git
+fuzzymatch-records @ git+https://github.com/rdmolony/fuzzymatch-records
+prefect-toolkit @ git+https://github.com/rdmolony/prefect-toolkit
