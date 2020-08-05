@@ -62,6 +62,7 @@ MNR_RAW = RAW_DIR / "FOI_Codema_24.1.20.xlsx"
 SAS_RAW = (
     RAW_DIR
     / "Small_Areas_Ungeneralised_-_OSi_National_Statistical_Boundaries_-_2015-shp"
+)
 SM_ELEC_RES_PROFILES_RAW = (
     RAW_DIR
     / "smart_meter_electricity"
