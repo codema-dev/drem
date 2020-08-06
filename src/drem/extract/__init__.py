@@ -1,1 +1,0 @@
-from drem.extract.cso_sa_geometries import cso_sa_geometries
