@@ -10,7 +10,7 @@ SRC_DIR = Path(__file__).parent
 PLOT_DIR = BASE_DIR / "plots"
 LOG_DIR = BASE_DIR / "logs"
 DATA_DIR = BASE_DIR / "data"
-
+TEST_DIR = BASE_DIR / "tests"
 
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
