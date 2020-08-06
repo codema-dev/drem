@@ -1,18 +1,19 @@
-pandas
-numpy
-geopandas
-prefect
-icontract
-
-ipython
-ipdb
-pandas-vet
-pyicontract-lint
-wemake-python-styleguide
 black
-mypy
+distutils
 flake8
-pytest
 
 fuzzymatch-records @ git+https://github.com/rdmolony/fuzzymatch-records
+geopandas
+icontract
+ipdb
+
+ipython
+mypy
+numpy
+pandas
+pandas-vet
+prefect
 prefect-toolkit @ git+https://github.com/rdmolony/prefect-toolkit
+pyicontract-lint
+pytest
+wemake-python-styleguide

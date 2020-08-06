@@ -1,29 +1,33 @@
-from os import environ
+#!/usr/bin/env python
 
 import prefect
-from prefect import Flow, task
-from prefect.engine.results import LocalResult
-from prefect_toolkit import run_flow
+from prefect import Flow
 
-from drem import extract
-from drem import transform
-from drem import load
-from drem._filepaths import INTERIM_DIR, MNR_RAW, MNR_CLEAN, VO_RAW, VO_CLEAN
+from drem.extract.cso_sa_geometries import extract_cso_sa_geometries
+from drem.load.cso_sa_geometries import load_cso_sa_geometries
+from drem.transform.cso_sa_geometries import transform_cso_sa_geometries
 
 # Enable checkpointing for pipeline-persisted results
 prefect.config.flows.checkpointing = True
 
 
 def etl() -> Flow:
+    """Extract, Transform & Load drem data for modelling.
 
-    with Flow(
-        "Extract, Transform & Load DREM Data",
-        # result=LocalResult(str(INTERIM_DIR))
-    ) as flow:
+    A Prefect flow to orchestrate the Extraction, Transformation and Loading
+    of drem data.
 
-        cso_sa_geometries_filepath = extract.cso_sa_geometries.run()
-        cso_sa_geometries = transform.cso_sa_geometries.run(cso_sa_geometries_filepath)
-        load.cso_sa_geometries.run(cso_sa_geometries)
+    For more information see: https://docs.prefect.io/core/tutorial/01-etl-before-prefect.html
+
+    Returns
+    -------
+    Flow
+        A flow pipeline of Prefect Tasks to be executed
+    """
+    with Flow("Extract, Transform & Load DREM Data") as flow:
+
+        cso_sa_geometries_filepath = extract_cso_sa_geometries()
+        cso_sa_geometries = transform_cso_sa_geometries(cso_sa_geometries_filepath)
+        load_cso_sa_geometries(cso_sa_geometries)
 
     return flow
-

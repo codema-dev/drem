@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 from pathlib import Path
 
-import icontract
 import geopandas as gpd
+import icontract
 import numpy as np
-from prefect import Flow, task
+from prefect import task
 
 
 @icontract.ensure(lambda result: len(result["COUNTYNAME"].unique()) == 4)
@@ -25,8 +27,22 @@ def _set_coordinate_reference_system_to_wgs(gdf: gpd.GeoDataFrame) -> gpd.GeoDat
 
 
 @task(name="Transform Small Area Geometries")
-def run(filepath: Path) -> gpd.GeoDataFrame:
+def transform_cso_sa_geometries(filepath: Path) -> gpd.GeoDataFrame:
+    """Transform Small Area geometries from raw to clean.
 
+    Extract only Dublin information out of Ireland data
+    and a select number of relevant columns.
+
+    Parameters
+    ----------
+    filepath : Path
+        Filepath to a locally stored download of the data
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Small Area Dublin geometries with a select number of columns
+    """
     sa_geometries_raw = _read_only_dublin_local_authorities(filepath)
 
     return (
