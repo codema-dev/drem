@@ -1,9 +1,12 @@
 from logging import Logger
 from pathlib import Path
+import re
 
 import requests
 from tqdm import tqdm
-from prefect import task
+from prefect import Task
+
+from drem._filepaths import EXTERNAL_DIR
 
 
 def _download_file_from_response(
@@ -28,8 +31,11 @@ def _download_file_from_response(
     progress_bar.close()
 
 
-@task
-def download(url: str, filepath: Path, logger: Logger = None) -> None:
+def download(url: str, filepath: Path = None) -> None:
+
+    if not filepath:
+        filename = re.findall(r"/([\w.]+)$", url)[0]
+        filepath = EXTERNAL_DIR / filename
 
     with requests.get(url=url, stream=True) as response:
 
