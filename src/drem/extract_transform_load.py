@@ -21,9 +21,9 @@ def etl() -> Flow:
         # result=LocalResult(str(INTERIM_DIR))
     ) as flow:
 
-        cso_sa_geometries_filepath = extract.cso_sa_geometries.run()
-        cso_sa_geometries = transform.cso_sa_geometries.run(cso_sa_geometries_filepath)
-        load.cso_sa_geometries.run(cso_sa_geometries)
+        cso_sa_geometries_filepath = extract.cso_sa_geometries()
+        cso_sa_geometries = transform.cso_sa_geometries(cso_sa_geometries_filepath)
+        load.cso_sa_geometries(cso_sa_geometries)
 
     return flow
 

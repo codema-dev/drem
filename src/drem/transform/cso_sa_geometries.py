@@ -25,7 +25,7 @@ def _set_coordinate_reference_system_to_wgs(gdf: gpd.GeoDataFrame) -> gpd.GeoDat
 
 
 @task(name="Transform Small Area Geometries")
-def run(filepath: Path) -> gpd.GeoDataFrame:
+def cso_sa_geometries(filepath: Path) -> gpd.GeoDataFrame:
 
     sa_geometries_raw = _read_only_dublin_local_authorities(filepath)
 

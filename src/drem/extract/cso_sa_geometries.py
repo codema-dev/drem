@@ -8,7 +8,7 @@ from drem._filepaths import EXTERNAL_DIR
 
 
 @task(name="Extract Small Area Geometries")
-def run() -> Path:
+def cso_sa_geometries() -> Path:
 
     filepath_to_unzipped = EXTERNAL_DIR / "cso_sa_geometries"
 
