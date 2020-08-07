@@ -10,28 +10,26 @@ from drem._filepaths import EXTERNAL_DIR
 from drem.extract.download import download
 
 
-@task(name="Extract Small Area Geometries")
+@task(name="Download Small Area Geometries")
 def extract_cso_sa_geometries() -> Path:
-    """Extract cso_sa_geometries data from source to a local file.
+    """Download CSO 2016 Census Small Area Geometries.
 
-    Returns
-    -------
-    Path
-        filepath to downloaded data
+    Returns:
+        Path: filepath to downloaded data
     """
-    filepath_to_unzipped = EXTERNAL_DIR / "cso_sa_geometries"
+    unzipped_geometries: Path = EXTERNAL_DIR / "cso_sa_geometries"
 
-    if not filepath_to_unzipped.exists():
+    if not unzipped_geometries.exists():
 
-        filepath_to_zipped = EXTERNAL_DIR / "cso_sa_geometries.zip"
+        zipped_geometries: Path = EXTERNAL_DIR / "cso_sa_geometries.zip"
         download(
             url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
-            filepath=filepath_to_zipped,
+            filepath=zipped_geometries,
         )
 
-        with ZipFile(filepath_to_zipped, "r") as zipped_file:
-            zipped_file.extractall(filepath_to_unzipped)
+        with ZipFile(zipped_geometries, "r") as zipped_file:
+            zipped_file.extractall(unzipped_geometries)
 
-        remove(filepath_to_zipped)
+        remove(zipped_geometries)
 
-    return filepath_to_unzipped
+    return unzipped_geometries

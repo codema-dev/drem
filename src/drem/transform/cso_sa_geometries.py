@@ -28,26 +28,22 @@ def _set_coordinate_reference_system_to_wgs(gdf: gpd.GeoDataFrame) -> gpd.GeoDat
 
 
 @task(name="Transform Small Area Geometries")
-def transform_cso_sa_geometries(filepath: Path) -> gpd.GeoDataFrame:
+def transform_cso_sa_geometries(geometries: Path) -> gpd.GeoDataFrame:
     """Transform Small Area geometries from raw to clean.
 
     Extract only Dublin information out of Ireland data
     and a select number of relevant columns.
 
-    Parameters
-    ----------
-    filepath : Path
-        Filepath to a locally stored download of the data
+    Args:
+        geometries (Path): Filepath to a locally stored download of the data
 
-    Returns
-    -------
-    gpd.GeoDataFrame
-        Small Area Dublin geometries with a select number of columns
+    Returns:
+        gpd.GeoDataFrame: Small Area Dublin geometries with a select number of columns
     """
-    sa_geometries_raw = _read_only_dublin_local_authorities(filepath)
+    geometries_gdf: gpd.GeoDataFrame = _read_only_dublin_local_authorities(geometries)
 
     return (
-        sa_geometries_raw.pipe(_set_coordinate_reference_system_to_wgs)
+        geometries_gdf.pipe(_set_coordinate_reference_system_to_wgs)
         .loc[:, ["SMALL_AREA", "EDNAME", "geometry"]]
         .rename(columns={"SMALL_AREA": "sas", "EDNAME": "eds"})
         .assign(eds=lambda x: x["eds"].str.lower())
