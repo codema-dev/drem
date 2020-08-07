@@ -17,6 +17,8 @@ tqdm = "^4.48.2"
 geopandas = "^0.8.1"
 icontract = "^2.3.4"
 openpyxl = "^3.0.4"
+pipey = "^0.0.1-alpha.5"
+pipeop = "^0.3.0"
 
 
 [tool.poetry.dev-dependencies]

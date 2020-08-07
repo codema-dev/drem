@@ -11,23 +11,15 @@ import drem
 prefect.config.flows.checkpointing = True
 
 
-def etl() -> Flow:
-    """Extract, Transform & Load drem data for modelling.
+with Flow("Extract, Transform & Load DREM Data") as flow:
 
-    A Prefect flow to orchestrate the Extraction, Transformation and Loading
-    of drem data.
+    cso_sa_geometries_raw = drem.extract_cso_sa_geometries()
+    cso_sa_geometries_clean = drem.transform_cso_sa_geometries()
+    drem.load_cso_sa_geometries(cso_sa_geometries_clean)
 
-    For more information see: https://docs.prefect.io/core/tutorial/01-etl-before-prefect.html
-
-    Returns
-    -------
-    Flow
-        A flow pipeline of Prefect Tasks to be executed
-    """
-    with Flow("Extract, Transform & Load DREM Data") as flow:
-
-        cso_sa_geometries_filepath = drem.extract_cso_sa_geometries()
-        cso_sa_geometries = drem.transform_cso_sa_geometries(cso_sa_geometries_filepath)
-        drem.load_cso_sa_geometries(cso_sa_geometries)
-
-    return flow
+    cso_sa_statistics_raw = drem.extract_cso_sa_statistics()
+    cso_sa_statistics_glossary = drem.extract_cso_sa_glossary()
+    cso_sa_statistics = drem.transform_cso_sa_statistics(
+        cso_sa_statistics_raw, cso_sa_statistics_glossary,
+    )
+    drem.load_cso_sa_statistics(cso_sa_statistics)

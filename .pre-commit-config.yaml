@@ -24,12 +24,12 @@ repos:
         language_version: python3
         types: [python]
 
-      - id: isort
-        name: isort
-        entry: isort
-        language: python
-        language_version: python3
-        types: [python]
+      # - id: isort
+      #   name: isort
+      #   entry: isort
+      #   language: python
+      #   language_version: python3
+      #   types: [python]
 
       - id: mypy
         name: mypy
