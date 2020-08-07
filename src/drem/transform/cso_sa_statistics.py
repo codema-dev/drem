@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List
 
 import pandas as pd
@@ -70,20 +69,17 @@ def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_cso_sa_statistics(
-    path_to_statistics: Path, path_to_glossary: Path,
+    statistics: pd.DataFrame, glossary: pd.DataFrame,
 ) -> pd.DataFrame:
     """Transform CSO Small Area Statistics via Glossary to 'tidy-data'.
 
     Args:
-        path_to_statistics (Path): Filepath to CSO Small Area Statistics
-        path_to_glossary (Path): Filepath to CSO Small Area Statistics Glossary
+        statistics (pd.DataFrame): CSO Small Area Statistics
+        glossary (pd.DataFrame): CSO Small Area Statistics Glossary
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
     """
-    statistics: pd.DataFrame = pd.read_csv(path_to_statistics)
-    glossary: pd.DataFrame = pd.read_excel(path_to_glossary)
-
     return (
         statistics.pipe(_extract_year_built, glossary)
         .pipe(_melt_year_built_columns)

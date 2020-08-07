@@ -2,10 +2,12 @@
 
 from pathlib import Path
 
+import pandas as pd
+
 from prefect import task
 
-from drem._filepaths import EXTERNAL_DIR
 from drem.extract.download import download
+from drem.filepaths import EXTERNAL_DIR
 
 
 @task(name="Download CSO 2016 Census Small Area Statistics")
@@ -24,7 +26,7 @@ def extract_cso_sa_statistics() -> Path:
             filepath=statistics,
         )
 
-    return statistics
+    return pd.read_csv(statistics)
 
 
 @task(name="Download CSO Small Area Statistics Glossary")
@@ -43,4 +45,4 @@ def extract_cso_sa_glossary() -> Path:
             filepath=glossary,
         )
 
-    return glossary
+    return pd.read_excel(glossary, engine="openpyxl")
