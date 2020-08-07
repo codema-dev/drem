@@ -1,14 +1,16 @@
+from pathlib import Path
+
 import geopandas as gpd
 
 from geopandas.testing import assert_geodataframe_equal
 
 import drem
 
-from drem._filepaths import TEST_DIR
 
+CWD = Path.cwd()
 
-SAS_IN = TEST_DIR / "transform" / "test_data" / "cso_sa_geometries_in"
-SAS_EOUT = TEST_DIR / "transform" / "test_data" / "cso_sa_geometries_eout"
+SAS_IN = CWD / "test_data" / "cso_sa_geometries_in"
+SAS_EOUT = CWD / "test_data" / "cso_sa_geometries_eout"
 
 
 def test_transform_cso_sa_geometries() -> None:

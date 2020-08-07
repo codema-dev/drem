@@ -16,6 +16,7 @@ requests = "^2.24.0"
 tqdm = "^4.48.2"
 geopandas = "^0.8.1"
 icontract = "^2.3.4"
+openpyxl = "^3.0.4"
 
 
 [tool.poetry.dev-dependencies]
@@ -28,6 +29,7 @@ pyicontract-lint = "^2.0.0"
 black = "^19.10b0"
 mypy = "^0.782"
 pre-commit = "^2.6.0"
+seed-isort-config = "^2.2.0"
 
 
 [tool.isort]
