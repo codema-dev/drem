@@ -1,4 +1,20 @@
 repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: requirements-txt-fixer
+
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v2.0.1
+    hooks:
+      - id: add-trailing-comma
+
   - repo: local
     hooks:
       - id: black
@@ -16,13 +32,11 @@ repos:
         types: [python]
         args: [--ignore-missing-imports, --warn-no-return, --warn-redundant-casts, --disallow-incomplete-defs]
 
-      - id: isort
-        name: isort
-        entry: isort
-        require_serial: true
+      - id: zimports
+        name: zimports
+        entry: zimports
         language: python
         types: [python]
-        args: ['--filter-files']
 
       - id: flake8
         name: flake8
@@ -30,19 +44,3 @@ repos:
         language: python
         language_version: python3
         types: [python]
-
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
-    hooks:
-      - id: check-docstring-first
-      - id: check-merge-conflict
-      - id: debug-statements
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: requirements-txt-fixer
-
-  - repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.0.1
-    hooks:
-      - id: add-trailing-comma
