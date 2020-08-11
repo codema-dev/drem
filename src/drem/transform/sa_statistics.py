@@ -1,5 +1,6 @@
 from typing import List
 
+import geopandas as gpd
 import pandas as pd
 
 from prefect import task
@@ -61,21 +62,28 @@ def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
             ),
         )
         .drop(columns="GEOGID")
+        .rename(columns={"small_areas": "small_area"})
+        .assign(small_area=lambda x: x["small_area"].astype(str))
     )
 
 
-# def _extract_dublin_small_areas(df: pd.DataFrame) -> pd.DataFrame:
+def _extract_dublin_small_areas(
+    statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+
+    return geometries.merge(statistics)
 
 
 @task(name="Transform CSO Small Area Statistics via Glossary")
-def transform_cso_sa_statistics(
-    statistics: pd.DataFrame, glossary: pd.DataFrame,
+def transform_sa_statistics(
+    statistics: pd.DataFrame, glossary: pd.DataFrame, geometries: gpd.GeoDataFrame,
 ) -> pd.DataFrame:
     """Transform CSO Small Area Statistics via Glossary to 'tidy-data'.
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
         glossary (pd.DataFrame): CSO Small Area Statistics Glossary
+        geometries (gpd.GeoDataFrame): CSO Small Area Geometries
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
@@ -84,4 +92,5 @@ def transform_cso_sa_statistics(
         statistics.pipe(_extract_year_built, glossary)
         .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
+        .pipe(_extract_dublin_small_areas, geometries)
     )

@@ -8,7 +8,7 @@ from drem.filepaths import PROCESSED_DIR
 
 
 @task(name="Load Small Area Geometries to file")
-def load_cso_sa_geometries(geometries: gpd.GeoDataFrame) -> None:
+def load_sa_geometries(geometries: gpd.GeoDataFrame) -> None:
     """Load transformed Dublin Small Area geometry data to local file.
 
     Args:

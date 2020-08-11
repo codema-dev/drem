@@ -28,13 +28,9 @@ def download(url: str, filepath: Path) -> None:
     If no filepath is entered the file name will be inferred from the url
     and saved to the 'external' dir in the data directory.
 
-    Parameters
-    ----------
-    url : str
-        url linking to data to be downloaded; can be found by right-clicking
-        the download link and selecting 'Copy Link Location'
-    filepath : Path
-        Save destination for data
+    Args:
+        url (str): url linking to data to be downloaded
+        filepath (Path): Save destination for data
     """
     with requests.get(url=url, stream=True) as response:
 
