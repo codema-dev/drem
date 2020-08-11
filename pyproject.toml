@@ -19,6 +19,11 @@ icontract = "^2.3.4"
 openpyxl = "^3.0.4"
 pipey = "^0.0.1-alpha.5"
 pipeop = "^0.3.0"
+pyarrow = "^1.0.0"
+matplotlib = "^3.3.0"
+unidecode = "^1.1.1"
+descartes = "^1.1.0"
+pygeos = "^0.7.1"
 
 
 [tool.poetry.dev-dependencies]
@@ -32,6 +37,7 @@ black = "^19.10b0"
 mypy = "^0.782"
 pre-commit = "^2.6.0"
 seed-isort-config = "^2.2.0"
+tdda = "^1.0.31"
 
 
 [tool.isort]
