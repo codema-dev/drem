@@ -2,7 +2,6 @@
 
 from os import remove
 from pathlib import Path
-from typing import Optional
 from zipfile import ZipFile
 
 import geopandas as gpd
@@ -12,35 +11,41 @@ from prefect import task
 from drem.extract.download import download
 
 
+CWD = Path.cwd()
+
+
 @task(name="Extract Ireland Small Area Geometries")
-def extract_sa_geometries(
-    unzipped_geometries: Optional[Path] = None,
-) -> gpd.GeoDataFrame:
+def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
     """Download CSO 2016 Census Small Area Geometries.
 
     Args:
-        unzipped_geometries (Optional[Path], optional): Save destination for geometries.
-        Defaults to None which results in the Geometries being saved to your current
-        working directory.
+        savedir (Path): Save directory for sa_geometries. Defaults to your
+        current working directory (i.e. CWD)
 
     Returns:
-        gpd.GeoDataFrame: Small Area Geometries
+        gpd.GeoDataFrame: Small Area Geometries data
 
+    Examples:
+        Download data to your current working directory:
+
+        >>> import drem
+        >>> from pathlib import Path
+        >>> drem.extract_sa_geometries.run()
     """
-    if unzipped_geometries is None:
-        unzipped_geometries: Path = Path.cwd() / "sa_geometries"
+    filename = "sa_geometries"
+    filepath = savedir / filename
 
-    if not unzipped_geometries.exists():
+    if not filepath.exists():
 
-        zipped_geometries: Path = unzipped_geometries.with_suffix(".zip")
+        filepath_zipped: Path = filepath.with_suffix(".zip")
         download(
             url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
-            filepath=zipped_geometries,
+            filepath=filepath_zipped,
         )
 
-        with ZipFile(zipped_geometries, "r") as zipped_file:
-            zipped_file.extractall(unzipped_geometries)
+        with ZipFile(filepath_zipped, "r") as zipped_file:
+            zipped_file.extractall(filepath)
 
-        remove(zipped_geometries)
+        remove(filepath_zipped)
 
-    return gpd.read_file(unzipped_geometries)
+    return gpd.read_file(filepath)
