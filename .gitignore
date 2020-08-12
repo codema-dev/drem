@@ -94,6 +94,5 @@ dask-worker-space
 !.gitignore
 !.gitkeep
 
-# exclude data files...
-*.csv
-~*.ods
+# include test-ref data
+!/tests/data
