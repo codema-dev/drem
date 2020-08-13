@@ -19,6 +19,7 @@
 │   ├── processed           <- Final, canonical data sets for modeling
 │   └── raw                 <- Original, immutable data dump (closed source)
 │
+├── externals               <- External libraries used by drem
 ├── .gitignore              <- Specifies files and folders to be ignored by source control
 ├── .pre-commit-config.yaml <- pre-commit hooks
 ├── LICENSE                 <- Terms & conditions for library usage etc.
@@ -37,7 +38,9 @@ For more information see:
 - [Pre-commit hooks](https://pre-commit.com/)
 - [Poetry](https://python-poetry.org/) for library setup
 - [flake8](https://flake8.pycqa.org/en/latest/), [we-make-python-style-guide](https://wemake-python-stylegui.de/en/latest/pages/usage/violations/index.html) for checking style issues
-
+- externals
+    - [libpostal](https://github.com/openvenues/libpostal) enables fuzzy address matching
+    - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
 ---
 
 ## Glossary of terms
