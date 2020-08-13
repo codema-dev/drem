@@ -69,17 +69,6 @@ target/
 # Jupyter NB Checkpoints & notebooks
 .ipynb_checkpoints/
 
-# exclude data from source control by default
-/data/*
-!/data/external
-/data/external/*
-!/data/interim
-/data/interim/*
-!/data/raw
-/data/raw/*
-!/data/processed
-/data/processed/*
-
 # exclude all cached files
 .mypy_cache/
 .pytest_cache/
@@ -90,9 +79,23 @@ target/
 # exclude dask files
 dask-worker-space
 
+# include test-ref data
+!/tests/data
+
+# exclude data from source control by default
+/data/**
+!/data/external
+/data/external/*
+!/data/interim
+/data/interim/*
+!/data/raw
+/data/raw/*
+!/data/processed
+/data/processed/*
+
+# exclude external libraries by default
+/externals/*
+
 # include to keep folder structure
 !.gitignore
 !.gitkeep
-
-# include test-ref data
-!/tests/data
