@@ -1,5 +1,48 @@
 # Dublin Region Energy Masterplan Code Guide
 
+## Installation
+
+```bash
+pip install drem
+```
+
+> Warning! Installing via `pip` enables only basic usage of the `drem` library. It currently does not enable usage of externals such as the C-library `libpostal`
+
+## Basic usage
+
+### Running individual functions
+
+To view all currently implemented functions run the following in iPython:
+
+```python
+[1]: import drem
+[2]: drem.<TAB>
+```
+
+To get help with usage of individual functions run:
+
+```python
+[1]: import drem
+[2]: drem.<name-of-method>?
+```
+
+For example; to download individual raw data files and tidy them for Dublin run:
+
+```python
+[1]: import drem
+[2]: sa_statistics_raw = drem.extract_sa_statistics.run()
+[3]: sa_statistics_dublin = drem.transform_sa_statistics.run(sa_statistics_raw)
+```
+
+### Running Extract, Transform, Load
+
+```python
+[1]: run src/drem/extract_transform_load.py
+[2]: flow.run()
+```
+
+---
+
 ## Directory structure
 
 ```
@@ -43,7 +86,9 @@ For more information see:
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
 ---
 
-## Glossary of terms
+## Contributing to `drem`
+
+### Glossary of terms
 
 - __script__ = a text file containing functions and classes - Python scripts have .py file endings.  These files must be run via the command line (See section below for more details).
 
@@ -53,7 +98,7 @@ For more information see:
 
 ---
 
-## Setup a Local Development environment using Visual Studio Code
+### Setup a Local Development environment using Visual Studio Code
 
 1. Download the `drem` repository by clicking 'Clone or download'
 
@@ -66,7 +111,7 @@ For more information see:
 5. [Install Poetry](https://python-poetry.org/docs/) and run `poetry install` on the Command Line to setup your development environment
 ---
 
-## [Optional] Setup Windows Subsystem for Linux 2 (WSL2)
+### [Optional] Setup Windows Subsystem for Linux 2 (WSL2)
 
 A lot of Python modules require tedious workarounds to run properly on Windows.  One work-around is to use WSL2.  If you're having install issues with the previous setup it may be worthwhile switching to WSL2.
 
@@ -81,7 +126,7 @@ A lot of Python modules require tedious workarounds to run properly on Windows. 
 
 ---
 
-## Using existing libraries
+### Using existing libraries
 
 ```Python
 import pandas
@@ -103,7 +148,7 @@ data = pd.DataFrame([1 2 3])
 
 ---
 
-## Why not use Jupyter Notebooks?
+### Why not use Jupyter Notebooks?
 
 Jupyter Notebooks are great for prototyping ideas with single-use code but not so good for writing reusable code.  Scripts are preferable for this purpose as they make the following possible:
 
@@ -114,7 +159,7 @@ Jupyter Notebooks are great for prototyping ideas with single-use code but not s
 
 ---
 
-## How to run scripts?
+### How to run scripts?
 
 As scripts are run using the command line it is necessary to be familiar with a few commands (surprisingly few are needed)
 
@@ -128,7 +173,7 @@ See [Command Line Crash Course](https://learnpythonthehardway.org/book/appendixa
 
 ---
 
-## [iPython](https://ipython.readthedocs.io/en/stable/)
+### [iPython](https://ipython.readthedocs.io/en/stable/)
 
 The command line tool iPython can be used to run scripts and try out code interactively.
 
