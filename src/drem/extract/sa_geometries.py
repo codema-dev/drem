@@ -2,13 +2,13 @@
 
 from os import remove
 from pathlib import Path
-from zipfile import ZipFile
 
 import geopandas as gpd
 
 from prefect import task
 
 from drem.extract.download import download
+from drem.extract.unzip import unzip_file
 
 
 CWD = Path.cwd()
@@ -38,14 +38,14 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
     if not filepath.exists():
 
         filepath_zipped: Path = filepath.with_suffix(".zip")
+        filepath_unzipped: Path = filepath
+
         download(
             url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
             filepath=filepath_zipped,
         )
 
-        with ZipFile(filepath_zipped, "r") as zipped_file:
-            zipped_file.extractall(filepath)
-
+        unzip_file(filepath_zipped, filepath_unzipped)
         remove(filepath_zipped)
 
-    return gpd.read_file(filepath)
+    return gpd.read_file(filepath_unzipped)

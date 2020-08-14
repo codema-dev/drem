@@ -8,7 +8,6 @@ repos:
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: requirements-txt-fixer
 
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v2.0.1
@@ -17,6 +16,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: isort
+        name: isort
+        entry: isort
+        language: python
+        language_version: python3
+        types: [python]
+
       - id: black
         name: black
         entry: black
