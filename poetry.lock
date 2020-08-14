@@ -1062,6 +1062,22 @@ python-versions = ">=3.5"
 version = "7.2.0"
 
 [[package]]
+category = "main"
+description = "A decorator that changes the >> and << operators to mimic Elixir-style function pipes"
+name = "pipeop"
+optional = false
+python-versions = "*"
+version = "0.3.0"
+
+[[package]]
+category = "main"
+description = "Declarative syntactic sugar that enables piping in python."
+name = "pipey"
+optional = false
+python-versions = "*"
+version = "0.0.1a5"
+
+[[package]]
 category = "dev"
 description = "plugin and hook calling mechanisms for python"
 name = "pluggy"
@@ -1693,6 +1709,14 @@ secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [[package]]
+category = "main"
+description = "Validate_email verify if an email address is valid and really exists."
+name = "validate-email"
+optional = false
+python-versions = "*"
+version = "1.3"
+
+[[package]]
 category = "dev"
 description = "Virtual Python Environment builder"
 name = "virtualenv"
@@ -1778,7 +1802,7 @@ version = "2.0.0"
 heapdict = "*"
 
 [metadata]
-content-hash = "0adaa025d9ace5ea25731b0ab03ba04394e4aa81d64a875adb87313b057449ed"
+content-hash = "aedd6d25f649297da33416d4908f992e2613c6a34c6a3acb2d7c3e952ca43703"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -2345,6 +2369,12 @@ pillow = [
     {file = "Pillow-7.2.0-pp36-pypy36_pp73-win32.whl", hash = "sha256:25930fadde8019f374400f7986e8404c8b781ce519da27792cbe46eabec00c4d"},
     {file = "Pillow-7.2.0.tar.gz", hash = "sha256:97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626"},
 ]
+pipeop = [
+    {file = "pipeop-0.3.0.tar.gz", hash = "sha256:d41664f141eb17dbe0c52fdb49252cd2d640b953dbb706caa8412617a513301e"},
+]
+pipey = [
+    {file = "pipey-0.0.1a5.tar.gz", hash = "sha256:f4c343cc6ed6d18f6ff78201e14592d4307deb526cfa436a5cd37bc830b3f5e7"},
+]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
@@ -2718,6 +2748,9 @@ unidecode = [
 urllib3 = [
     {file = "urllib3-1.25.10-py2.py3-none-any.whl", hash = "sha256:e7983572181f5e1522d9c98453462384ee92a0be7fac5f1413a1e35c56cc0461"},
     {file = "urllib3-1.25.10.tar.gz", hash = "sha256:91056c15fa70756691db97756772bb1eb9678fa585d9184f24534b100dc60f4a"},
+]
+validate-email = [
+    {file = "validate_email-1.3.tar.gz", hash = "sha256:784719dc5f780be319cdd185dc85dd93afebdb6ebb943811bc4c7c5f9c72aeaf"},
 ]
 virtualenv = [
     {file = "virtualenv-20.0.30-py2.py3-none-any.whl", hash = "sha256:8cd7b2a4850b003a11be2fc213e206419efab41115cc14bca20e69654f2ac08e"},
