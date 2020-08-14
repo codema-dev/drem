@@ -39,6 +39,8 @@ mypy = "^0.782"
 pre-commit = "^2.6.0"
 seed-isort-config = "^2.2.0"
 tdda = "^1.0.31"
+pytest-cov = "^2.10.0"
+pytest-xdist = "^1.34.0"
 
 
 [tool.isort]
