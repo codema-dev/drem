@@ -1,6 +1,7 @@
 # flake8: noqa
 
 from drem.extract.ber import extract_ber
+from drem.extract.dublin_postcodes import extract_dublin_postcodes
 from drem.extract.sa_geometries import extract_sa_geometries
 from drem.extract.sa_statistics import extract_sa_glossary
 from drem.extract.sa_statistics import extract_sa_statistics
