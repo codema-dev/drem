@@ -12,5 +12,5 @@ INTERIM_DIR = DATA_DIR / "interim"
 EXTERNAL_DIR = DATA_DIR / "external"
 REQUESTS_DIR = DATA_DIR / "requests"
 
-TEST_DATA_EXTERNAL = TEST_DIR / "extract" / "data"
-TEST_DATA_TRANSFORM = TEST_DIR / "transform" / "data"
+TEST_DATA_EXTERNAL = TEST_DIR / "unit" / "extract" / "data"
+TEST_DATA_TRANSFORM = TEST_DIR / "unit" / "transform" / "data"

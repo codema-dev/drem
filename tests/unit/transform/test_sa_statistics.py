@@ -76,7 +76,7 @@ def test_extract_dublin_small_areas() -> None:
 
 
 def test_transform_sa_statistics() -> None:
-    """Transformation pipeline of statistics matches (manually generated) reference file."""
+    """Transformation pipeline of statistics matches reference file."""
     statistics = pd.read_csv(STATS_IN)
     glossary = pd.read_excel(GLOSSARY, engine="openpyxl")
     geometries = gpd.read_parquet(GEOMETRIES)
