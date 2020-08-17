@@ -11,7 +11,7 @@ from validate_email import validate_email
 
 from drem.extract.download import download_file_from_response
 from drem.extract.read_json import read_json
-from drem.extract.unzip import unzip_file
+from drem.extract.zip import unzip_file
 from drem.filepaths import REQUESTS_DIR
 
 
@@ -48,8 +48,6 @@ def _download_ber(email_address: str, filepath: Path) -> None:
             response.raise_for_status()
             download_file_from_response(response, filepath)
 
-    unzip_file(filepath)
-
 
 @task
 @require(
@@ -72,20 +70,20 @@ def extract_ber(email_address: str, savedir: Optional[Path] = CWD) -> pd.DataFra
 
     if not filepath.exists():
 
-        _download_ber(email_address, filepath.with_suffix(".zip"))
+        filepath_zipped = filepath.with_suffix(".zip")
+        filepath_unzipped = filepath.with_suffix("") / "BERPublicsearch.txt"
 
-        ber_raw: pd.DataFrame = pd.read_csv(
-            filepath.with_suffix(".txt"),
+        _download_ber(email_address, filepath_zipped)
+        unzip_file(filepath_zipped)
+
+        pd.read_csv(
+            filepath_unzipped,
             sep="\t",
             encoding="latin-1",
             error_bad_lines=False,
             low_memory=False,
-        )
+        ).to_parquet(filepath)
 
-        remove(filepath.with_suffix(".zip"))
-        remove(filepath.with_suffix(".txt"))
-        remove(filepath.with_name("ReadMe.txt"))
-
-        ber_raw.to_parquet(filepath)
+        remove(filepath_zipped)
 
     return pd.read_parquet(filepath)

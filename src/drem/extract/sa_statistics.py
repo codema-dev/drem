@@ -30,8 +30,7 @@ def extract_sa_statistics(savedir: Path = CWD) -> pd.DataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_statistics.run()
     """
-    filename = "sa_statistics"
-    filepath = savedir / filename
+    filepath = savedir / "sa_statistics.parquet"
 
     if not filepath.exists():
 
@@ -40,7 +39,9 @@ def extract_sa_statistics(savedir: Path = CWD) -> pd.DataFrame:
             filepath=filepath,
         )
 
-    return pd.read_csv(filepath)
+        pd.read_csv(filepath.with_suffix(".csv")).to_parquet(filepath)
+
+    return pd.read_parquet(filepath)
 
 
 @task(name="Download CSO Small Area Statistics Glossary")
@@ -61,8 +62,7 @@ def extract_sa_glossary(savedir: Path = CWD) -> pd.DataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_glossary.run()
     """
-    filename = "sa_glossary.xlsx"
-    filepath = savedir / filename
+    filepath = savedir / "sa_glossary.parquet"
 
     if not filepath.exists():
 
@@ -71,4 +71,8 @@ def extract_sa_glossary(savedir: Path = CWD) -> pd.DataFrame:
             filepath=filepath,
         )
 
-    return pd.read_excel(filepath, engine="openpyxl")
+        pd.read_excel(filepath.with_suffix(".xlsx"), engine="openpyxl").to_parquet(
+            filepath,
+        )
+
+    return pd.read_parquet(filepath)

@@ -8,7 +8,7 @@ import geopandas as gpd
 from prefect import task
 
 from drem.extract.download import download
-from drem.extract.unzip import unzip_file
+from drem.extract.zip import unzip_file
 
 
 CWD = Path.cwd()
@@ -32,11 +32,12 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_geometries.run()
     """
-    filename: str = "sa_geometries"
-    filepath: Path = savedir / filename
-    filepath_zipped: Path = filepath.with_suffix(".zip")
+    filepath: Path = savedir / "sa_geometries.parquet"
 
     if not filepath.exists():
+
+        filepath_unzipped: Path = filepath.with_suffix("")
+        filepath_zipped: Path = filepath_unzipped.with_suffix(".zip")
 
         download(
             url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
@@ -44,6 +45,9 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
         )
 
         unzip_file(filepath_zipped)
+
+        gpd.read_file(filepath_unzipped / "sa_geometries").to_parquet(filepath)
+
         remove(filepath_zipped)
 
-    return gpd.read_file(filepath)
+    return gpd.read_parquet(filepath)
