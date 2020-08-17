@@ -7,10 +7,10 @@ from _pytest.monkeypatch import MonkeyPatch
 
 import drem
 
-from drem.filepaths import TEST_DATA_EXTERNAL
+from drem.filepaths import UTEST_DATA_EXTERNAL
 
 
-SA_GEOM_ZIPPED = TEST_DATA_EXTERNAL / "sa_geometries.zip"
+SA_GEOM_ZIPPED = UTEST_DATA_EXTERNAL / "sa_geometries.zip"
 
 
 def mock_download(*args, **kwargs) -> None:

@@ -7,11 +7,11 @@ from _pytest.monkeypatch import MonkeyPatch
 
 import drem
 
-from drem.filepaths import TEST_DATA_EXTERNAL
+from drem.filepaths import UTEST_DATA_EXTERNAL
 
 
-SA_STATISTICS = TEST_DATA_EXTERNAL / "sa_statistics.csv"
-SA_GLOSSARY = TEST_DATA_EXTERNAL / "sa_glossary.xlsx"
+SA_STATISTICS = UTEST_DATA_EXTERNAL / "sa_statistics.csv"
+SA_GLOSSARY = UTEST_DATA_EXTERNAL / "sa_glossary.xlsx"
 
 
 def mock_download(*args, **kwargs) -> None:

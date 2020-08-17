@@ -6,15 +6,15 @@ from geopandas.testing import assert_geodataframe_equal
 
 import drem
 
-from drem.filepaths import TEST_DATA_TRANSFORM
+from drem.filepaths import UTEST_DATA_TRANSFORM
 
 
-SAS_IN: Path = TEST_DATA_TRANSFORM / "sa_geometries_raw.parquet"
-SAS_EOUT: Path = TEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
+SAS_IN: Path = UTEST_DATA_TRANSFORM / "sa_geometries_raw.parquet"
+SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
 
 
 def test_transform_sa_geometries() -> None:
-    """Transformed CSO SA geometries match (manually generated) reference file."""
+    """Transformed CSO SA geometries match reference data."""
     geometries = gpd.read_parquet(SAS_IN)
 
     output = drem.transform_sa_geometries.run(geometries).reset_index(drop=True)
