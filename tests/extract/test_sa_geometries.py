@@ -28,7 +28,7 @@ def test_extract_sa_geometries(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
     copyfile(SA_GEOM_ZIPPED, tmp_path / "sa_geometries.zip")
     monkeypatch.setattr(drem.extract.sa_geometries, "download", mock_download)
 
-    output = drem.extract_sa_geometries.run(tmp_path)
+    drem.extract_sa_geometries.run(tmp_path)
     expected_file_output = tmp_path / "sa_geometries.parquet"
 
     assert expected_file_output.exists()

@@ -29,7 +29,7 @@ def test_extract_sa_statistics(monkeypatch: MonkeyPatch, tmp_path: Path) -> None
     copyfile(SA_STATISTICS, tmp_path / "sa_statistics.csv")
     monkeypatch.setattr(drem.extract.sa_statistics, "download", mock_download)
 
-    output = drem.extract_sa_statistics.run(tmp_path)
+    drem.extract_sa_statistics.run(tmp_path)
     expected_file_output = tmp_path / "sa_statistics.parquet"
 
     assert expected_file_output.exists()

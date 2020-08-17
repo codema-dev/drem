@@ -29,7 +29,7 @@ def test_extract_ber(monkeypatch: MonkeyPatch, tmp_path: Path) -> None:
     copyfile(BER_ZIPPED, tmp_path / "BERPublicsearch.zip")
     monkeypatch.setattr(drem.extract.ber, "_download_ber", mock_download_ber)
 
-    output = drem.extract_ber.run("fake-email@fake-company.ie", tmp_path)
+    drem.extract_ber.run("fake-email@fake-company.ie", tmp_path)
     expected_file_output = tmp_path / "BERPublicsearch.parquet"
 
     assert expected_file_output.exists()
