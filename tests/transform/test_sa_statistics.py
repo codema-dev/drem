@@ -7,21 +7,21 @@ from geopandas.testing import assert_geodataframe_equal
 from tdda.referencetest.referencetest import ReferenceTest
 
 from drem import transform_sa_statistics
-from drem.filepaths import TEST_DATA_DIR
+from drem.filepaths import TEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_year_built
 from drem.transform.sa_statistics import _melt_year_built_columns
 
 
-STATS_IN: Path = TEST_DATA_DIR / "sa_statistics_raw.csv"
-GLOSSARY: Path = TEST_DATA_DIR / "sa_glossary.xlsx"
-GEOMETRIES: Path = TEST_DATA_DIR / "dublin_sa_geometries_clean.parquet"
+STATS_IN: Path = TEST_DATA_TRANSFORM / "sa_statistics_raw.csv"
+GLOSSARY: Path = TEST_DATA_TRANSFORM / "sa_glossary.xlsx"
+GEOMETRIES: Path = TEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
 
-EXTRACT_EOUT: Path = TEST_DATA_DIR / "dublin_sa_extract_year_built.csv"
-MELT_EOUT: Path = TEST_DATA_DIR / "dublin_sa_melt_year_built.csv"
-CLEANED_EOUT: Path = TEST_DATA_DIR / "dublin_sa_clean_year_built.csv"
-STATS_EOUT: Path = TEST_DATA_DIR / "dublin_sa_statistics_clean.parquet"
+EXTRACT_EOUT: Path = TEST_DATA_TRANSFORM / "dublin_sa_extract_year_built.csv"
+MELT_EOUT: Path = TEST_DATA_TRANSFORM / "dublin_sa_melt_year_built.csv"
+CLEANED_EOUT: Path = TEST_DATA_TRANSFORM / "dublin_sa_clean_year_built.csv"
+STATS_EOUT: Path = TEST_DATA_TRANSFORM / "dublin_sa_statistics_clean.parquet"
 
 
 def test_extract_year_built(ref: ReferenceTest) -> None:
