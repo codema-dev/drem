@@ -8,7 +8,6 @@ from pandas.testing import assert_frame_equal
 
 import drem
 
-from drem.extract.sa_geometries import _extract_dublin_local_authorities
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_geometries import _extract_dublin_local_authorities
 
@@ -19,7 +18,7 @@ SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "sa_geometries_clean.parquet"
 
 def test_extract_dublin_local_authorities() -> None:
     """Extracted DataFrame contains only Dublin local authorities."""
-    geometries = gpd.GeoDataFrame(
+    geometries = pd.DataFrame(
         {
             "COUNTYNAME": [
                 "Kildare",
@@ -31,7 +30,7 @@ def test_extract_dublin_local_authorities() -> None:
         },
     )
 
-    expected_output = gpd.GeoDataFrame(
+    expected_output = pd.DataFrame(
         {
             "COUNTYNAME": [
                 "Dun Laoghaire-Rathdown",
@@ -42,9 +41,11 @@ def test_extract_dublin_local_authorities() -> None:
         },
     )
 
-    output = _extract_dublin_local_authorities(geometries)
+    output = _extract_dublin_local_authorities(geometries).reset_index(drop=True)
 
-    assert_geodataframe_equal(output, expected_output)
+    assert_frame_equal(
+        output, expected_output,
+    )
 
 
 def test_extract_dublin_local_authorities() -> None:
