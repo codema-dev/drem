@@ -74,6 +74,30 @@ def _extract_dublin_small_areas(
     return geometries.merge(statistics)
 
 
+def _link_small_areas_to_postcodes(
+    statistics: gpd.GeoDataFrame, postcode_geometries: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    """Link Small Areas to their corresponding Postcode.
+
+    By finding which Postcode contains which Small Area Centroid.
+
+    Args:
+        statistics (gpd.GeoDataFrame): Statistics data containing small area geometries
+        postcode_geometries (gpd.GeoDataFrame): Postcode geometries
+
+    Returns:
+        gpd.GeoDataFrame: Statistics data with small areas linked to postcodes
+    """
+    small_area_centroids = statistics.copy().assign(
+        geometry=lambda gdf: gdf.geometry.centroid,
+    )
+    corresponding_postcodes = gpd.sjoin(
+        small_area_centroids, postcode_geometries, how="left",
+    ).drop(columns=["index_right", "geometry"])
+
+    return statistics.merge(corresponding_postcodes, on="small_area")
+
+
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
     statistics: pd.DataFrame, glossary: pd.DataFrame, geometries: gpd.GeoDataFrame,
