@@ -13,7 +13,7 @@ from drem.transform.sa_geometries import _extract_dublin_local_authorities
 
 
 SAS_IN: Path = UTEST_DATA_TRANSFORM / "sa_geometries_raw.parquet"
-SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "sa_geometries_clean.parquet"
+SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
 
 
 def test_extract_dublin_local_authorities() -> None:
