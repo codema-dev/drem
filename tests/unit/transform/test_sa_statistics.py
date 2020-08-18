@@ -129,6 +129,7 @@ def test_transform_sa_statistics() -> None:
         $ set dtypes
     - Extract Dublin Small Areas
     - Link Small Areas to Postcodes
+    - Map Period built to regulatory periods
     """
     output = transform_sa_statistics.run(statistics, glossary, geometries)
 
