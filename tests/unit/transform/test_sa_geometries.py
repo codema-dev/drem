@@ -8,12 +8,43 @@ from pandas.testing import assert_frame_equal
 
 import drem
 
+from drem.extract.sa_geometries import _extract_dublin_local_authorities
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_geometries import _extract_dublin_local_authorities
 
 
 SAS_IN: Path = UTEST_DATA_TRANSFORM / "sa_geometries_raw.parquet"
-SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
+SAS_EOUT: Path = UTEST_DATA_TRANSFORM / "sa_geometries_clean.parquet"
+
+
+def test_extract_dublin_local_authorities() -> None:
+    """Extracted DataFrame contains only Dublin local authorities."""
+    geometries = gpd.GeoDataFrame(
+        {
+            "COUNTYNAME": [
+                "Kildare",
+                "Dun Laoghaire-Rathdown",
+                "Fingal",
+                "South Dublin",
+                "Dublin City",
+            ],
+        },
+    )
+
+    expected_output = gpd.GeoDataFrame(
+        {
+            "COUNTYNAME": [
+                "Dun Laoghaire-Rathdown",
+                "Fingal",
+                "South Dublin",
+                "Dublin City",
+            ],
+        },
+    )
+
+    output = _extract_dublin_local_authorities(geometries)
+
+    assert_geodataframe_equal(output, expected_output)
 
 
 def test_extract_dublin_local_authorities() -> None:
