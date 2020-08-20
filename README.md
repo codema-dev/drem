@@ -1,4 +1,6 @@
-# Dublin Region Energy Masterplan Code Guide
+# Dublin Region Energy Masterplan (drem)
+
+[![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
 
 ## Installation
 
