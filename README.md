@@ -5,6 +5,27 @@
 ![build](https://github.com/codema-dev/drem/workflows/build/badge.svg)
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
 
+The `drem` library currently automates a number of [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) (etl) tasks to generate data for Dublin-specific bottom-up energy modelling.
+
+`drem` enables etl for the following data sets:
+
+- Residential:
+
+    - SEAI's 2016 Census Small Area [Statistics](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv), [Geometries](https://data.gov.ie/dataset/small-areas-ungeneralised-osi-national-statistical-boundaries-2015) & [Glossary](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx).
+
+    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx).
+    
+    - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) created by Shane McGuinness of Trinity College Dublin.
+
+`drem` provides a simple API to call __extract__, __transform__ and __load__ functions from the Command Line or alternatively to [chain functions in a `prefect` flow into a data pipeline](https://docs.prefect.io/core/tutorial/02-etl-flow.html).
+    
+`drem` uses:
+- `prefect` to orchestrate the data pipeline using Python functions.
+- `pandas` to clean columnar data and `geopandas` to clean columnar geospatial data.
+- `requests` to extract and download data via HTTP requests
+
+
+
 ## Installation
 
 ```bash
@@ -39,17 +60,13 @@ For example; to download individual raw data files and tidy them for Dublin run:
 [3]: sa_statistics_dublin = drem.transform_sa_statistics.run(sa_statistics_raw)
 ```
 
-### Running Extract, Transform, Load
-
-```python
-[1]: run src/drem/extract_transform_load.py
-[2]: flow.run()
-```
+Currently `drem` calls the above functions in a `prefect` data pipeline (or flow) Python script that can be found at `src/drem/extract_transform_load.py`, for more information on creating and running `prefect` flows see the [`prefect` documentation](https://docs.prefect.io/core/concepts/flows.html#functional-api)
 
 ---
 
 ## Directory structure
 
+Here's a brief overview of what each file and directory in `drem` does:
 ```
 │
 ├── .github                 <- Scripts to run Github Actions CI
@@ -89,6 +106,7 @@ For more information see:
 - externals
     - [libpostal](https://github.com/openvenues/libpostal) enables fuzzy address matching
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
+    
 ---
 
 ## Contributing to `drem`
@@ -114,6 +132,7 @@ For more information see:
 4. Launch Visual Studio Code in your local `drem` folder
 
 5. [Install Poetry](https://python-poetry.org/docs/) and run `poetry install` on the Command Line to setup your development environment
+
 ---
 
 ### [Optional] Setup Windows Subsystem for Linux 2 (WSL2)
