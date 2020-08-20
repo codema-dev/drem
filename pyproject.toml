@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drem"
-version = "0.1.0"
+version = "0.1.1"
 description = "https://www.codema.ie/projects/local-projects/dublin-region-energy-master-plan"
 authors = ["Rowan Molony <rowan.molony@codema.ie>"]
 license = "MIT"
