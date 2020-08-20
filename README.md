@@ -3,6 +3,7 @@
 [![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
 [![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
 ![build](https://github.com/codema-dev/drem/workflows/build/badge.svg)
+[![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
 
 ## Installation
 
