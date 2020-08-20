@@ -1,6 +1,7 @@
 # Dublin Region Energy Masterplan (drem)
 
 [![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
+[![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
 
 ## Installation
 
