@@ -2,6 +2,7 @@
 
 [![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
 [![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
+![tests](https://github.com/codema-dev/drem/workflows/tests/badge.svg)
 
 ## Installation
 
