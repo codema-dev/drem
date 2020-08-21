@@ -4,6 +4,9 @@
 [![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
 ![build](https://github.com/codema-dev/drem/workflows/build/badge.svg)
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
+[![image](https://img.shields.io/badge/continous%20quality-deepsource-lightgrey)](https://deepsource.io/gh/camelot-dev/camelot/?ref=repository-badge)
+[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+![PyPI - License](https://img.shields.io/pypi/l/drem)
 
 The `drem` library currently automates a number of [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) (etl) tasks to generate data for Dublin-specific bottom-up energy modelling.
 
