@@ -14,5 +14,5 @@ def load_sa_statistics(statistics: gpd.GeoDataFrame) -> None:
     Args:
         statistics (gpd.GeoDataFrame): Transformed Dublin Small Area Statistics data
     """
-    savepath = PROCESSED_DIR / "small_area_statistics"
-    statistics.to_file(savepath)
+    savepath = PROCESSED_DIR / "small_area_statistics.parquet"
+    statistics.to_parquet(savepath)
