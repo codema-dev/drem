@@ -3,6 +3,7 @@ from typing import List
 import geopandas as gpd
 import pandas as pd
 
+from icontract import require
 from prefect import task
 
 
@@ -67,11 +68,13 @@ def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+@require(lambda statistics: "small_area" in statistics.columns)
+@require(lambda geometries: "small_area" in geometries.columns)
 def _extract_dublin_small_areas(
     statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
 
-    return geometries.merge(statistics)
+    return geometries.copy().merge(statistics)
 
 
 def _link_small_areas_to_postcodes(
@@ -105,7 +108,19 @@ def transform_sa_statistics(
     sa_geometries: gpd.GeoDataFrame,
     postcodes: gpd.GeoDataFrame,
 ) -> pd.DataFrame:
-    """Transform CSO Small Area Statistics via Glossary to 'tidy-data'.
+    """Transform CSO Small Area Statistics.
+
+    By:
+        - Extracts year built columns via glossary
+        - Melts year built columns into rows for each year built type
+        - Clean year built column:
+            $ remove irrelevant substrings
+            $ drop irrelevant columns
+            $ rename columns
+            $ set dtypes
+        - Extract Dublin Small Areas
+        - Link Small Areas to Postcodes
+        - Map Period built to regulatory period
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics

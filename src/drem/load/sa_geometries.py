@@ -14,5 +14,5 @@ def load_sa_geometries(geometries: gpd.GeoDataFrame) -> None:
     Args:
         geometries (gpd.GeoDataFrame): Transformed Dublin Small Area geometry data
     """
-    savepath = PROCESSED_DIR / "small_area_geometries.parquet"
+    savepath = PROCESSED_DIR / "sa_geometries.parquet"
     geometries.to_parquet(savepath)
