@@ -15,7 +15,7 @@ from drem.transform.vo import _remove_symbols_from_column_strings
 
 
 VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
-VO_EOUT: Path = UTEST_DATA_TRANSFORM / "vo_clean.parquet"
+VO_EOUT: Path = UTEST_DATA_TRANSFORM / "vo_clean.geojson"
 
 
 def test_merge_address_columns_into_one() -> None:
@@ -62,6 +62,6 @@ def test_convert_to_geodataframe() -> None:
 def test_transform_vo() -> None:
     """Transformed Valuation Office GeoDataFrame matches reference file."""
     vo_raw: pd.DataFrame = pd.read_parquet(VO_IN)
-    output = vo.transform_vo(vo_raw)
-    expected_output: gpd.GeoDataFrame = gpd.read_parquet(VO_EOUT)
-    assert_geodataframe_equal(output, expected_output)
+    output = vo.transform_vo(vo_raw).reset_index(drop=True)
+    expected_output: gpd.GeoDataFrame = gpd.read_file(VO_EOUT)
+    assert_geodataframe_equal(output, expected_output, check_less_precise=True)
