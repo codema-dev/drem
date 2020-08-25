@@ -8,7 +8,6 @@ from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
-from drem.transform import vo
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _merge_address_columns_into_one
 from drem.transform.vo import _remove_symbols_from_column_strings
@@ -56,12 +55,4 @@ def test_convert_to_geodataframe() -> None:
     )
 
     output: gpd.GeoDataFrame = _convert_to_geodataframe(coordinates)
-    assert_geodataframe_equal(output, expected_output)
-
-
-def test_transform_vo() -> None:
-    """Transformed Valuation Office GeoDataFrame matches reference file."""
-    vo_raw: pd.DataFrame = pd.read_parquet(VO_IN)
-    output = vo.transform_vo(vo_raw)
-    expected_output: gpd.GeoDataFrame = gpd.read_parquet(VO_EOUT)
     assert_geodataframe_equal(output, expected_output)
