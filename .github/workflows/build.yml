@@ -34,9 +34,6 @@ jobs:
         restore-keys: |
           poetry-${{ hashFiles('**/poetry.lock') }}
 
-    - name: Debugging with tmate
-      uses: mxschmitt/action-tmate@v2
-
     - name: Set Poetry config
       run: |
         poetry config virtualenvs.in-project false
@@ -51,6 +48,9 @@ jobs:
 
     - name: Test with pytest
       run: poetry run pytest --cov . -n 2 --cov-report=xml
+
+    - name: Debugging with tmate
+      uses: mxschmitt/action-tmate@v2
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
