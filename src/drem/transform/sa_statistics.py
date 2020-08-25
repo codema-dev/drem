@@ -100,14 +100,18 @@ def _link_small_areas_to_postcodes(
 
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
-    statistics: pd.DataFrame, glossary: pd.DataFrame, geometries: gpd.GeoDataFrame,
+    statistics: pd.DataFrame,
+    glossary: pd.DataFrame,
+    sa_geometries: gpd.GeoDataFrame,
+    postcodes: gpd.GeoDataFrame,
 ) -> pd.DataFrame:
     """Transform CSO Small Area Statistics via Glossary to 'tidy-data'.
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
         glossary (pd.DataFrame): CSO Small Area Statistics Glossary
-        geometries (gpd.GeoDataFrame): CSO Small Area Geometries
+        sa_geometries (gpd.GeoDataFrame): CSO Small Area Geometries
+        postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
@@ -116,5 +120,6 @@ def transform_sa_statistics(
         statistics.pipe(_extract_year_built, glossary)
         .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
-        .pipe(_extract_dublin_small_areas, geometries)
+        .pipe(_extract_dublin_small_areas, sa_geometries)
+        .pipe(_link_small_areas_to_postcodes, postcodes)
     )
