@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pathlib import Path
+from shutil import rmtree
 
 import geopandas as gpd
 
@@ -32,23 +33,24 @@ def extract_dublin_postcodes(savedir: Path = CWD) -> gpd.GeoDataFrame:
         >>> drem.extract_dublin_postcodes.run()
     """
     filepath_zipped = savedir / "dublin_postcodes.zip"
+    filepath_unzipped: Path = savedir / "dublin_postcodes"
+    filepath_parquet: Path = savedir / "dublin_postcodes.parquet"
 
-    if not filepath_zipped.exists():
+    if not filepath_parquet.exists():
 
         download(
             url="https://github.com/rdmolony/dublin-postcode-shapefiles/archive/master.zip",
             filepath=filepath_zipped,
         )
+
         unzip_file(filepath_zipped)
 
-    filepath_to_shapefile: Path = (
-        savedir
-        / "dublin_postcodes"
-        / "dublin-postcode-shapefiles-master"
-        / "Postcode_dissolve"
-    )
-    filepath_parquet: Path = filepath_zipped.with_suffix(".parquet")
+        gpd.read_file(
+            filepath_unzipped
+            / "dublin-postcode-shapefiles-master"
+            / "Postcode_dissolve",
+        ).to_parquet(filepath_parquet)
 
-    gpd.read_file(filepath_to_shapefile).to_parquet(filepath_parquet)
+        rmtree(filepath_unzipped)
 
     return gpd.read_parquet(filepath_parquet)
