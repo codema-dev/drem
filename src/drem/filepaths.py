@@ -11,7 +11,10 @@ PROCESSED_DIR = DATA_DIR / "processed"
 INTERIM_DIR = DATA_DIR / "interim"
 EXTERNAL_DIR = DATA_DIR / "external"
 REQUESTS_DIR = DATA_DIR / "requests"
+ROUGHWORK_DIR = DATA_DIR / "roughwork"
+
+FTEST_DATA = TEST_DIR / "functional" / "data"
 
 UTEST_DATA_EXTERNAL = TEST_DIR / "unit" / "extract" / "data"
 UTEST_DATA_TRANSFORM = TEST_DIR / "unit" / "transform" / "data"
-FTEST_DATA = TEST_DIR / "functional" / "data"
+UTEST_DATA_UTILITIES = TEST_DIR / "unit" / "utilities" / "data"
