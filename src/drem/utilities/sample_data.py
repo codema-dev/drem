@@ -45,16 +45,18 @@ def create_test_data(
     Raises:
         IOError: If v'file_engine' metadata is not specified for input data files!
     """
-    input_files = input_dirpath.glob("*.parquet")
+    output_filenames = [file.name for file in output_dirpath.glob("*.parquet")]
 
-    for file in input_files:
+    for file in input_dirpath.glob("*.parquet"):
 
-        try:
-            file_engine = (
-                pq.read_metadata(file).metadata[b"file_engine"].decode("utf-8")
-            )
-        except KeyError:
-            raise IOError("No b'file_engine' metadata key found!")
+        if file.name not in output_filenames:
 
-        output_filepath = output_dirpath / file.name
-        _create_sample_data(file, output_filepath, file_engine, sample_size)
+            try:
+                file_engine = (
+                    pq.read_metadata(file).metadata[b"file_engine"].decode("utf-8")
+                )
+            except KeyError:
+                raise IOError("No b'file_engine' metadata key found!")
+
+            output_filepath = output_dirpath / file.name
+            _create_sample_data(file, output_filepath, file_engine, sample_size)
