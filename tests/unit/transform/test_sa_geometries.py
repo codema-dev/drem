@@ -48,38 +48,6 @@ def test_extract_dublin_local_authorities() -> None:
     )
 
 
-def test_extract_dublin_local_authorities() -> None:
-    """Extracted DataFrame contains only Dublin local authorities."""
-    geometries = pd.DataFrame(
-        {
-            "COUNTYNAME": [
-                "Kildare",
-                "Dun Laoghaire-Rathdown",
-                "Fingal",
-                "South Dublin",
-                "Dublin City",
-            ],
-        },
-    )
-
-    expected_output = pd.DataFrame(
-        {
-            "COUNTYNAME": [
-                "Dun Laoghaire-Rathdown",
-                "Fingal",
-                "South Dublin",
-                "Dublin City",
-            ],
-        },
-    )
-
-    output = _extract_dublin_local_authorities(geometries).reset_index(drop=True)
-
-    assert_frame_equal(
-        output, expected_output,
-    )
-
-
 def test_transform_sa_geometries() -> None:
     """Transformed CSO SA geometries match reference data."""
     geometries = gpd.read_parquet(SAS_IN)
