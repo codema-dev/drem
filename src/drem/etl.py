@@ -6,6 +6,7 @@ import prefect
 
 from prefect import Flow
 from prefect import Parameter
+from prefect.tasks.secrets import PrefectSecret
 
 import drem
 
@@ -16,7 +17,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 # Enable checkpointing for pipeline-persisted results
 prefect.config.flows.checkpointing = True
-
+email_address = PrefectSecret("email_address")
 
 with Flow("Extract, Transform & Load DREM Data") as flow:
 
@@ -28,6 +29,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     sa_statistics_raw = drem.extract_sa_statistics(external_dir)
     sa_statistics_glossary = drem.extract_sa_glossary(external_dir)
     dublin_postcodes_raw = drem.extract_dublin_postcodes(external_dir)
+    ber_raw = drem.extract_ber(email_address, external_dir)
 
     sa_geometries_clean = drem.transform_sa_geometries(sa_geometries_raw)
     dublin_postcodes_clean = drem.transform_dublin_postcodes(dublin_postcodes_raw)
