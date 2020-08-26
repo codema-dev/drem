@@ -14,4 +14,4 @@ REQUESTS_DIR = DATA_DIR / "requests"
 
 UTEST_DATA_EXTERNAL = TEST_DIR / "unit" / "extract" / "data"
 UTEST_DATA_TRANSFORM = TEST_DIR / "unit" / "transform" / "data"
-FTEST_DATA_TRANSFORM = TEST_DIR / "functional" / "transform" / "data"
+FTEST_DATA = TEST_DIR / "functional" / "data"
