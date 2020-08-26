@@ -45,7 +45,7 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
 
         unzip_file(filepath_zipped)
 
-        gpd.read_file(filepath_unzipped / "sa_geometries").to_parquet(filepath_parquet)
+        gpd.read_file(filepath_unzipped).to_parquet(filepath_parquet)
 
         rmtree(filepath_unzipped)
 
