@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
 import pyarrow.parquet as pq
@@ -18,11 +20,11 @@ def test_add_pandas_engine_metadata_to_parquet_file(tmp_path) -> None:
     assert pq.read_metadata(filepath).metadata[b"file_engine"] == b"pandas"
 
 
-def test_add_geopandas_engine_metadata_to_parquet_file(tmp_path) -> None:
+def test_add_geopandas_engine_metadata_to_parquet_file(tmp_path: Path) -> None:
     """Geopandas engine metadata added.
 
     Args:
-        tmp_path ([type]): Pytest temporary path plugin
+        tmp_path (Path): Pytest temporary path plugin
     """
     filepath = tmp_path / "test_meta.parquet"
     gpd.GeoDataFrame().to_parquet(filepath)
