@@ -17,11 +17,16 @@ def _create_sample_data(
 ) -> None:
 
     if file_engine == "pandas":
-        pd.read_parquet(input_filepath).sample(sample_size).to_parquet(output_filepath)
+        input_data = pd.read_parquet(input_filepath)
     elif file_engine == "geopandas":
-        gpd.read_parquet(input_filepath).sample(sample_size).to_parquet(output_filepath)
+        input_data = gpd.read_parquet(input_filepath)
     else:
         raise ValueError("Only 'pandas' and 'geopandas' are currently supported!")
+
+    if len(input_data) < sample_size:
+        input_data.sample(len(input_data)).to_parquet(output_filepath)
+    else:
+        input_data.sample(sample_size).to_parquet(output_filepath)
 
 
 def create_test_data(

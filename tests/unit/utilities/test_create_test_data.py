@@ -93,6 +93,26 @@ def test_create_sample_data_raises_not_parquet(
         )
 
 
+def test_create_sample_data_uses_len_data_if_sample_size_bigger(
+    input_dir: Path, output_dir: Path,
+) -> None:
+    """Function uses row length of 1 instead of sample_size if smaller.
+
+    Args:
+        input_dir (Path): Path to a temporary input directory containing parquet files
+        with metadata
+        output_dir (Path): Path to an empty temporary output directory
+    """
+    input_filepath = input_dir / "pandas_file.parquet"
+    output_filepath = output_dir / "pandas_file.parquet"
+    _create_sample_data(
+        input_filepath, output_filepath, file_engine="pandas", sample_size=10,
+    )
+
+    output = pd.read_parquet(output_filepath)
+    assert len(output) == 1
+
+
 def test_create_sample_data(input_dir: Path, output_dir: Path) -> None:
     """Test sample data created for a single filepath.
 
