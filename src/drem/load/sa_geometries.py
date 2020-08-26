@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
+from pathlib import Path
+
 import geopandas as gpd
 
 from prefect import task
 
-from drem.filepaths import PROCESSED_DIR
-
 
 @task(name="Load Small Area Geometries to file")
-def load_sa_geometries(geometries: gpd.GeoDataFrame) -> None:
+def load_sa_geometries(geometries: gpd.GeoDataFrame, savedir: Path) -> None:
     """Load transformed Dublin Small Area geometry data to local file.
 
     Args:
         geometries (gpd.GeoDataFrame): Transformed Dublin Small Area geometry data
+        savedir (Path): Save directory for data
     """
-    savepath = PROCESSED_DIR / "small_area_geometries"
-    geometries.to_file(savepath)
+    geometries.to_parquet(savedir / "sa_geometries.parquet")

@@ -1,5 +1,5 @@
-from os import remove
 from pathlib import Path
+from shutil import rmtree
 from typing import Optional
 
 import pandas as pd
@@ -66,24 +66,24 @@ def extract_ber(email_address: str, savedir: Optional[Path] = CWD) -> pd.DataFra
     Returns:
         pd.DataFrame: Downloaded raw ber data
     """
-    filepath: Path = savedir / "BERPublicsearch.parquet"
+    filepath_zipped: Path = savedir / "BERPublicsearch.zip"
+    filepath_unzipped: Path = savedir / "BERPublicsearch"
+    filepath_parquet: Path = savedir / "BERPublicsearch.parquet"
 
-    if not filepath.exists():
-
-        filepath_zipped = filepath.with_suffix(".zip")
-        filepath_unzipped = filepath.with_suffix("") / "BERPublicsearch.txt"
+    if not filepath_parquet.exists():
 
         _download_ber(email_address, filepath_zipped)
+
         unzip_file(filepath_zipped)
 
         pd.read_csv(
-            filepath_unzipped,
+            filepath_unzipped / "BERPublicsearch.txt",
             sep="\t",
             encoding="latin-1",
             error_bad_lines=False,
             low_memory=False,
-        ).to_parquet(filepath)
+        ).to_parquet(filepath_parquet)
 
-        remove(filepath_zipped)
+        rmtree(filepath_unzipped)
 
-    return pd.read_parquet(filepath)
+    return pd.read_parquet(filepath_parquet)

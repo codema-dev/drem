@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from os import remove
 from pathlib import Path
+from shutil import rmtree
 
 import geopandas as gpd
 
@@ -32,12 +32,11 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_geometries.run()
     """
-    filepath: Path = savedir / "sa_geometries.parquet"
+    filepath_zipped: Path = savedir / "sa_geometries.zip"
+    filepath_unzipped = savedir / "sa_geometries"
+    filepath_parquet = savedir / "sa_geometries.parquet"
 
-    if not filepath.exists():
-
-        filepath_unzipped: Path = filepath.with_suffix("")
-        filepath_zipped: Path = filepath_unzipped.with_suffix(".zip")
+    if not filepath_parquet.exists():
 
         download(
             url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
@@ -46,8 +45,8 @@ def extract_sa_geometries(savedir: Path = CWD) -> gpd.GeoDataFrame:
 
         unzip_file(filepath_zipped)
 
-        gpd.read_file(filepath_unzipped / "sa_geometries").to_parquet(filepath)
+        gpd.read_file(filepath_unzipped).to_parquet(filepath_parquet)
 
-        remove(filepath_zipped)
+        rmtree(filepath_unzipped)
 
-    return gpd.read_parquet(filepath)
+    return gpd.read_parquet(filepath_parquet)

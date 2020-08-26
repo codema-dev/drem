@@ -30,18 +30,19 @@ def extract_sa_statistics(savedir: Path = CWD) -> pd.DataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_statistics.run()
     """
-    filepath = savedir / "sa_statistics.parquet"
+    filepath_csv = savedir / "sa_statistics.csv"
+    filepath_parquet = savedir / "sa_statistics.parquet"
 
-    if not filepath.exists():
+    if not filepath_parquet.exists():
 
         download(
             url="https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv",
-            filepath=filepath,
+            filepath=filepath_csv,
         )
 
-        pd.read_csv(filepath.with_suffix(".csv")).to_parquet(filepath)
+        pd.read_csv(filepath_csv).to_parquet(filepath_parquet)
 
-    return pd.read_parquet(filepath)
+    return pd.read_parquet(filepath_parquet)
 
 
 @task(name="Download CSO Small Area Statistics Glossary")
@@ -62,17 +63,16 @@ def extract_sa_glossary(savedir: Path = CWD) -> pd.DataFrame:
         >>> from pathlib import Path
         >>> drem.extract_sa_glossary.run()
     """
-    filepath = savedir / "sa_glossary.parquet"
+    filepath_excel = savedir / "sa_glossary.xlsx"
+    filepath_parquet = savedir / "sa_glossary.parquet"
 
-    if not filepath.exists():
+    if not filepath_parquet.exists():
 
         download(
             url="https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx",
-            filepath=filepath,
+            filepath=filepath_excel,
         )
 
-        pd.read_excel(filepath.with_suffix(".xlsx"), engine="openpyxl").to_parquet(
-            filepath,
-        )
+        pd.read_excel(filepath_excel, engine="openpyxl").to_parquet(filepath_parquet)
 
-    return pd.read_parquet(filepath)
+    return pd.read_parquet(filepath_parquet)
