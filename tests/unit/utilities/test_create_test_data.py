@@ -144,3 +144,21 @@ def test_create_test_data_creates_output_files(
     output_files = list(output_dir.glob("*.parquet"))
 
     assert output_files
+
+
+def test_create_test_data_doesnt_overwrite_existing_output_files(
+    input_dir: Path, output_dir: Path,
+) -> None:
+    """Function doesn't overwrite existing output files if exist.
+
+    Args:
+        input_dir (Path): Path to a temporary directory containing files with
+        file_engine metadata
+        output_dir (Path): Path to an empty output_dir
+    """
+    original_file: Path = input_dir / "pandas_file.parquet"
+    overwritten_file: Path = output_dir / "pandas_file.parquet"
+    pd.read_parquet(original_file).assign(extra_col="X").to_parquet(overwritten_file)
+
+    create_test_data(input_dir, output_dir, sample_size=1)
+    assert "extra_col" in pd.read_parquet(overwritten_file).columns
