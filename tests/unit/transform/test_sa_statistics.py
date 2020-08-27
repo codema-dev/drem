@@ -82,6 +82,9 @@ def test_link_small_areas_to_postcodes() -> None:
     """Small Areas that are 'mostly' in Postcode are linked to Postcode."""
     small_areas = gpd.GeoDataFrame(
         {
+            "period_built": ["before 1919", "after 2010"],
+            "households": [3, 4],
+            "people": [10, 12],
             "small_area": [1, 2],
             "geometry": [
                 Polygon([(1, 0), (1, 1), (3, 1)]),
@@ -102,6 +105,9 @@ def test_link_small_areas_to_postcodes() -> None:
 
     expected_output = gpd.GeoDataFrame(
         {
+            "period_built": ["before 1919", "after 2010"],
+            "households": [3, 4],
+            "people": [10, 12],
             "small_area": [1, 2],
             "geometry": [
                 Polygon([(1, 0), (1, 1), (3, 1)]),
@@ -113,4 +119,30 @@ def test_link_small_areas_to_postcodes() -> None:
 
     output = _link_small_areas_to_postcodes(small_areas, postcodes)
 
-    assert_geodataframe_equal(output, expected_output)
+    assert_geodataframe_equal(output, expected_output, check_like=True)
+
+
+def test_link_small_areas_to_postcodes_raises_error() -> None:
+    """Raises error if output columns do not precisely match contract."""
+    small_areas = gpd.GeoDataFrame(
+        {
+            "small_area": [1, 2],
+            "geometry": [
+                Polygon([(1, 0), (1, 1), (3, 1)]),
+                Polygon([(1, 0), (1, 1), (0, 1)]),
+            ],
+        },
+    )
+
+    postcodes = gpd.GeoDataFrame(
+        {
+            "postcodes": ["Co. Dublin", "Dublin 1"],
+            "geometry": [
+                Polygon([(0, 0), (3, 0), (0, 3)]),  # only overlaps with small_area=1
+                Polygon([(3, 3), (0, 3), (3, 0)]),  # mostly overlaps with small_area==1
+            ],
+        },
+    )
+
+    with pytest.raises(ViolationError):
+        _link_small_areas_to_postcodes(small_areas, postcodes)
