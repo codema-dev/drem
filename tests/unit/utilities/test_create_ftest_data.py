@@ -1,3 +1,5 @@
+from itertools import cycle
+from itertools import islice
 from os import mkdir
 from pathlib import Path
 from typing import Set
@@ -9,6 +11,58 @@ import pytest
 from shapely.geometry import Point
 
 from drem.utilities.ftest_data import create_ftest_data
+
+
+def _create_berpublicsearch(input_dir: Path, sample_size: int) -> None:
+
+    dummy_sample = range(sample_size)
+    pd.DataFrame({"col": list(dummy_sample)}).to_parquet(
+        input_dir / "BERPublicsearch.parquet",
+    )
+
+
+def _create_sa_statistics(input_dir: Path, sample_size: int) -> None:
+
+    dummy_sample = range(sample_size)
+    pd.DataFrame({"col": list(dummy_sample)}).to_parquet(
+        input_dir / "sa_statistics.parquet",
+    )
+
+
+def _create_sa_glossary(input_dir: Path, sample_size: int) -> None:
+
+    dummy_sample = range(sample_size)
+    pd.DataFrame({"col": list(dummy_sample)}).to_parquet(
+        input_dir / "sa_glossary.parquet",
+    )
+
+
+def _create_sa_geometries(input_dir: Path, sample_size: int) -> None:
+
+    dummy_sample = range(sample_size)
+    countynames = list(
+        islice(
+            cycle(["Dun Laoghaire-Rathdown", "Fingal", "South Dublin", "Dublin City"]),
+            sample_size,
+        ),
+    )
+    gpd.GeoDataFrame(
+        {
+            "COUNTYNAME": countynames,
+            "geometry": [Point(x, y) for x, y in zip(dummy_sample, dummy_sample)],
+        },
+    ).to_parquet(input_dir / "sa_geometries.parquet")
+
+
+def _create_dublin_postcodes(input_dir: Path, sample_size: int) -> None:
+
+    dummy_sample = range(sample_size)
+    gpd.GeoDataFrame(
+        {
+            "col": list(dummy_sample),
+            "geometry": [Point(x, y) for x, y in zip(dummy_sample, dummy_sample)],
+        },
+    ).to_parquet(input_dir / "dublin_postcodes.parquet")
 
 
 @pytest.fixture
@@ -24,34 +78,14 @@ def input_dir(tmp_path) -> Path:
     input_dir: Path = tmp_path / "input"
     mkdir(input_dir)
 
-    large_sample_size = range(250)
-    small_sample_size = range(30)
+    large_sample_size = 1000
+    small_sample_size = 30
 
-    pd.DataFrame({"col": list(large_sample_size)}).to_parquet(
-        input_dir / "BERPublicsearch.parquet",
-    )
-    pd.DataFrame({"col": list(large_sample_size)}).to_parquet(
-        input_dir / "sa_statistics.parquet",
-    )
-    pd.DataFrame({"col": list(small_sample_size)}).to_parquet(
-        input_dir / "sa_glossary.parquet",
-    )
-    gpd.GeoDataFrame(
-        {
-            "col": list(large_sample_size),
-            "geometry": [
-                Point(x, y) for x, y in zip(large_sample_size, large_sample_size)
-            ],
-        },
-    ).to_parquet(input_dir / "sa_geometries.parquet")
-    gpd.GeoDataFrame(
-        {
-            "col": list(small_sample_size),
-            "geometry": [
-                Point(x, y) for x, y in zip(small_sample_size, small_sample_size)
-            ],
-        },
-    ).to_parquet(input_dir / "dublin_postcodes.parquet")
+    _create_berpublicsearch(input_dir, large_sample_size)
+    _create_sa_statistics(input_dir, large_sample_size)
+    _create_sa_glossary(input_dir, small_sample_size)
+    _create_sa_geometries(input_dir, large_sample_size)
+    _create_dublin_postcodes(input_dir, small_sample_size)
 
     return input_dir
 
