@@ -6,11 +6,15 @@ import pytest
 
 from geopandas.testing import assert_geodataframe_equal
 from icontract import ViolationError
+from shapely.geometry import Point
 from shapely.geometry import Polygon
 from tdda.referencetest.referencetest import ReferenceTest
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
+from drem.transform.sa_statistics import (
+    _estimate_total_residential_heat_demand_per_small_area,
+)
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_year_built
 from drem.transform.sa_statistics import _link_small_areas_to_ber
@@ -179,3 +183,31 @@ def test_link_small_areas_to_ber() -> None:
     output: gpd.GeoDataFrame = _link_small_areas_to_ber(small_areas, ber)
 
     assert_geodataframe_equal(output, expected_output, check_like=True)
+
+
+def test_estimate_total_residential_heat_demand_per_small_area() -> None:
+    """Total residential heat demand output matches expected output."""
+    small_area_statistics: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {
+            "small_area": [267112002],
+            "period_built": ["1971 - 1980"],
+            "households": [21],
+            "postcodes": ["Dublin 24"],
+            "geometry": [Point((1, 1))],
+            "mean_heat_demand_per_hh": [16434.614],
+        },
+    )
+
+    expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {
+            "small_area": [267112002],
+            "total_heat_demand_per_sa": [345126.894],
+            "geometry": [Point((1, 1))],
+        },
+    )
+
+    output: gpd.GeoDataFrame = _estimate_total_residential_heat_demand_per_small_area(
+        small_area_statistics,
+    )
+
+    assert_geodataframe_equal(output, expected_output)

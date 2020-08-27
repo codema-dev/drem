@@ -119,6 +119,18 @@ def _link_small_areas_to_ber(
     return small_area_statistics.merge(ber, on=["postcodes", "period_built"])
 
 
+def _estimate_total_residential_heat_demand_per_small_area(
+    small_area_statistics: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+
+    small_area_statistics["total_heat_demand_per_sa"] = (
+        small_area_statistics["households"]
+        * small_area_statistics["mean_heat_demand_per_hh"]
+    )
+
+    return small_area_statistics[["small_area", "total_heat_demand_per_sa", "geometry"]]
+
+
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
     statistics: pd.DataFrame,
@@ -141,6 +153,7 @@ def transform_sa_statistics(
         - Link Small Areas to postcodes
         - TODO: Map Period built to regulatory period
         - Link Small Areas to BER on archetypes
+        - Use archetypes to estimate total residential heat demand per small area
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
@@ -159,4 +172,5 @@ def transform_sa_statistics(
         .pipe(_extract_dublin_small_areas, sa_geometries)
         .pipe(_link_small_areas_to_postcodes, postcodes)
         .pipe(_link_small_areas_to_ber, ber)
+        .pipe(_estimate_total_residential_heat_demand_per_small_area)
     )
