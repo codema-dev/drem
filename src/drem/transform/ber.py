@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+from icontract import require
 from prefect import task
 
 
@@ -45,6 +46,19 @@ def _bin_year_of_construction_as_in_census(ber: pd.DataFrame) -> pd.DataFrame:
     return ber
 
 
+@require(
+    lambda ber: set(ber.columns) == {"CountyName", "period_built", "total_heat_demand"},
+)
+def _get_mean_total_heat_demand(ber: pd.DataFrame) -> pd.DataFrame:
+
+    return (
+        ber.groupby(["CountyName", "period_built"])["total_heat_demand"]
+        .mean()
+        .rename("mean_heat_demand")
+        .reset_index()
+    )
+
+
 @task
 def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
     """Tidy BER data set.
@@ -62,15 +76,11 @@ def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
             :,
             [
                 "CountyName",
-                "DwellingTypeDescr",
                 "Year_of_Construction",
                 "DeliveredEnergyMainSpace",
                 "DeliveredEnergyMainWater",
                 "DeliveredEnergySecondarySpace",
                 "DeliveredEnergySupplementaryWater",
-                "DeliveredEnergyPumpsFans",
-                "DeliveredLightingEnergy",
-                "TotalDeliveredEnergy",
             ],
         ]
         .pipe(_extract_dublin_rows)
@@ -85,7 +95,6 @@ def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
                 ]
             ].sum(axis=1),
         )
-        .loc[
-            :, ["CountyName", "period_built", "DwellingTypeDescr", "total_heat_demand"],
-        ]
+        .loc[:, ["CountyName", "period_built", "total_heat_demand"]]
+        .pipe(_get_mean_total_heat_demand)
     )

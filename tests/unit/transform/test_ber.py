@@ -1,13 +1,11 @@
 import pandas as pd
 
 from pandas.testing import assert_frame_equal
-from tdda.referencetest.referencetest import ReferenceTest
-
-import drem
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.ber import _bin_year_of_construction_as_in_census
 from drem.transform.ber import _extract_dublin_rows
+from drem.transform.ber import _get_mean_total_heat_demand
 
 
 BER_RAW = UTEST_DATA_TRANSFORM / "ber_raw.parquet"
@@ -44,21 +42,23 @@ def test_bin_year_of_construction_as_in_census() -> None:
     assert_frame_equal(output, expected_output)
 
 
-def test_transform_ber(ref: ReferenceTest) -> None:
-    """Transformed ber matches reference data.
+def test_get_mean_total_heat_demand() -> None:
+    """Evaluate mean total heat demand."""
+    ber: pd.DataFrame = pd.DataFrame(
+        {
+            "CountyName": ["Co. Dublin", "Co. Dublin"],
+            "period_built": ["2001 - 2010", "2001 - 2010"],
+            "total_heat_demand": [8315.668, 3053.864],
+        },
+    )
 
-    Args:
-        ref (ReferenceTest): a tdda plugin used to verify a DataFrame against a file.
-    """
-    ber_raw = pd.read_parquet(BER_RAW)
+    expected_output: pd.DataFrame = pd.DataFrame(
+        {
+            "CountyName": ["Co. Dublin"],
+            "period_built": ["2001 - 2010"],
+            "mean_heat_demand": [5684.766],
+        },
+    )
 
-    """ DOES:
-        - Extract columns: Year of Construction, Dwelling Type, Energy ...
-        - Extract Dublin rows
-        - Map Period Built data to National Regulatory Periods
-        - Calculate Total Heat Demand
-        - Extract columns: Period Built, Dwelling Type, Total Heat Demand
-    """
-    ber_clean = drem.transform_ber.run(ber_raw)
-
-    ref.assertDataFrameCorrect(ber_clean, BER_CLEAN)
+    output = _get_mean_total_heat_demand(ber)
+    assert_frame_equal(output, expected_output)
