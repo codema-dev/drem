@@ -3,6 +3,7 @@ from typing import List
 import geopandas as gpd
 import pandas as pd
 
+from icontract import ensure
 from icontract import require
 from prefect import task
 
@@ -77,28 +78,34 @@ def _extract_dublin_small_areas(
     return geometries.copy().merge(statistics)
 
 
+@ensure(
+    lambda result: set(result.columns)
+    == {"small_area", "period_built", "households", "people", "postcodes", "geometry"},
+)
 def _link_small_areas_to_postcodes(
-    statistics: gpd.GeoDataFrame, postcode_geometries: gpd.GeoDataFrame,
+    small_area_statistics: gpd.GeoDataFrame, postcode_geometries: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     """Link Small Areas to their corresponding Postcode.
 
     By finding which Postcode contains which Small Area Centroid.
 
     Args:
-        statistics (gpd.GeoDataFrame): Statistics data containing small area geometries
+        small_area_statistics (gpd.GeoDataFrame): Statistics data containing small area geometries
         postcode_geometries (gpd.GeoDataFrame): Postcode geometries
 
     Returns:
         gpd.GeoDataFrame: Statistics data with small areas linked to postcodes
     """
-    small_area_centroids = statistics.copy().assign(
+    small_area_centroids = small_area_statistics.copy().assign(
         geometry=lambda gdf: gdf.geometry.centroid,
     )
-    corresponding_postcodes = gpd.sjoin(
+    small_areas_linked_to_postcodes = gpd.sjoin(
         small_area_centroids, postcode_geometries, how="left",
     ).drop(columns=["index_right", "geometry"])
 
-    return statistics.merge(corresponding_postcodes, on="small_area")
+    return small_areas_linked_to_postcodes.assign(
+        geometry=small_area_statistics.geometry,
+    )
 
 
 @task(name="Transform CSO Small Area Statistics via Glossary")
