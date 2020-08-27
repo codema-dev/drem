@@ -13,8 +13,7 @@ EXTERNAL_DIR = DATA_DIR / "external"
 REQUESTS_DIR = DATA_DIR / "requests"
 ROUGHWORK_DIR = DATA_DIR / "roughwork"
 
-FTEST_DATA_EXTERNAL = TEST_DIR / "functional" / "data" / "external"
-FTEST_DATA_PROCESSED = TEST_DIR / "functional" / "data" / "processed"
+FTEST_DATA = TEST_DIR / "functional" / "data"
 
 UTEST_DATA_EXTRACT = TEST_DIR / "unit" / "extract" / "data"
 UTEST_DATA_TRANSFORM = TEST_DIR / "unit" / "transform" / "data"
