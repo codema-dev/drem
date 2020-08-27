@@ -13,7 +13,6 @@ from drem.extract.download import download_file_from_response
 from drem.extract.read_json import read_json
 from drem.extract.zip import unzip_file
 from drem.filepaths import REQUESTS_DIR
-from drem.utilities.parquet_metadata import add_file_engine_metadata_to_parquet_file
 
 
 CWD: Path = Path.cwd()
@@ -86,7 +85,5 @@ def extract_ber(email_address: str, savedir: Optional[Path] = CWD) -> pd.DataFra
         ).to_parquet(filepath_parquet)
 
         rmtree(filepath_unzipped)
-
-        add_file_engine_metadata_to_parquet_file(filepath_parquet, "pandas")
 
     return pd.read_parquet(filepath_parquet)

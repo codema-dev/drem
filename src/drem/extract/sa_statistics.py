@@ -7,7 +7,6 @@ import pandas as pd
 from prefect import task
 
 from drem.extract.download import download
-from drem.utilities.parquet_metadata import add_file_engine_metadata_to_parquet_file
 
 
 CWD = Path.cwd()
@@ -43,8 +42,6 @@ def extract_sa_statistics(savedir: Path = CWD) -> pd.DataFrame:
 
         pd.read_csv(filepath_csv).to_parquet(filepath_parquet)
 
-        add_file_engine_metadata_to_parquet_file(filepath_parquet, "pandas")
-
     return pd.read_parquet(filepath_parquet)
 
 
@@ -77,7 +74,5 @@ def extract_sa_glossary(savedir: Path = CWD) -> pd.DataFrame:
         )
 
         pd.read_excel(filepath_excel, engine="openpyxl").to_parquet(filepath_parquet)
-
-        add_file_engine_metadata_to_parquet_file(filepath_parquet, "pandas")
 
     return pd.read_parquet(filepath_parquet)
