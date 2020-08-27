@@ -9,7 +9,6 @@ from prefect import task
 
 from drem.extract.download import download
 from drem.extract.zip import unzip_file
-from drem.utilities.parquet_metadata import add_file_engine_metadata_to_parquet_file
 
 
 CWD = Path.cwd()
@@ -53,7 +52,5 @@ def extract_dublin_postcodes(savedir: Path = CWD) -> gpd.GeoDataFrame:
         ).to_parquet(filepath_parquet)
 
         rmtree(filepath_unzipped)
-
-        add_file_engine_metadata_to_parquet_file(filepath_parquet, "geopandas")
 
     return gpd.read_parquet(filepath_parquet)
