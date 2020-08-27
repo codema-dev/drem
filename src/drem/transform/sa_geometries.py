@@ -9,10 +9,15 @@ from unidecode import unidecode
 
 
 @icontract.ensure(lambda result: len(result["COUNTYNAME"].unique()) == 4)
-def _extract_dublin_local_authorities(
-    geometries: gpd.GeoDataFrame,
-) -> gpd.GeoDataFrame:
+def extract_dublin_local_authorities(geometries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Extract Dublin Local Authorities from Ireland Small Area Geometries Data.
 
+    Args:
+        geometries (gpd.GeoDataFrame): Ireland Small Area Geometries
+
+    Returns:
+        gpd.GeoDataFrame: Dublin Small Area Geometries
+    """
     return geometries.assign(COUNTYNAME=lambda x: x["COUNTYNAME"].apply(unidecode))[
         lambda x: np.isin(
             x["COUNTYNAME"],
@@ -38,7 +43,7 @@ def transform_sa_geometries(geometries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         gpd.GeoDataFrame: Small Area Dublin geometries with a select number of columns
     """
     return (
-        geometries.pipe(_extract_dublin_local_authorities)
+        geometries.pipe(extract_dublin_local_authorities)
         .to_crs("epsg:4326")
         .loc[:, ["SMALL_AREA", "geometry"]]
         .rename(columns={"SMALL_AREA": "small_area"})
