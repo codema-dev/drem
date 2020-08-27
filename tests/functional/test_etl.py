@@ -36,6 +36,7 @@ def etl_flow_state(monkeypatch: MonkeyPatch) -> State:
     return state
 
 
+@pytest.mark.e2e
 def test_no_etl_tasks_fail(etl_flow_state: State) -> None:
     """No etl tasks fail.
 
