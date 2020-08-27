@@ -47,14 +47,15 @@ def _bin_year_of_construction_as_in_census(ber: pd.DataFrame) -> pd.DataFrame:
 
 
 @require(
-    lambda ber: set(ber.columns) == {"CountyName", "period_built", "total_heat_demand"},
+    lambda ber: set(ber.columns)
+    == {"postcodes", "period_built", "total_heat_demand_per_hh"},
 )
-def _get_mean_total_heat_demand(ber: pd.DataFrame) -> pd.DataFrame:
+def _get_mean_total_heat_demand_per_hh(ber: pd.DataFrame) -> pd.DataFrame:
 
     return (
-        ber.groupby(["CountyName", "period_built"])["total_heat_demand"]
+        ber.groupby(["postcodes", "period_built"])["total_heat_demand_per_hh"]
         .mean()
-        .rename("mean_heat_demand")
+        .rename("mean_heat_demand_per_hh")
         .reset_index()
     )
 
@@ -86,7 +87,7 @@ def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
         .pipe(_extract_dublin_rows)
         .pipe(_bin_year_of_construction_as_in_census)
         .assign(
-            total_heat_demand=lambda x: x[
+            total_heat_demand_per_hh=lambda x: x[
                 [
                     "DeliveredEnergyMainSpace",
                     "DeliveredEnergyMainWater",
@@ -95,6 +96,7 @@ def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
                 ]
             ].sum(axis=1),
         )
-        .loc[:, ["CountyName", "period_built", "total_heat_demand"]]
-        .pipe(_get_mean_total_heat_demand)
+        .rename(columns={"CountyName": "postcodes"})
+        .loc[:, ["postcodes", "period_built", "total_heat_demand_per_hh"]]
+        .pipe(_get_mean_total_heat_demand_per_hh)
     )

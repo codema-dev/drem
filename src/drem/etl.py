@@ -39,6 +39,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         sa_statistics_glossary,
         sa_geometries_clean,
         dublin_postcodes_clean,
+        ber_clean,
     )
 
     drem.load_sa_geometries(sa_geometries_clean, processed_dir)

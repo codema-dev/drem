@@ -5,7 +5,7 @@ from pandas.testing import assert_frame_equal
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.ber import _bin_year_of_construction_as_in_census
 from drem.transform.ber import _extract_dublin_rows
-from drem.transform.ber import _get_mean_total_heat_demand
+from drem.transform.ber import _get_mean_total_heat_demand_per_hh
 
 
 BER_RAW = UTEST_DATA_TRANSFORM / "ber_raw.parquet"
@@ -42,23 +42,23 @@ def test_bin_year_of_construction_as_in_census() -> None:
     assert_frame_equal(output, expected_output)
 
 
-def test_get_mean_total_heat_demand() -> None:
+def test_get_mean_total_heat_demand_per_hh() -> None:
     """Evaluate mean total heat demand."""
     ber: pd.DataFrame = pd.DataFrame(
         {
-            "CountyName": ["Co. Dublin", "Co. Dublin"],
+            "postcodes": ["Co. Dublin", "Co. Dublin"],
             "period_built": ["2001 - 2010", "2001 - 2010"],
-            "total_heat_demand": [8315.668, 3053.864],
+            "total_heat_demand_per_hh": [8315.668, 3053.864],
         },
     )
 
     expected_output: pd.DataFrame = pd.DataFrame(
         {
-            "CountyName": ["Co. Dublin"],
+            "postcodes": ["Co. Dublin"],
             "period_built": ["2001 - 2010"],
-            "mean_heat_demand": [5684.766],
+            "mean_heat_demand_per_hh": [5684.766],
         },
     )
 
-    output = _get_mean_total_heat_demand(ber)
+    output = _get_mean_total_heat_demand_per_hh(ber)
     assert_frame_equal(output, expected_output)
