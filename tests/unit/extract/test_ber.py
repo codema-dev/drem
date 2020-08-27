@@ -7,11 +7,11 @@ from _pytest.monkeypatch import MonkeyPatch
 
 import drem
 
-from drem.filepaths import UTEST_DATA_EXTERNAL
+from drem.filepaths import UTEST_DATA_EXTRACT
 
 
-BER_ZIPPED = UTEST_DATA_EXTERNAL / "BERPublicsearch.zip"
-BER_EOUT = UTEST_DATA_EXTERNAL / "BERPublicsearch.csv"
+BER_ZIPPED = UTEST_DATA_EXTRACT / "BERPublicsearch.zip"
+BER_EOUT = UTEST_DATA_EXTRACT / "BERPublicsearch.csv"
 
 
 def mock_download_ber(*args, **kwargs) -> None:
