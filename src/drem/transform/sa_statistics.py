@@ -108,12 +108,24 @@ def _link_small_areas_to_postcodes(
     )
 
 
+@require(
+    lambda ber: set(ber.columns)
+    == {"postcodes", "period_built", "mean_heat_demand_per_hh"},
+)
+def _link_small_areas_to_ber(
+    small_area_statistics: gpd.GeoDataFrame, ber: pd.DataFrame,
+) -> gpd.GeoDataFrame:
+
+    return small_area_statistics.merge(ber, on=["postcodes", "period_built"])
+
+
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
     statistics: pd.DataFrame,
     glossary: pd.DataFrame,
     sa_geometries: gpd.GeoDataFrame,
     postcodes: gpd.GeoDataFrame,
+    ber: pd.DataFrame,
 ) -> pd.DataFrame:
     """Transform CSO Small Area Statistics.
 
@@ -126,14 +138,16 @@ def transform_sa_statistics(
             $ rename columns
             $ set dtypes
         - Extract Dublin Small Areas
-        - Link Small Areas to Postcodes
-        - Map Period built to regulatory period
+        - Link Small Areas to postcodes
+        - TODO: Map Period built to regulatory period
+        - Link Small Areas to BER on archetypes
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
         glossary (pd.DataFrame): CSO Small Area Statistics Glossary
         sa_geometries (gpd.GeoDataFrame): CSO Small Area Geometries
         postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
+        ber (pd.DataFrame): Archetyped BER Data
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
@@ -144,4 +158,5 @@ def transform_sa_statistics(
         .pipe(_clean_year_built_columns)
         .pipe(_extract_dublin_small_areas, sa_geometries)
         .pipe(_link_small_areas_to_postcodes, postcodes)
+        .pipe(_link_small_areas_to_ber, ber)
     )

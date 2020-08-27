@@ -13,6 +13,7 @@ from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_year_built
+from drem.transform.sa_statistics import _link_small_areas_to_ber
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_year_built_columns
 
@@ -146,3 +147,35 @@ def test_link_small_areas_to_postcodes_raises_error() -> None:
 
     with pytest.raises(ViolationError):
         _link_small_areas_to_postcodes(small_areas, postcodes)
+
+
+def test_link_small_areas_to_ber() -> None:
+    """Small Areas merge with ber on postcodes, period built."""
+    small_areas: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {
+            "postcodes": ["Co. Dublin"],
+            "period_built": ["2011 or greater"],
+            "geometry": [Polygon([(1, 0), (1, 1), (3, 1)])],
+        },
+    )
+
+    ber: pd.DataFrame = pd.DataFrame(
+        {
+            "postcodes": ["Co. Dublin"],
+            "period_built": ["2011 or greater"],
+            "mean_heat_demand_per_hh": [10000],
+        },
+    )
+
+    expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {
+            "postcodes": ["Co. Dublin"],
+            "period_built": ["2011 or greater"],
+            "geometry": [Polygon([(1, 0), (1, 1), (3, 1)])],
+            "mean_heat_demand_per_hh": [10000],
+        },
+    )
+
+    output: gpd.GeoDataFrame = _link_small_areas_to_ber(small_areas, ber)
+
+    assert_geodataframe_equal(output, expected_output, check_like=True)
