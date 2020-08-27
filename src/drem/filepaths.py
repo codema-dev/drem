@@ -15,6 +15,6 @@ ROUGHWORK_DIR = DATA_DIR / "roughwork"
 
 FTEST_DATA = TEST_DIR / "functional" / "data"
 
-UTEST_DATA_EXTERNAL = TEST_DIR / "unit" / "extract" / "data"
+UTEST_DATA_EXTRACT = TEST_DIR / "unit" / "extract" / "data"
 UTEST_DATA_TRANSFORM = TEST_DIR / "unit" / "transform" / "data"
 UTEST_DATA_UTILITIES = TEST_DIR / "unit" / "utilities" / "data"

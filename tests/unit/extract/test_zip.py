@@ -3,10 +3,10 @@ from pathlib import Path
 from shutil import copyfile
 
 from drem.extract.zip import unzip_file
-from drem.filepaths import UTEST_DATA_EXTERNAL
+from drem.filepaths import UTEST_DATA_EXTRACT
 
 
-ZIPPED_FOLDER = UTEST_DATA_EXTERNAL / "zipped_folder.zip"
+ZIPPED_FOLDER = UTEST_DATA_EXTRACT / "zipped_folder.zip"
 
 
 def test_unzip_file(tmp_path: Path) -> None:
