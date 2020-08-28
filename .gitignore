@@ -94,6 +94,7 @@ dask-worker-space
 !/data/requests
 !/data/roughwork
 /data/roughwork/*
+/data/links/*
 
 # exclude external libraries by default
 /externals/*
