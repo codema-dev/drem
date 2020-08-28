@@ -12,6 +12,7 @@ INTERIM_DIR = DATA_DIR / "interim"
 EXTERNAL_DIR = DATA_DIR / "external"
 REQUESTS_DIR = DATA_DIR / "requests"
 ROUGHWORK_DIR = DATA_DIR / "roughwork"
+LINKS_DIR = DATA_DIR / "links"
 
 FTEST_DATA = TEST_DIR / "functional" / "data"
 FTEST_DATA_EXTERNAL = TEST_DIR / "functional" / "data" / "external"
