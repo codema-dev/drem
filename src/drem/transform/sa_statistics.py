@@ -1,6 +1,7 @@
 from typing import List
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 from icontract import ensure
@@ -144,7 +145,16 @@ def _estimate_total_residential_heat_demand_per_small_area(
         * small_area_statistics["mean_heat_demand_per_hh"]
     )
 
-    return small_area_statistics[["small_area", "total_heat_demand_per_sa", "geometry"]]
+    small_area_statistics_aggregated = (
+        small_area_statistics[["small_area", "total_heat_demand_per_sa", "geometry"]]
+        .pivot_table(
+            index="small_area", values=["total_heat_demand_per_sa"], aggfunc=np.mean,
+        )
+        .reset_index()
+        .merge(small_area_statistics[["small_area", "geometry"]])
+    )
+
+    return gpd.GeoDataFrame(small_area_statistics_aggregated, crs="epsg:4326")
 
 
 @task(name="Transform CSO Small Area Statistics via Glossary")

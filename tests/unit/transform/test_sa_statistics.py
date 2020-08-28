@@ -234,10 +234,11 @@ def test_estimate_total_residential_heat_demand_per_small_area() -> None:
             "total_heat_demand_per_sa": [345126.894],
             "geometry": [Point((1, 1))],
         },
+        crs="epsg:4326",
     )
 
     output: gpd.GeoDataFrame = _estimate_total_residential_heat_demand_per_small_area(
         small_area_statistics,
     )
 
-    assert_geodataframe_equal(output, expected_output)
+    assert_geodataframe_equal(output, expected_output, check_like=True)
