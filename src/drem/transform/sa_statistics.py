@@ -140,18 +140,24 @@ def _estimate_total_residential_heat_demand_per_small_area(
     small_area_statistics: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
 
-    small_area_statistics["total_heat_demand_per_sa"] = (
+    small_area_statistics["total_heat_demand_per_archetype"] = (
         small_area_statistics["households"]
         * small_area_statistics["mean_heat_demand_per_hh"]
     )
 
     small_area_statistics_aggregated = (
-        small_area_statistics[["small_area", "total_heat_demand_per_sa", "geometry"]]
+        small_area_statistics[
+            ["small_area", "total_heat_demand_per_archetype", "geometry"]
+        ]
         .pivot_table(
-            index="small_area", values=["total_heat_demand_per_sa"], aggfunc=np.mean,
+            index="small_area",
+            values=["total_heat_demand_per_archetype"],
+            aggfunc=np.sum,
         )
         .reset_index()
         .merge(small_area_statistics[["small_area", "geometry"]])
+        .drop_duplicates()
+        .rename(columns={"total_heat_demand_per_archetype": "total_heat_demand_per_sa"})
     )
 
     return gpd.GeoDataFrame(small_area_statistics_aggregated, crs="epsg:4326")
