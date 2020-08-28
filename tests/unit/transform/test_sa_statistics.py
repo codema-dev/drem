@@ -219,19 +219,19 @@ def test_estimate_total_residential_heat_demand_per_small_area() -> None:
     """Total residential heat demand output matches expected output."""
     small_area_statistics: gpd.GeoDataFrame = gpd.GeoDataFrame(
         {
-            "small_area": [267112002],
-            "period_built": ["1971 - 1980"],
-            "households": [21],
-            "postcodes": ["Dublin 24"],
-            "geometry": [Point((1, 1))],
-            "mean_heat_demand_per_hh": [16434.614],
+            "small_area": [267112002, 267112002],
+            "period_built": ["1971 - 1980", "before 1919"],
+            "households": [21, 10],
+            "postcodes": ["Dublin 24", "Dublin 24"],
+            "geometry": [Point((1, 1)), Point((1, 1))],
+            "mean_heat_demand_per_hh": [15000, 20000],
         },
     )
 
     expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
         {
             "small_area": [267112002],
-            "total_heat_demand_per_sa": [345126.894],
+            "total_heat_demand_per_sa": [515000],
             "geometry": [Point((1, 1))],
         },
         crs="epsg:4326",
