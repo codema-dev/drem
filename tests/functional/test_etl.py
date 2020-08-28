@@ -13,8 +13,12 @@ from drem import etl
 from drem.filepaths import FTEST_DATA
 
 
-def mock_prefectsecret_run(name: str = None) -> str:
+def mock_prefectsecret_run(*args, **kwargs) -> str:
     return "fake-email@fake-company.ie"
+
+
+def mock_task_run(*args, **kwargs) -> None:
+    return None
 
 
 @pytest.fixture
@@ -27,9 +31,12 @@ def etl_flow_state(monkeypatch: MonkeyPatch) -> State:
     Returns:
         [State]: A Prefect State object containing flow run information
     """
+    # Mock out PrefectSecret as no secrets are required in CI (data already downloaded)
     monkeypatch.setattr(
         etl.PrefectSecret, "run", mock_prefectsecret_run,
     )
+    # Mock out task load as CI doesn't need flow outputs on-disk
+    monkeypatch.setattr(etl.drem.LoadToParquet, "run", mock_task_run)
     with raise_on_exception():
         state = etl.flow.run(data_dir=FTEST_DATA)
 
