@@ -160,6 +160,10 @@ def _estimate_total_residential_heat_demand_per_small_area(
         .rename(columns={"total_heat_demand_per_archetype": "total_heat_demand_per_sa"})
     )
 
+    small_area_statistics_aggregated["total_heat_demand_per_sa"] = (
+        small_area_statistics_aggregated["total_heat_demand_per_sa"] / 10 ** 6
+    )
+
     return gpd.GeoDataFrame(small_area_statistics_aggregated, crs="epsg:4326")
 
 
