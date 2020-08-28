@@ -70,12 +70,27 @@ def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @require(lambda statistics: "small_area" in statistics.columns)
-@require(lambda geometries: "small_area" in geometries.columns)
+@require(
+    lambda geometries: set(geometries.columns) > {"small_area", "geometry"}
+    or set(geometries.columns) == {"small_area", "geometry"},
+)
 def _extract_dublin_small_areas(
     statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
-) -> gpd.GeoDataFrame:
+) -> pd.DataFrame:
 
-    return geometries.copy().merge(statistics)
+    return geometries.copy().merge(statistics).drop(columns="geometry")
+
+
+@require(lambda statistics: "small_area" in statistics.columns)
+@require(
+    lambda geometries: set(geometries.columns) > {"small_area", "geometry"}
+    or set(geometries.columns) == {"small_area", "geometry"},
+)
+def _link_dublin_small_areas_to_geometries(
+    statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+
+    return geometries[["small_area", "geometry"]].copy().merge(statistics)
 
 
 @ensure(
@@ -90,7 +105,8 @@ def _link_small_areas_to_postcodes(
     By finding which Postcode contains which Small Area Centroid.
 
     Args:
-        small_area_statistics (gpd.GeoDataFrame): Statistics data containing small area geometries
+        small_area_statistics (gpd.GeoDataFrame): Statistics data containing small area
+        geometries
         postcode_geometries (gpd.GeoDataFrame): Postcode geometries
 
     Returns:
@@ -150,7 +166,8 @@ def transform_sa_statistics(
             $ rename columns
             $ set dtypes
         - Extract Dublin Small Areas
-        - Link Small Areas to postcodes
+        - Link Dublin Small Areas to geometries
+        - Link Small Areas to postcodes via a spatial join
         - TODO: Map Period built to regulatory period
         - Link Small Areas to BER on archetypes
         - Use archetypes to estimate total residential heat demand per small area
@@ -170,6 +187,7 @@ def transform_sa_statistics(
         .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
         .pipe(_extract_dublin_small_areas, sa_geometries)
+        .pipe(_link_dublin_small_areas_to_geometries, sa_geometries)
         .pipe(_link_small_areas_to_postcodes, postcodes)
         .pipe(_link_small_areas_to_ber, ber)
         .pipe(_estimate_total_residential_heat_demand_per_small_area)

@@ -6,6 +6,7 @@ import pytest
 
 from geopandas.testing import assert_geodataframe_equal
 from icontract import ViolationError
+from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 from tdda.referencetest.referencetest import ReferenceTest
@@ -17,6 +18,7 @@ from drem.transform.sa_statistics import (
 )
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_year_built
+from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_ber
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_year_built_columns
@@ -74,6 +76,19 @@ def test_clean_year_built_columns(ref: ReferenceTest) -> None:
     ref.assertDataFrameCorrect(output, CLEANED_EOUT)
 
 
+def test_extract_dublin_small_areas() -> None:
+    """Statistics are linked to Dublin data via small_area."""
+    statistics: pd.DataFrame = pd.DataFrame({"small_area": [111, 222]})
+    dublin_geometries: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {"small_area": [111], "geometry": [Point((0, 0))]},
+    )
+    expected_output: pd.DataFrame = pd.DataFrame({"small_area": [111]})
+
+    output = _extract_dublin_small_areas(statistics, dublin_geometries)
+
+    assert_frame_equal(output, expected_output)
+
+
 def test_extract_dublin_small_areas_raises_error() -> None:
     """Function raises error if no common small_area column."""
     statistics = pd.DataFrame({"small_area": ["267088001", "077089001"]})
@@ -81,6 +96,21 @@ def test_extract_dublin_small_areas_raises_error() -> None:
 
     with pytest.raises(ViolationError):
         _extract_dublin_small_areas(statistics, geometries)
+
+
+def test_link_dublin_small_areas_to_geometries() -> None:
+    """Geometries are added to Statistics."""
+    statistics: pd.DataFrame = pd.DataFrame({"small_area": [111]})
+    dublin_geometries: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {"small_area": [111], "geometry": [Point((0, 0))]},
+    )
+    expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
+        {"small_area": [111], "geometry": [Point((0, 0))]},
+    )
+
+    output = _link_dublin_small_areas_to_geometries(statistics, dublin_geometries)
+
+    assert_geodataframe_equal(output, expected_output)
 
 
 def test_link_small_areas_to_postcodes() -> None:
