@@ -145,16 +145,7 @@ For more information see:
 
 ### [Optional] Setup Windows Subsystem for Linux 2 (WSL2)
 
-A lot of Python modules require tedious workarounds to run properly on Windows.  One work-around is to use WSL2.  If you're having install issues with the previous setup it may be worthwhile switching to WSL2.
-
-1. [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl)
-
-2. Set your VSCode default terminal to WSL2:
-    - Press `CONTROL-SHIFT-P`
-    - Type `Terminal: Select Default Shell`
-    - Select WSL Bash.
-
-3. Launch your folder in WSL2
+From time to time Python modules require workarounds to run on Windows.  One work-around is to use WSL2.  If you're having install issues with the previous setup it may be worthwhile switching to WSL2.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.
 
 ---
 
