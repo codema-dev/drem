@@ -139,7 +139,7 @@ For more information see:
     - Windows: https://github.com/pyenv-win/pyenv-win
     - OSX/Linux: https://github.com/pyenv/pyenv#installation
 
-6. Install [`poetry`](https://python-poetry.org/docs/) and run `poetry install` on the Command Line to install the `drem` dependencies
+6. Install [`poetry`](https://python-poetry.org/docs/), run `poetry install` on the Command Line to install the `drem` dependencies and run `poetry shell` to activate your local `poetry` virtual environment
 
 ---
 
