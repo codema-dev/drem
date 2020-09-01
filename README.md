@@ -126,7 +126,7 @@ For more information see:
 
 ### Setup a Local Development environment using Visual Studio Code
 
-1. Download the `drem` repository by clicking 'Clone or download'
+1. Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
 
 2. Download [Microsoft Visual Studio Code](https://code.visualstudio.com/)
 
@@ -134,7 +134,12 @@ For more information see:
 
 4. Launch Visual Studio Code in your local `drem` folder
 
-5. [Install Poetry](https://python-poetry.org/docs/) and run `poetry install` on the Command Line to setup your development environment
+5. Install `pyenv` to set your local Python version to the same version as `drem` (see `.python-version` file)
+
+    - Windows: https://github.com/pyenv-win/pyenv-win
+    - OSX/Linux: https://github.com/pyenv/pyenv#installation
+
+6. Install [`poetry`](https://python-poetry.org/docs/) and run `poetry install` on the Command Line to install the `drem` dependencies
 
 ---
 
