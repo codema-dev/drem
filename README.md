@@ -128,24 +128,41 @@ For more information see:
 
 1. Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
 
-2. Download [Microsoft Visual Studio Code](https://code.visualstudio.com/)
+2. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
 
 3. Install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
-4. Launch Visual Studio Code in your local `drem` folder
+4. Launch VSCode in your local `drem` folder
 
 5. Install `pyenv` to set your local Python version to the same version as `drem` (see `.python-version` file)
 
     - Windows: https://github.com/pyenv-win/pyenv-win
     - OSX/Linux: https://github.com/pyenv/pyenv#installation
 
-6. Install [`poetry`](https://python-poetry.org/docs/), run `poetry install` on the Command Line to install the `drem` dependencies and run `poetry shell` to activate your local `poetry` virtual environment
+6. Install [`poetry`](https://python-poetry.org/docs/)
+    
+    - run `poetry install` on the Command Line to install the `drem` dependencies
+    - run `poetry shell` to activate your local `poetry` virtual environment
 
 ---
 
-### [Optional] Setup Windows Subsystem for Linux 2 (WSL2)
+### [Optional] Develop in the `drem` `docker` container
 
-From time to time Python modules require workarounds to run on Windows.  One work-around is to use WSL2.  If you're having install issues with the previous setup it may be worthwhile switching to WSL2.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.
+The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed
+
+To open the `drem` folder within the `drem` `Dockerfile` container follow the instructions at VSCode's [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers).
+
+Once the `drem` container has been setup:
+
+    - run `poetry install` on the Command Line to install the `drem` dependencies
+    - run `poetry shell` to activate your local `poetry` virtual environment
+
+---
+
+### [Optional] Develop in Windows Subsystem for Linux 2 (WSL2)
+
+Another work-around is WSL2 if you work in Windows and wish to create your own development environment in Linux.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.
+
 
 ---
 
