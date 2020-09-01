@@ -32,10 +32,10 @@ The `drem` library currently automates a number of [__Extract, Transform, Load__
 ## Installation
 
 ```bash
-pip install drem
+pip install git+https://github.com/codema-dev/drem
 ```
 
-> Warning! Installing via `pip` enables only basic usage of the `drem` library. It currently does not enable usage of externals such as the C-library `libpostal`
+> Warning! Installing via `pip` enables only basic usage of the `drem` library such as downloading data from source from the Command Line. It does not enable full usage of externals (such using the C-library `libpostal` to fuzzy match address names); for this the `drem` `Dockerfile` development environment is required, see [Setup a Local Development environment using Visual Studio Code](#setup-a-local-development-environment-using-visual-studio-code) for more information.
 
 ## Basic usage
 
@@ -67,6 +67,12 @@ Currently `drem` calls the above functions in a `prefect` data pipeline (or flow
 
 ---
 
+## Advanced Usage
+
+TODO
+
+---
+
 ## Directory structure
 
 Here's a brief overview of what each file and directory in `drem` does:
@@ -94,6 +100,7 @@ Here's a brief overview of what each file and directory in `drem` does:
 ├── README.md               <- Executive Summary of library
 ├── poetry.lock             <- Used by Poetry to store dependencies
 ├── pyproject.toml          <- ""             to setup library
+├── Dockerfile              <- Used by docker to create the drem development environment
 └── setup.cfg               <- Used by flake8 for linting style
 ```
 
