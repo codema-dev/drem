@@ -17,7 +17,8 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"mhutchie.git-graph",
-		"eamodio.gitlens"
+		"eamodio.gitlens",
+		"ms-python.python"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

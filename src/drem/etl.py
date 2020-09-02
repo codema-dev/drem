@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import warnings
 
 import prefect
@@ -19,8 +17,10 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 prefect.config.flows.checkpointing = True
 email_address = PrefectSecret("email_address")
 
-
-load_to_parquet = drem.LoadToParquet(name="Load Small Area Geometries to file")
+read_parquet_to_dataframe = drem.ReadParquetToDataFrame(
+    name="Read Parquet file to DataFrame",
+)
+load_to_parquet = drem.LoadToParquet(name="Load Data to Parquet file")
 
 
 with Flow("Extract, Transform & Load DREM Data") as flow:
@@ -35,6 +35,8 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     dublin_postcodes_raw = drem.extract_dublin_postcodes(external_dir)
     ber_raw = drem.extract_ber(email_address, external_dir)
 
+    vo_raw = read_parquet_to_dataframe(filepath=external_dir / "vo_dublin.parquet")
+
     sa_geometries_clean = drem.transform_sa_geometries(sa_geometries_raw)
     dublin_postcodes_clean = drem.transform_dublin_postcodes(dublin_postcodes_raw)
     ber_clean = drem.transform_ber(ber_raw)
@@ -45,6 +47,8 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         dublin_postcodes_clean,
         ber_clean,
     )
+
+    vo_clean = drem.transform_vo(vo_raw)
 
     load_to_parquet(sa_geometries_clean, processed_dir / "sa_geometries.parquet")
     load_to_parquet(sa_statistics_clean, processed_dir / "sa_statistics.parquet")
