@@ -12,7 +12,6 @@ from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
-from drem.transform.vo import _remove_symbols_from_column_strings
 
 
 VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
@@ -34,15 +33,6 @@ def test_merge_address_columns_into_one() -> None:
     )
 
     output: pd.DataFrame = _merge_address_columns_into_one(addresses)
-    assert_frame_equal(output, expected_output)
-
-
-def test_remove_symbols_from_column_strings() -> None:
-    """Remove symbols [,-] from column strings."""
-    uses: pd.DataFrame = pd.DataFrame({"Uses": ["Office (House), -", "-, -"]})
-    expected_output: pd.DataFrame = pd.DataFrame({"Uses": ["Office (House)", ""]})
-
-    output: pd.DataFrame = _remove_symbols_from_column_strings(uses, "Uses")
     assert_frame_equal(output, expected_output)
 
 

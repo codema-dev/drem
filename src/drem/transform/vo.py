@@ -1,5 +1,3 @@
-from typing import List
-
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -11,27 +9,6 @@ def _merge_address_columns_into_one(df: pd.DataFrame) -> pd.DataFrame:
 
     address_columns = df.filter(regex="Address").columns
     df["Address"] = df[address_columns].astype(str).agg(" ".join, axis=1)
-
-    return df
-
-
-def _set_column_strings_to_titlecase(
-    df: pd.DataFrame, columns: List[str],
-) -> pd.DataFrame:
-    """Set string in each row to titlecase.
-
-    Args:
-        df (pd.DataFrame): [description]
-        columns (List[str]): [description]
-
-    Returns:
-        pd.DataFrame: [description]
-
-    Example:
-        NON-LIST becomes Non-List
-    """
-    for column in columns:
-        df[column] = df[column].astype(str).str.title()
 
     return df
 
@@ -121,8 +98,6 @@ def transform_vo(vo_raw: pd.DataFrame) -> gpd.GeoDataFrame:
                 "Car Park",
             ],
         ]
-        .pipe(_set_column_strings_to_titlecase, ["Category", "Uses"])
-        .pipe(_remove_symbols_from_column_strings, "Uses")
         .query("Area > 0")
         .pipe(_convert_to_geodataframe)
         .pipe(_set_coordinate_reference_system_to_lat_long)
