@@ -12,6 +12,7 @@ from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
+from drem.transform.vo import _merge_benchmarks_into_vo
 
 
 VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
@@ -47,7 +48,43 @@ def test_extract_use_from_vo_uses_column() -> None:
         },
     )
 
-    output = _extract_use_from_vo_uses_column(vo)
+    output: pd.DataFrame = _extract_use_from_vo_uses_column(vo)
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_merge_benchmarks_into_vo() -> None:
+    """Merge benchmarks into vo data."""
+    benchmark = pd.DataFrame(
+        {
+            "benchmark": [
+                "Bar, Pub or Licensed Club (TM:46)",
+                "Catering: Fast Food Restaurant",
+                "Catering: Fast Food Restaurant",
+            ],
+            "vo_use": ["PUB", "TAKE AWAY", "RESTAURANT TAKE AWAY"],
+            "demand": [350, 130, 130],
+        },
+    )
+
+    vo = pd.DataFrame(
+        {"use_0": ["PUB", "RESTAURANT TAKE AWAY"], "use_1": [np.nan, "TAKE AWAY"]},
+    )
+
+    expected_output = pd.DataFrame(
+        {
+            "use_0": ["PUB", "RESTAURANT TAKE AWAY"],
+            "use_1": [np.nan, "TAKE AWAY"],
+            "benchmark": [
+                "Bar, Pub or Licensed Club (TM:46)",
+                "Catering: Fast Food Restaurant",
+            ],
+            "vo_use": ["PUB", "RESTAURANT TAKE AWAY"],
+            "demand": [350, 130],
+        },
+    )
+
+    output: pd.DataFrame = _merge_benchmarks_into_vo(vo, benchmark)
 
     assert_frame_equal(output, expected_output)
 

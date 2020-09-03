@@ -36,6 +36,13 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return vo
 
 
+def _merge_benchmarks_into_vo(
+    vo: pd.DataFrame, benchmarks: pd.DataFrame,
+) -> pd.DataFrame:
+
+    return vo.merge(benchmarks, left_on="use_0", right_on="vo_use")
+
+
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     """Convert DataFrame to GeoDataFrame from ITM Coordinates.
 
