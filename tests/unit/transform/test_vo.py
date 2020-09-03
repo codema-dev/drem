@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 from geopandas.testing import assert_geodataframe_equal
@@ -9,6 +10,7 @@ from shapely.geometry import Point
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.vo import _convert_to_geodataframe
+from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
 from drem.transform.vo import _remove_symbols_from_column_strings
 
@@ -41,6 +43,22 @@ def test_remove_symbols_from_column_strings() -> None:
     expected_output: pd.DataFrame = pd.DataFrame({"Uses": ["Office (House)", ""]})
 
     output: pd.DataFrame = _remove_symbols_from_column_strings(uses, "Uses")
+    assert_frame_equal(output, expected_output)
+
+
+def test_extract_use_from_vo_uses_column() -> None:
+    """Split 'Uses' column into multiple use columns."""
+    vo = pd.DataFrame({"Uses": ["KIOSK, CLOTHES SHOP", "WAREHOUSE, -"]})
+    expected_output = pd.DataFrame(
+        {
+            "Uses": ["KIOSK, CLOTHES SHOP", "WAREHOUSE, -"],
+            "use_0": ["KIOSK", "WAREHOUSE"],
+            "use_1": ["CLOTHES SHOP", np.nan],
+        },
+    )
+
+    output = _extract_use_from_vo_uses_column(vo)
+
     assert_frame_equal(output, expected_output)
 
 
