@@ -13,6 +13,7 @@ from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
 from drem.transform.vo import _merge_benchmarks_into_vo
+from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 
 
 VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
@@ -81,12 +82,35 @@ def test_merge_benchmarks_into_vo() -> None:
             ],
             "vo_use": ["PUB", "RESTAURANT TAKE AWAY"],
             "demand": [350, 130],
+            "_merge": ["both", "both"],
         },
+    )
+    expected_output["_merge"] = expected_output["_merge"].astype(
+        pd.CategoricalDtype(categories=["left_only", "right_only", "both"]),
     )
 
     output: pd.DataFrame = _merge_benchmarks_into_vo(vo, benchmark)
 
     assert_frame_equal(output, expected_output)
+
+
+def test_save_unmatched_vo_uses_to_text_file(tmp_path: Path) -> None:
+    """Save unmatched vo_uses to text file.
+
+    Args:
+        tmp_path (Path): Pytest plugin to create a temporary filepath
+    """
+    unmatched_vo_uses = pd.DataFrame(
+        {"use_0": ["POITIN BREWERY"], "_merge": ["left_only"]},
+    )
+    none_file = tmp_path / "None_DATE.txt"
+
+    _save_unmatched_vo_uses_to_text_file(unmatched_vo_uses, none_file)
+
+    with open(none_file, "r") as file:
+        none_file_contents = file.read().splitlines()
+
+    assert set(none_file_contents) == {"POITIN BREWERY"}
 
 
 def test_convert_to_geodataframe() -> None:

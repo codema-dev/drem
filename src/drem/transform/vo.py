@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -40,7 +42,19 @@ def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
 
-    return vo.merge(benchmarks, left_on="use_0", right_on="vo_use")
+    return vo.merge(
+        benchmarks, left_on="use_0", right_on="vo_use", how="left", indicator=True,
+    )
+
+
+def _save_unmatched_vo_uses_to_text_file(
+    vo: pd.DataFrame, none_file: Path,
+) -> pd.DataFrame:
+
+    unmatched_vo_uses = vo.query("`_merge` == 'left_only'")["use_0"].tolist()
+    unmatched_vo_uses_with_newlines = [f"{use}\n" for use in unmatched_vo_uses]
+    with open(none_file, "w") as file:
+        file.writelines(unmatched_vo_uses_with_newlines)
 
 
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
