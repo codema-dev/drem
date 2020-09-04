@@ -27,7 +27,7 @@ def etl_flow_state() -> State:
 
 
 @pytest.mark.e2e
-def test_no_etl_tasks_fail(etl_flow_state: State) -> None:
+def test_no_commercial_etl_tasks_fail(etl_flow_state: State) -> None:
     """No etl tasks fail.
 
     Args:

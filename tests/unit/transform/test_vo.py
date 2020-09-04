@@ -9,6 +9,7 @@ from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
+from drem.transform.vo import _apply_benchmarks_to_vo_floor_area
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
@@ -101,9 +102,12 @@ def test_save_unmatched_vo_uses_to_text_file(tmp_path: Path) -> None:
         tmp_path (Path): Pytest plugin to create a temporary filepath
     """
     unmatched_vo_uses = pd.DataFrame(
-        {"use_0": ["POITIN BREWERY"], "_merge": ["left_only"]},
+        {
+            "use_0": ["POITIN BREWERY", "POITIN BREWERY"],
+            "_merge": ["left_only", "left_only"],
+        },
     )
-    none_file = tmp_path / "None_DATE.txt"
+    none_file = tmp_path / "Unmatched.txt"
 
     _save_unmatched_vo_uses_to_text_file(unmatched_vo_uses, none_file)
 
@@ -111,6 +115,27 @@ def test_save_unmatched_vo_uses_to_text_file(tmp_path: Path) -> None:
         none_file_contents = file.read().splitlines()
 
     assert set(none_file_contents) == {"POITIN BREWERY"}
+
+
+def test_apply_benchmark_to_vo_floor_area() -> None:
+    """Multiply benchmarks by floor areas to correct value."""
+    vo = pd.DataFrame(
+        {"Area": [45], "typical_electricity": [79], "typical_fossil_fuel": [54]},
+    )
+
+    expected_output = pd.DataFrame(
+        {
+            "Area": [45],
+            "typical_electricity": [79],
+            "typical_fossil_fuel": [54],
+            "typical_electricity_demand": [3555],
+            "typical_fossil_fuel_demand": [2430],
+        },
+    )
+
+    output = _apply_benchmarks_to_vo_floor_area(vo)
+
+    assert_frame_equal(output, expected_output)
 
 
 def test_convert_to_geodataframe() -> None:

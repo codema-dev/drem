@@ -51,10 +51,20 @@ def _save_unmatched_vo_uses_to_text_file(
     vo: pd.DataFrame, none_file: Path,
 ) -> pd.DataFrame:
 
-    unmatched_vo_uses = vo.query("`_merge` == 'left_only'")["use_0"].tolist()
+    unmatched_vo_uses = vo.query("`_merge` == 'left_only'")["use_0"].unique().tolist()
     unmatched_vo_uses_with_newlines = [f"{use}\n" for use in unmatched_vo_uses]
     with open(none_file, "w") as file:
         file.writelines(unmatched_vo_uses_with_newlines)
+
+    return vo
+
+
+def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
+
+    vo["typical_electricity_demand"] = vo["Area"] * vo["typical_electricity"]
+    vo["typical_fossil_fuel_demand"] = vo["Area"] * vo["typical_fossil_fuel"]
+
+    return vo
 
 
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
@@ -81,7 +91,9 @@ def _set_coordinate_reference_system_to_lat_long(
 
 
 @task
-def transform_vo(vo_raw: pd.DataFrame) -> gpd.GeoDataFrame:
+def transform_vo(
+    vo_raw: pd.DataFrame, benchmarks: pd.DataFrame, unmatched_txtfile: Path,
+) -> gpd.GeoDataFrame:
     """Tidy Valuation Office dataset.
 
     By:
@@ -96,6 +108,8 @@ def transform_vo(vo_raw: pd.DataFrame) -> gpd.GeoDataFrame:
 
     Args:
         vo_raw (pd.DataFrame): Raw VO DataFrame
+        benchmarks (pd.DataFrame): Benchmarks linking VO 'use' to a benchmark energy
+        unmatched_txtfile (Path): Path to unmatched vo 'use' categories
 
     Returns:
         pd.DataFrame: Tidy DataFrame
@@ -104,21 +118,10 @@ def transform_vo(vo_raw: pd.DataFrame) -> gpd.GeoDataFrame:
         vo_raw.copy()
         .rename(columns=str.strip)
         .pipe(_merge_address_columns_into_one)
-        .loc[
-            :,
-            [
-                "Address",
-                "Category",
-                "Uses",
-                "Area",
-                "X ITM",
-                "Y ITM",
-                "Property Number",
-                "Valuation",
-                "Level",
-                "Car Park",
-            ],
-        ]
+        .pipe(_extract_use_from_vo_uses_column)
+        .pipe(_merge_benchmarks_into_vo, benchmarks)
+        .pipe(_save_unmatched_vo_uses_to_text_file, unmatched_txtfile)
+        .pipe(_apply_benchmarks_to_vo_floor_area)
         .query("Area > 0")
         .pipe(_convert_to_geodataframe)
         .pipe(_set_coordinate_reference_system_to_lat_long)

@@ -14,9 +14,11 @@ read_parquet_to_dataframe = drem.ReadParquetToDataFrame(
     name="Read Parquet file to DataFrame",
 )
 
+
 with Flow("Extract, Transform & Load DREM Data") as flow:
 
     data_dir = Parameter("data_dir", default=DATA_DIR)
+
     external_dir = data_dir / "external"
     benchmarks_dir = data_dir / "commercial_building_benchmarks"
     raw_dir = data_dir / "raw"
