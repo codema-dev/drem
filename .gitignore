@@ -83,18 +83,11 @@ dask-worker-space
 !/tests/data
 
 # exclude data from source control by default
-!/data/external
 /data/external/*
-!/data/interim
 /data/interim/*
-!/data/raw
 /data/raw/*
-!/data/processed
 /data/processed/*
-!/data/requests
-!/data/roughwork
 /data/roughwork/*
-/data/links/*
 
 # exclude external libraries by default
 /externals/*
