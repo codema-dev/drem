@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from prefect import task
+
 
 def _read_text_files_linking_benchmarks_to_vo_to_dataframe(
     dirpath: Path,
@@ -34,3 +36,27 @@ def _merge_benchmarks_with_values(
         .drop_duplicates()
         .reset_index(drop=True)
     )
+
+
+@task
+def transform_benchmarks(
+    dirpath_to_benchmarks_links: Path, filepath_to_benchmark_energies: Path,
+) -> pd.DataFrame:
+    """Transform Benchmarks into Tidy Data.
+
+    Args:
+        dirpath_to_benchmarks_links (Path): Path to text files linking benchmarks to VO
+        uses
+        filepath_to_benchmark_energies (Path): Path to csv file containing benchmark
+        energy / floor area
+
+    Returns:
+        pd.DataFrame: VO uses linked to benchmark energies & categories
+    """
+    benchmarks_linked_to_vo = _read_text_files_linking_benchmarks_to_vo_to_dataframe(
+        dirpath_to_benchmarks_links,
+    )
+
+    benchmark_energies = pd.read_csv(filepath_to_benchmark_energies)
+
+    return _merge_benchmarks_with_values(benchmarks_linked_to_vo, benchmark_energies)
