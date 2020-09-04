@@ -9,7 +9,7 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
 
-from drem import etl
+from drem.etl import residential
 from drem.filepaths import FTEST_DATA
 
 
@@ -33,18 +33,18 @@ def etl_flow_state(monkeypatch: MonkeyPatch) -> State:
     """
     # Mock out PrefectSecret as no secrets are required in CI (data already downloaded)
     monkeypatch.setattr(
-        etl.PrefectSecret, "run", mock_prefectsecret_run,
+        residential.PrefectSecret, "run", mock_prefectsecret_run,
     )
     # Mock out task load as CI doesn't need flow outputs on-disk
-    monkeypatch.setattr(etl.drem.LoadToParquet, "run", mock_task_run)
+    monkeypatch.setattr(residential.drem.LoadToParquet, "run", mock_task_run)
     with raise_on_exception():
-        state = etl.flow.run(data_dir=FTEST_DATA)
+        state = residential.flow.run(data_dir=FTEST_DATA)
 
     return state
 
 
 @pytest.mark.e2e
-def test_no_etl_tasks_fail(etl_flow_state: State) -> None:
+def test_no_residential_etl_tasks_fail(etl_flow_state: State) -> None:
     """No etl tasks fail.
 
     Args:

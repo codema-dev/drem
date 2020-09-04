@@ -1,0 +1,64 @@
+benchmark,typical_fossil_fuel,typical_electricity,illustrative_fossil_fuel,illustrative_electricity
+"Bar, Pub or Licensed Club (TM:46)",350,130,350,130
+Catering: Fast Food Restaurant,480,820,670,890
+Cinema (Table 20.6),203,64,261,81
+Clinic: Health center/Clinic/Surgery (TM46),200,70,200,70
+Cold Storage (TM:46),80,145,80,145
+Covered Car Park (TM:46),0,20,0,20
+Data Centre,0,1033.68,0,1033.68
+Dry Cleaners (Table 20.6),622,197,828,247
+Dry Sports and Leisure Facility (TM:46),330,95,330,95
+Education: Primary,113,22,164,32
+Education:Secondary,108,25,144,33
+Engineering (Table 20.20),,,,
+Entertainment Hall (TM:46),420,150,420,150
+Entertainment: Social Club,140,60,250,110
+Entertainment: Theatre ,420,180,630,270
+Food: Cold (Table 20.20) ,,,,
+Food: Cooked (Table: 20.20) ,,,,
+Furnace/Foundry (Table 20.20),,,,
+General Retail (TM:46) ,0,165,0,165
+Hospitals: Acute & Maternity,422,74,510,108
+Hospitals: Teaching & Specialist,339,86,411,122
+Hotels: Holiday,260,80,400,140
+Hotels: Small,240,80,360,120
+Laboratories (Table 20.20),,,,
+Large Non-Food Shop (TM:46),170,70,170,70
+Local Authority buildings: Depots,283,37,311,39
+Local Authority: Community Centers,125,22,187,33
+Local Authority: Residential Care Homes,492,59,390,75
+Local Authority: Sheltered Housing,314,46,432,68
+Manufacturing: General (Table: 20.20),,,,
+None,0,0,0,0
+Nurseries (Table 20.4),121,17,183,23
+Nursing Homes,247,44,417,79
+Office: Naturally Ventilated Open Plan,79,54,151,85
+Public Buildings: Churches,80,10,150,20
+Public Buildings: Fire Stations,385,55,540,80
+Public Buildings: Museums & Art Galleries,96,57,142,70
+Public Buildings: Police Station,295,45,410,60
+Public Buildings:Libraries,113,32,210,46
+Public Waiting or Circulation (TM:46),,,120,30
+Restaurant (TM:46),370,90,370,90
+Retail: Banks & Building Societies,63,71,98,101
+Retail: Banks & Building Socities,63,71,98,101
+Retail: Book Store,0,210,0,255
+Retail: Clothes Shop,65,234,108,287
+Retail: DIY Stores,149,127,192,160
+Retail: Department Store,194,237,248,294
+Retail: Distribution Warehouse,103,53,169,67
+Retail: Electrical Goods Retail,0,172,0,230
+Retail: High Street Agency ,150,55,230,75
+Retail: Meat Butchers,0,475,0,577
+Retail: Off Licences ,0,475,0,562
+Retail: Post Offices ,140,45,210,70
+Retail: Small Food Shop,80,400,100,500
+Retail: Supermarket,200,915,261,1026
+Shoe Shops (Table 20.5),0,197,0,279
+Sports & Recreation: Combined Center,264,96,598,152
+Sports & Recreation: Dry Sports Center ,158,64,343,105
+Sports & Recreation: Fitness Center ,201,127,449,194
+Sports & Recreation: Swimming Pool Center,573,152,1336,237
+Storage Facility (TM:46),160,35,160,35
+University: Non-Residential (Table 20.4),103,29,142,39
+Workshop (TM:46),180,35,180,35
