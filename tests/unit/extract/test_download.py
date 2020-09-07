@@ -1,6 +1,6 @@
-# flake8: noqa
-
 from pathlib import Path
+
+import pytest
 
 from drem.filepaths import COMMERCIAL_BENCHMARKS_DIR
 from drem.filepaths import EXTERNAL_DIR
@@ -10,31 +10,21 @@ from drem.filepaths import REQUESTS_DIR
 from drem.filepaths import ROUGHWORK_DIR
 
 
-def test_external_dir_exists_in_source_control(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "data_dirpath",
+    [
+        COMMERCIAL_BENCHMARKS_DIR,
+        EXTERNAL_DIR,
+        INTERIM_DIR,
+        RAW_DIR,
+        REQUESTS_DIR,
+        ROUGHWORK_DIR,
+    ],
+)
+def test_data_dir_exists_in_source_control(data_dirpath: Path) -> None:
+    """Data dir exists in source control.
 
-    assert EXTERNAL_DIR.exists()
-
-
-def test_raw_dir_exists_in_source_control(tmp_path: Path) -> None:
-
-    assert RAW_DIR.exists()
-
-
-def test_interim_dir_exists_in_source_control(tmp_path: Path) -> None:
-
-    assert INTERIM_DIR.exists()
-
-
-def test_requests_dir_exists_in_source_control(tmp_path: Path) -> None:
-
-    assert REQUESTS_DIR.exists()
-
-
-def test_roughwork_dir_exists_in_source_control(tmp_path: Path) -> None:
-
-    assert ROUGHWORK_DIR.exists()
-
-
-def test_commercial_benchmarks_dir_exists_in_source_control(tmp_path: Path) -> None:
-
-    assert COMMERCIAL_BENCHMARKS_DIR.exists()
+    Args:
+        data_dirpath (Path): Path to data directory (parametrized...)
+    """
+    assert data_dirpath.exists()
