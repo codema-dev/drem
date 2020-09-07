@@ -73,9 +73,6 @@ target/
 .mypy_cache/
 .pytest_cache/
 
-# exclude config files
-.vscode
-
 # exclude dask files
 dask-worker-space
 
