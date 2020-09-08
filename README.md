@@ -161,8 +161,12 @@ To open the `drem` folder within the `drem` `Dockerfile` container follow the in
 
 Once the `drem` container has been setup:
 
-    - run `poetry install` on the Command Line to install the `drem` dependencies
-    - run `poetry shell` to activate your local `poetry` virtual environment
+- Run `poetry install` on the Command Line to install the `drem` dependencies
+- Run `poetry shell` to activate your local `poetry` virtual environment
+- Set your VSCode Python Interpreter to your `poetry` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
+    - Copy `/usr/local/lib/.cache/pypoetry/virtualenvs/` 
+    - Select your `Poetry` virtualenv such as `drem-TFRFQYJy-py3.8`
+    - Choose `/bin/python3`
 
 ---
 
