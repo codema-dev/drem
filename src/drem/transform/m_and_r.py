@@ -140,14 +140,14 @@ def _save_to_parquet_file(df: pd.DataFrame, filepath: Path) -> None:
 
 with Flow("Merge MPRN and GPRN") as flow:
 
-    mprn = _read_parquet_file(RAW_DIR / "mprn.parquet")
-    gprn = _read_parquet_file(RAW_DIR / "gprn.parquet")
+    mprn_raw = _read_parquet_file(RAW_DIR / "mprn.parquet")
+    gprn_raw = _read_parquet_file(RAW_DIR / "gprn.parquet")
 
     mprn_aggregated = _aggregate_columns(
-        mprn, column_names=["PB Name", "Location"], to_column="combined_address",
+        mprn_raw, column_names=["PB Name", "Location"], to_column="combined_address",
     )
     gprn_aggregated = _aggregate_columns(
-        gprn, column_names=["PB Name", "Location"], to_column="combined_address",
+        gprn_raw, column_names=["PB Name", "Location"], to_column="combined_address",
     )
     mprn_renamed = _rename_columns(
         mprn_aggregated,
