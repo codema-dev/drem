@@ -15,6 +15,7 @@ from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
 from drem.transform.vo import _merge_benchmarks_into_vo
 from drem.transform.vo import _remove_null_address_strings
+from drem.transform.vo import _replace_string_in_column
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 
 
@@ -62,6 +63,18 @@ def test_remove_null_address_strings() -> None:
     )
 
     output: pd.DataFrame = _remove_null_address_strings(addresses, "Address")
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_replace_string_in_column() -> None:
+    """Replace string in column with new string."""
+    addresses = pd.DataFrame({"Address": [""]})
+    expected_output = pd.DataFrame({"Address": ["None"]})
+
+    output: pd.DataFrame = _replace_string_in_column(
+        addresses, on="Address", to_replace="", replace_with="None",
+    )
 
     assert_frame_equal(output, expected_output)
 
