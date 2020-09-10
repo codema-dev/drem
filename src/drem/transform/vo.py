@@ -7,10 +7,19 @@ import pandas as pd
 from prefect import task
 
 
-def _merge_address_columns_into_one(df: pd.DataFrame) -> pd.DataFrame:
+def _merge_address_columns_into_one(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
-    address_columns = df.filter(regex="Address").columns
-    df["Address"] = df[address_columns].astype(str).agg(" ".join, axis=1)
+    address_columns = df.filter(regex=on).columns
+    df[on] = df[address_columns].astype(str).agg(" ".join, axis=1)
+
+    return df
+
+
+def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
+
+    df[on] = (
+        df[on].astype(str).str.replace("None", "").str.replace("nan", "").str.strip()
+    )
 
     return df
 
@@ -117,7 +126,8 @@ def transform_vo(
     return (
         vo_raw.copy()
         .rename(columns=str.strip)
-        .pipe(_merge_address_columns_into_one)
+        .pipe(_merge_address_columns_into_one, on="Address")
+        .pipe(_remove_null_address_strings, on="Address")
         .pipe(_extract_use_from_vo_uses_column)
         .pipe(_merge_benchmarks_into_vo, benchmarks)
         .pipe(_save_unmatched_vo_uses_to_text_file, unmatched_txtfile)
