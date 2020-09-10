@@ -47,11 +47,18 @@ def test_remove_null_address_strings() -> None:
             "Address": [
                 "7 Rowanbyrne Blackrock nan nan",
                 "7 Rowanbyrne Blackrock None None",
+                "7 Rowanbyrne Blackrock none none",
             ],
         },
     )
     expected_output = pd.DataFrame(
-        {"Address": ["7 Rowanbyrne Blackrock", "7 Rowanbyrne Blackrock"]},
+        {
+            "Address": [
+                "7 Rowanbyrne Blackrock",
+                "7 Rowanbyrne Blackrock",
+                "7 Rowanbyrne Blackrock",
+            ],
+        },
     )
 
     output: pd.DataFrame = _remove_null_address_strings(addresses, "Address")

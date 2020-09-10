@@ -1,4 +1,5 @@
 from pathlib import Path
+from re import IGNORECASE
 
 import geopandas as gpd
 import numpy as np
@@ -18,7 +19,7 @@ def _merge_address_columns_into_one(df: pd.DataFrame, on: str) -> pd.DataFrame:
 def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
     df[on] = (
-        df[on].astype(str).str.replace("None", "").str.replace("nan", "").str.strip()
+        df[on].astype(str).str.replace("none|nan", "", flags=IGNORECASE).str.strip()
     )
 
     return df
