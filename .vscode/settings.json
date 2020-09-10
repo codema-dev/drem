@@ -36,5 +36,6 @@
     "workbench.iconTheme": "vscode-icons",
     "remote.extensionKind": {
         "ms-azuretools.vscode-docker": "workspace"
-    }
+    },
+    "python.pythonPath": "/usr/local/lib/.cache/pypoetry/virtualenvs/drem-TFRFQYJy-py3.8/bin/python"
 }
