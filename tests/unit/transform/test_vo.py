@@ -14,6 +14,7 @@ from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
 from drem.transform.vo import _merge_address_columns_into_one
 from drem.transform.vo import _merge_benchmarks_into_vo
+from drem.transform.vo import _remove_null_address_strings
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 
 
@@ -23,11 +24,11 @@ VO_EOUT: Path = UTEST_DATA_TRANSFORM / "vo_clean.parquet"
 
 def test_merge_address_columns_into_one() -> None:
     """Merge string columns into one."""
-    addresses: pd.DataFrame = pd.DataFrame(
+    addresses = pd.DataFrame(
         {"Address 1": ["7 Rowanbyrne"], "Address 2": ["Blackrock"]},
     )
 
-    expected_output: pd.DataFrame = pd.DataFrame(
+    expected_output = pd.DataFrame(
         {
             "Address 1": ["7 Rowanbyrne"],
             "Address 2": ["Blackrock"],
@@ -35,7 +36,26 @@ def test_merge_address_columns_into_one() -> None:
         },
     )
 
-    output: pd.DataFrame = _merge_address_columns_into_one(addresses)
+    output: pd.DataFrame = _merge_address_columns_into_one(addresses, "Address")
+    assert_frame_equal(output, expected_output)
+
+
+def test_remove_null_address_strings() -> None:
+    """Remove empty strings from addresses."""
+    addresses = pd.DataFrame(
+        {
+            "Address": [
+                "7 Rowanbyrne Blackrock nan nan",
+                "7 Rowanbyrne Blackrock None None",
+            ],
+        },
+    )
+    expected_output = pd.DataFrame(
+        {"Address": ["7 Rowanbyrne Blackrock", "7 Rowanbyrne Blackrock"]},
+    )
+
+    output: pd.DataFrame = _remove_null_address_strings(addresses, "Address")
+
     assert_frame_equal(output, expected_output)
 
 
