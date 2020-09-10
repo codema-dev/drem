@@ -18,8 +18,11 @@ def mock_task_run(*args, **kwargs) -> None:
 
 
 @pytest.fixture
-def etl_flow_state() -> State:
+def etl_flow_state(monkeypatch) -> State:
     """Run etl flow with dummy test data.
+
+    Args:
+        monkeypatch (MonkeyPatch): Pytest fixture to mock out objects s.a. PrefectSecret
 
     Returns:
         [State]: A Prefect State object containing flow run information
