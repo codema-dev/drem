@@ -25,6 +25,15 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
     return df
 
 
+def _replace_string_in_column(
+    df: pd.DataFrame, on: str, to_replace: str, replace_with: str,
+) -> pd.DataFrame:
+
+    df[on] = df[on].astype(str).str.replace(to_replace, replace_with)
+
+    return df
+
+
 def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
     df[column] = df[column].astype(str).str.replace(r"[-,]", "").str.strip()
@@ -129,6 +138,9 @@ def transform_vo(
         .rename(columns=str.strip)
         .pipe(_merge_address_columns_into_one, on="Address")
         .pipe(_remove_null_address_strings, on="Address")
+        .pipe(
+            _replace_string_in_column, on="Address", to_replace="", replace_with="None",
+        )
         .pipe(_extract_use_from_vo_uses_column)
         .pipe(_merge_benchmarks_into_vo, benchmarks)
         .pipe(_save_unmatched_vo_uses_to_text_file, unmatched_txtfile)
