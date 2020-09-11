@@ -8,10 +8,29 @@ import pandas as pd
 from prefect import task
 
 
-def _merge_address_columns_into_one(df: pd.DataFrame, on: str) -> pd.DataFrame:
+def _fillna_in_columns_where_column_name_contains_substring(
+    df: pd.DataFrame, substring: str, replace_with: str,
+) -> pd.DataFrame:
 
-    address_columns = df.filter(regex=on).columns
-    df[on] = df[address_columns].astype(str).agg(" ".join, axis=1)
+    columns = df.filter(regex=substring).columns
+    df[columns] = df[columns].fillna(replace_with)
+
+    return df
+
+
+def _merge_string_columns_into_one(
+    df: pd.DataFrame, target: str, result: str,
+) -> pd.DataFrame:
+
+    columns = df.filter(regex=target).columns
+    df[result] = df[columns].astype(str).agg(" ".join, axis=1)
+
+    return df
+
+
+def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFrame:
+
+    df[result] = df[target].astype(str).str.strip()
 
     return df
 
@@ -25,11 +44,11 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
     return df
 
 
-def _replace_string_in_column(
-    df: pd.DataFrame, on: str, to_replace: str, replace_with: str,
+def _replace_rows_equal_to_string(
+    df: pd.DataFrame, target: str, result: str, to_replace: str, replace_with: str,
 ) -> pd.DataFrame:
 
-    df[on] = df[on].astype(str).str.replace(to_replace, replace_with)
+    df[result] = df[target].replace({to_replace: replace_with}, regex=False)
 
     return df
 
@@ -136,10 +155,19 @@ def transform_vo(
     return (
         vo_raw.copy()
         .rename(columns=str.strip)
-        .pipe(_merge_address_columns_into_one, on="Address")
-        .pipe(_remove_null_address_strings, on="Address")
         .pipe(
-            _replace_string_in_column, on="Address", to_replace="", replace_with="None",
+            _fillna_in_columns_where_column_name_contains_substring,
+            substring="Address",
+            replace_with="",
+        )
+        .pipe(_merge_string_columns_into_one, target="Address", result="address_raw")
+        .pipe(_strip_whitespace, target="address_raw", result="address_stripped")
+        .pipe(
+            _replace_rows_equal_to_string,
+            target="address_stripped",
+            result="Address",
+            to_replace="",
+            replace_with="None",
         )
         .pipe(_extract_use_from_vo_uses_column)
         .pipe(_merge_benchmarks_into_vo, benchmarks)
