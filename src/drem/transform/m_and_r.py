@@ -15,6 +15,7 @@ import pandas as pd
 
 from icontract import require
 from postal.expand import expand_address
+from postal.parser import parse_address
 from prefect import Flow
 from prefect import task
 from string_grouper import group_similar_strings
@@ -41,8 +42,7 @@ def _aggregate_columns(
 
 
 @task
-@require(lambda addresses: "Location" in addresses.columns)
-@require(lambda addresses: "address" not in addresses.columns)
+@require(lambda addresses, on_column: on_column in addresses.columns)
 def _standardise_addresses(
     addresses: pd.DataFrame, on_column: str, to_column: str,
 ) -> pd.DataFrame:
@@ -133,6 +133,56 @@ def _merge_mprn_and_gprn_on_common_addresses(
 
 
 @task
+@require(lambda df, target: target in df.columns)
+def _parse_standardised_address(
+    df: pd.DataFrame, target: str, result: str,
+) -> pd.DataFrame:
+
+    df[result] = df.copy()[target].apply(lambda cell: parse_address(cell))
+
+    return df
+
+
+@task
+@require(lambda df, target: target in df.columns)
+def _convert_parsed_address_to_dict(
+    df: pd.DataFrame, target: str, result: str,
+) -> pd.DataFrame:
+
+    df[result] = df.copy()[target].apply(
+        lambda cell: {pair[1]: pair[0] for pair in cell},
+    )
+
+    return df
+
+
+@task
+def _reset_index(df: pd.DataFrame) -> pd.DataFrame:
+
+    return df.reset_index()
+
+
+@task
+@require(lambda df, target: target in df.columns)
+@require(
+    lambda df: (len(df) - 1) == df.index[-1],
+    "Index must reflect actual length for pd.concat to succeed.",
+)
+def _expand_parsed_address_dict(df: pd.DataFrame, target: str) -> pd.DataFrame:
+
+    parsed_address = pd.json_normalize(df[target])
+
+    return pd.concat([df, parsed_address], axis="columns")
+
+
+@task
+@require(lambda df, column_names: set(column_names).issubset(set(df.columns)))
+def _drop_columns(df: pd.DataFrame, column_names: List[str]) -> pd.DataFrame:
+
+    return df.drop(columns=column_names)
+
+
+@task
 def _save_to_parquet_file(df: pd.DataFrame, filepath: Path) -> None:
 
     df.to_parquet(filepath)
@@ -142,32 +192,20 @@ with Flow("Merge MPRN and GPRN") as flow:
 
     mprn_raw = _read_parquet_file(RAW_DIR / "mprn.parquet")
     gprn_raw = _read_parquet_file(RAW_DIR / "gprn.parquet")
+    vo_raw = _read_parquet_file(PROCESSED_DIR / "vo_dublin.parquet")
 
     mprn_aggregated = _aggregate_columns(
         mprn_raw, column_names=["PB Name", "Location"], to_column="combined_address",
-    )
-    gprn_aggregated = _aggregate_columns(
-        gprn_raw, column_names=["PB Name", "Location"], to_column="combined_address",
     )
     mprn_renamed = _rename_columns(
         mprn_aggregated,
         {"Attributable Total Final Consumption (kWh)": "electricity_demand_kwh_year"},
     )
-    gprn_renamed = _rename_columns(
-        gprn_aggregated,
-        {"Attributable Total Final Consumption (kWh)": "gas_demand_kwh_year"},
-    )
     mprn_with_addresses = _standardise_addresses(
         mprn_renamed, on_column="combined_address", to_column="standardised_address",
     )
-    gprn_with_addresses = _standardise_addresses(
-        gprn_renamed, on_column="combined_address", to_column="standardised_address",
-    )
     mprn_address_deduped = _dedupe_column(
         mprn_with_addresses, target="standardised_address", result="deduped_address",
-    )
-    gprn_address_deduped = _dedupe_column(
-        gprn_with_addresses, target="standardised_address", result="deduped_address",
     )
     mprn_summated = _sum_energies_for_multiple_entry_addresses(
         mprn_address_deduped,
@@ -175,16 +213,30 @@ with Flow("Merge MPRN and GPRN") as flow:
         target="electricity_demand_kwh_year",
         result="summated_electricity_demand_kwh_year",
     )
+    mprn_deduped = _drop_duplicates(mprn_summated, on=["standardised_address", "Year"])
+
+    gprn_aggregated = _aggregate_columns(
+        gprn_raw, column_names=["PB Name", "Location"], to_column="combined_address",
+    )
+    gprn_renamed = _rename_columns(
+        gprn_aggregated,
+        {"Attributable Total Final Consumption (kWh)": "gas_demand_kwh_year"},
+    )
+    gprn_with_addresses = _standardise_addresses(
+        gprn_renamed, on_column="combined_address", to_column="standardised_address",
+    )
+    gprn_address_deduped = _dedupe_column(
+        gprn_with_addresses, target="standardised_address", result="deduped_address",
+    )
     gprn_summated = _sum_energies_for_multiple_entry_addresses(
         gprn_address_deduped,
         on=["standardised_address", "Year"],
         target="gas_demand_kwh_year",
         result="summated_gas_demand_kwh_year",
     )
-    mprn_deduped = _drop_duplicates(mprn_summated, on=["standardised_address", "Year"])
     gprn_deduped = _drop_duplicates(gprn_summated, on=["standardised_address", "Year"])
     gprn_extracted = _extract_columns(
-        gprn_summated,
+        gprn_deduped,
         [
             "deduped_address",
             "standardised_address",
@@ -193,12 +245,45 @@ with Flow("Merge MPRN and GPRN") as flow:
         ],
     )
 
-    m_and_r = _merge_mprn_and_gprn_on_common_addresses(
+    m_and_r_raw = _merge_mprn_and_gprn_on_common_addresses(
         mprn_deduped,
         gprn_extracted,
         on=["standardised_address", "Year"],
         how="left",
         indicator=True,
     )
+    m_and_r_with_parsed_address = _parse_standardised_address(
+        m_and_r_raw, target="standardised_address", result="parsed_address",
+    )
+    m_and_r_with_parsed_address_dict = _convert_parsed_address_to_dict(
+        m_and_r_with_parsed_address,
+        target="parsed_address",
+        result="parsed_address_dict",
+    )
+    m_and_r_with_parsed_address_expanded = _expand_parsed_address_dict(
+        m_and_r_with_parsed_address_dict, target="parsed_address_dict",
+    )
 
-    _save_to_parquet_file(m_and_r, PROCESSED_DIR / "m_and_r.parquet")
+    vo_with_standardised_address = _standardise_addresses(
+        vo_raw, on_column="Address", to_column="standardised_address",
+    )
+    vo_with_parsed_address = _parse_standardised_address(
+        vo_with_standardised_address,
+        target="standardised_address",
+        result="parsed_address",
+    )
+    vo_with_parsed_address_dict = _convert_parsed_address_to_dict(
+        vo_with_parsed_address, target="parsed_address", result="parsed_address_dict",
+    )
+    vo_with_index_reset = _reset_index(vo_with_parsed_address_dict)
+    vo_with_parsed_address_expanded = _expand_parsed_address_dict(
+        vo_with_index_reset, target="parsed_address_dict",
+    )
+
+    m_and_r_compatible_with_parquet = _drop_columns(
+        m_and_r_with_parsed_address_expanded,
+        column_names=["parsed_address", "parsed_address_dict"],
+    )
+    _save_to_parquet_file(
+        m_and_r_compatible_with_parquet, PROCESSED_DIR / "m_and_r.parquet",
+    )
