@@ -12,15 +12,41 @@ from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.vo import _apply_benchmarks_to_vo_floor_area
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
-from drem.transform.vo import _merge_address_columns_into_one
+from drem.transform.vo import _fillna_in_columns_where_column_name_contains_substring
 from drem.transform.vo import _merge_benchmarks_into_vo
+from drem.transform.vo import _merge_string_columns_into_one
 from drem.transform.vo import _remove_null_address_strings
-from drem.transform.vo import _replace_string_in_column
+from drem.transform.vo import _replace_rows_equal_to_string
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
+from drem.transform.vo import _strip_whitespace
 
 
 VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
 VO_EOUT: Path = UTEST_DATA_TRANSFORM / "vo_clean.parquet"
+
+
+def test_fillna_in_columns_where_column_name_contains_substring() -> None:
+    """Fillna in columns where column name matches substring with replacement string."""
+    columns = pd.DataFrame(
+        {
+            "Address 1": [np.nan, "2-4 Crown Alley, Dublin 2, Ireland"],
+            "Address 2": [np.nan, np.nan],
+            "Company Name": ["No Name", "Codema"],
+        },
+    )
+    expected_output = pd.DataFrame(
+        {
+            "Address 1": ["", "2-4 Crown Alley, Dublin 2, Ireland"],
+            "Address 2": ["", ""],
+            "Company Name": ["No Name", "Codema"],
+        },
+    )
+
+    output = _fillna_in_columns_where_column_name_contains_substring(
+        columns, substring="Address", replace_with="",
+    )
+
+    assert_frame_equal(output, expected_output)
 
 
 def test_merge_address_columns_into_one() -> None:
@@ -37,7 +63,24 @@ def test_merge_address_columns_into_one() -> None:
         },
     )
 
-    output: pd.DataFrame = _merge_address_columns_into_one(addresses, "Address")
+    output: pd.DataFrame = _merge_string_columns_into_one(
+        addresses, target="Address", result="Address",
+    )
+    assert_frame_equal(output, expected_output)
+
+
+def test_strip_whitespace() -> None:
+    """Strip whitespace from strings in rows."""
+    addresses = pd.DataFrame({"Address": ["   2-4 Crown Alley, Dublin 2, Ireland "]})
+    expected_output = pd.DataFrame(
+        {
+            "Address": ["   2-4 Crown Alley, Dublin 2, Ireland "],
+            "Address_stripped": ["2-4 Crown Alley, Dublin 2, Ireland"],
+        },
+    )
+
+    output = _strip_whitespace(addresses, target="Address", result="Address_stripped")
+
     assert_frame_equal(output, expected_output)
 
 
@@ -67,13 +110,22 @@ def test_remove_null_address_strings() -> None:
     assert_frame_equal(output, expected_output)
 
 
-def test_replace_string_in_column() -> None:
+def test_replace_rows_equal_to_string() -> None:
     """Replace string in column with new string."""
-    addresses = pd.DataFrame({"Address": [""]})
-    expected_output = pd.DataFrame({"Address": ["None"]})
+    addresses = pd.DataFrame({"Address": ["", "2-4 Crown Alley, Dublin 2, Ireland"]})
+    expected_output = pd.DataFrame(
+        {
+            "Address": ["", "2-4 Crown Alley, Dublin 2, Ireland"],
+            "Address_replaced": ["None", "2-4 Crown Alley, Dublin 2, Ireland"],
+        },
+    )
 
-    output: pd.DataFrame = _replace_string_in_column(
-        addresses, on="Address", to_replace="", replace_with="None",
+    output: pd.DataFrame = _replace_rows_equal_to_string(
+        addresses,
+        target="Address",
+        result="Address_replaced",
+        to_replace="",
+        replace_with="None",
     )
 
     assert_frame_equal(output, expected_output)
