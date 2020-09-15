@@ -3,7 +3,7 @@ from typing import Any
 from typing import Iterable
 from typing import Tuple
 
-import dask.dataframe as dpd
+import dask.dataframe as dd
 
 from prefect import Flow
 from prefect import Task
@@ -14,10 +14,10 @@ import drem
 
 
 @task
-def _read_txt_files(dirpath: Path) -> Iterable[dpd.DataFrame]:
+def _read_txt_files(dirpath: Path) -> Iterable[dd.DataFrame]:
 
     return [
-        dpd.read_csv(
+        dd.read_csv(
             filepath,
             sep=" ",
             header=None,
@@ -29,13 +29,13 @@ def _read_txt_files(dirpath: Path) -> Iterable[dpd.DataFrame]:
 
 
 @task
-def _concat_ddfs(ddfs: Iterable[dpd.DataFrame]) -> dpd.DataFrame:
+def _concat_ddfs(ddfs: Iterable[dd.DataFrame]) -> dd.DataFrame:
 
-    return dpd.concat(ddfs)
+    return dd.concat(ddfs)
 
 
 @task
-def _slice_timeid_column(ddf: dpd.DataFrame) -> dpd.DataFrame:
+def _slice_timeid_column(ddf: dd.DataFrame) -> dd.DataFrame:
 
     ddf["day"] = ddf["timeid"].str.slice(0, 3).astype("int16")
     ddf["halfhourly_id"] = ddf["timeid"].str.slice(3, 5).astype("int8")
@@ -44,17 +44,17 @@ def _slice_timeid_column(ddf: dpd.DataFrame) -> dpd.DataFrame:
 
 
 @task
-def _convert_dayid_to_datetime(ddf: dpd.DataFrame) -> dpd.DataFrame:
+def _convert_dayid_to_datetime(ddf: dd.DataFrame) -> dd.DataFrame:
 
-    ddf["datetime"] = dpd.to_datetime(
+    ddf["datetime"] = dd.to_datetime(
         ddf["day"], origin="01/01/2009", unit="D",
-    ) + dpd.to_timedelta(ddf["halfhourly_id"] / 2, unit="h")
+    ) + dd.to_timedelta(ddf["halfhourly_id"] / 2, unit="h")
 
     return ddf.drop(columns=["day", "halfhourly_id"])
 
 
 @task
-def _to_parquet(ddf: dpd.DataFrame, savepath: Path):
+def _to_parquet(ddf: dd.DataFrame, savepath: Path):
 
     return ddf.to_parquet(savepath)
 
