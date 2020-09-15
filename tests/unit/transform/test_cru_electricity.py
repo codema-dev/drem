@@ -52,7 +52,7 @@ def clean_elec_demands_dirpath(tmp_path: Path) -> Path:
 def clean_cru_elec_demand(
     raw_elec_demands_dirpath: Path, clean_elec_demands_dirpath: Path,
 ) -> Task:
-    """Create an instance of CleanCRUElecDemand using temporary data.
+    """Create an instance of Task CleanCRUElecDemand using temporary data.
 
     Args:
         raw_elec_demands_dirpath (Path): Path to a directory containing dummy data files
@@ -61,7 +61,7 @@ def clean_cru_elec_demand(
             'processed'
 
     Returns:
-        Task: [description]
+        Task: An instance of Task CleanCRUElecDemand
     """
     return CleanCRUElecDemand(
         dirpath=raw_elec_demands_dirpath, savepath=clean_elec_demands_dirpath,
@@ -124,40 +124,28 @@ def test_convert_dayid_to_datetime() -> None:
     assert_frame_equal(output, expected_output)
 
 
-class TestCleanCRUElecDemand(object):
-    """Test class methods."""
+def test_clean_cru_elec_demand_run(clean_cru_elec_demand: Task) -> None:
+    """Test run output matches expected.
 
-    def test_run(
-        self,
-        raw_elec_demands_dirpath: Path,
-        clean_elec_demands_dirpath: Path,
-        clean_cru_elec_demand: Task,
-    ) -> None:
-        """Test run output matches expected.
+    Args:
+        clean_cru_elec_demand (Task): An instance of Task CleanCRUElecDemand
+    """
+    expected_output = pd.DataFrame(
+        {
+            "id": pd.Series([1392, 1392, 1392, 1392], dtype="int16"),
+            "demand": pd.Series([0.14, 0.138, 0.14, 0.138], dtype="float32"),
+            "datetime": pd.Series(
+                [
+                    "2009-07-15 01:30:00",
+                    "2009-07-15 02:00:00",
+                    "2009-07-15 01:30:00",
+                    "2009-07-15 02:00:00",
+                ],
+                dtype="datetime64[ns]",
+            ),
+        },
+    )
 
-        Args:
-            raw_elec_demands_dirpath (Path): Path to a directory containing dummy data
-                files called 'raw'
-            clean_elec_demands_dirpath (Path): Path to a temporary, empty directory
-                called 'processed'.
-            clean_cru_elec_demand (Task): [description]
-        """
-        expected_output = pd.DataFrame(
-            {
-                "id": pd.Series([1392, 1392, 1392, 1392], dtype="int16"),
-                "demand": pd.Series([0.14, 0.138, 0.14, 0.138], dtype="float32"),
-                "datetime": pd.Series(
-                    [
-                        "2009-07-15 01:30:00",
-                        "2009-07-15 02:00:00",
-                        "2009-07-15 01:30:00",
-                        "2009-07-15 02:00:00",
-                    ],
-                    dtype="datetime64[ns]",
-                ),
-            },
-        )
+    output = clean_cru_elec_demand.run().compute().reset_index(drop=True)
 
-        output = clean_cru_elec_demand.run().compute().reset_index(drop=True)
-
-        assert_frame_equal(output, expected_output)
+    assert_frame_equal(output, expected_output)
