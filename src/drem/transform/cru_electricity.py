@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 from typing import Iterable
+from typing import Tuple
 
 import dask.dataframe as dpd
 
@@ -63,7 +64,6 @@ class CleanCRUElecDemand(Task):
 
     From:
 
-    0     1       2
     1392  19503   0.14
 
     To:
@@ -91,11 +91,11 @@ class CleanCRUElecDemand(Task):
 
         super().__init__(name="Clean CRU Electricity Demands", **kwargs)
 
-    def flow(self) -> Flow:
+    def flow(self) -> Tuple[Flow, Task]:
         """Instantiate prefect task flow.
 
         Returns:
-            Flow: see https://docs.prefect.io/core/concepts/flows.html
+            Tuple[Flow, Task]: see https://docs.prefect.io/core/concepts/flows.html
         """
         with Flow("Transform CRU Smart Meter Data") as fw:
 
@@ -105,7 +105,7 @@ class CleanCRUElecDemand(Task):
             demand_with_datetimes = _convert_dayid_to_datetime(demand_with_times)
             _to_parquet(demand_with_datetimes, self.savepath)
 
-        return fw
+        return fw, demand_with_datetimes
 
     def run(self) -> State:
         """Run prefect flow.
@@ -113,8 +113,9 @@ class CleanCRUElecDemand(Task):
         Returns:
             State: See https://docs.prefect.io/core/concepts/flows.html#running-a-flow
         """
-        flow = self.flow()
-        return flow.run()
+        flow, result_task = self.flow()
+        state = flow.run()
+        return state.result[result_task].result
 
 
 if __name__ == "__main__":
