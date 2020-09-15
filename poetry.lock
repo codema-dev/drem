@@ -272,6 +272,26 @@ version = "2.26.0"
 [package.dependencies]
 pyyaml = "*"
 
+[package.dependencies.fsspec]
+optional = true
+version = ">=0.6.0"
+
+[package.dependencies.numpy]
+optional = true
+version = ">=1.13.0"
+
+[package.dependencies.pandas]
+optional = true
+version = ">=0.23.0"
+
+[package.dependencies.partd]
+optional = true
+version = ">=0.3.10"
+
+[package.dependencies.toolz]
+optional = true
+version = ">=0.8.2"
+
 [package.extras]
 array = ["numpy (>=1.13.0)", "toolz (>=0.8.2)"]
 bag = ["cloudpickle (>=0.2.2)", "fsspec (>=0.6.0)", "toolz (>=0.8.2)", "partd (>=0.3.10)"]
@@ -594,6 +614,30 @@ flake8 = "*"
 
 [[package]]
 category = "main"
+description = "File-system specification"
+name = "fsspec"
+optional = false
+python-versions = ">3.6"
+version = "0.8.2"
+
+[package.extras]
+abfs = ["adlfs"]
+adl = ["adlfs"]
+dask = ["dask", "distributed"]
+dropbox = ["dropboxdrivefs", "requests", "dropbox"]
+gcs = ["gcsfs"]
+git = ["pygit2"]
+github = ["requests"]
+gs = ["gcsfs"]
+hdfs = ["pyarrow"]
+http = ["requests", "aiohttp"]
+s3 = ["s3fs"]
+sftp = ["paramiko"]
+smb = ["smbprotocol"]
+ssh = ["paramiko"]
+
+[[package]]
+category = "main"
 description = "Geographic pandas extensions"
 name = "geopandas"
 optional = false
@@ -789,6 +833,14 @@ name = "lazy-object-proxy"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.4.3"
+
+[[package]]
+category = "main"
+description = "File-based locks for Python for Linux and Windows"
+name = "locket"
+optional = false
+python-versions = "*"
+version = "0.2.0"
 
 [[package]]
 category = "main"
@@ -990,6 +1042,21 @@ version = "0.7.1"
 
 [package.extras]
 testing = ["docopt", "pytest (>=3.0.7)"]
+
+[[package]]
+category = "main"
+description = "Appendable key-value storage"
+name = "partd"
+optional = false
+python-versions = ">=3.5"
+version = "1.1.0"
+
+[package.dependencies]
+locket = "*"
+toolz = "*"
+
+[package.extras]
+complete = ["numpy (>=1.9.0)", "pandas (>=0.19.0)", "pyzmq", "blosc"]
 
 [[package]]
 category = "dev"
@@ -1772,7 +1839,7 @@ version = "2.0.0"
 heapdict = "*"
 
 [metadata]
-content-hash = "ad664d74a19236a5ba56550c00bada1ae60f4da4087a95d2a4eb4f25794f4028"
+content-hash = "7605d1f28f87d7b7f5af84c13a6351ed29e46cc04679e88b1581014cdae1a604"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -2018,6 +2085,10 @@ flake8-string-format = [
     {file = "flake8-string-format-0.2.3.tar.gz", hash = "sha256:774d56103d9242ed968897455ef49b7d6de272000cfa83de5814273a868832f1"},
     {file = "flake8_string_format-0.2.3-py2.py3-none-any.whl", hash = "sha256:68ea72a1a5b75e7018cae44d14f32473c798cf73d75cbaed86c6a9a907b770b2"},
 ]
+fsspec = [
+    {file = "fsspec-0.8.2-py3-none-any.whl", hash = "sha256:8ce8b237670981f3d61606e71d80b2c455a6e9a3533037639992004052e9d5e0"},
+    {file = "fsspec-0.8.2.tar.gz", hash = "sha256:c08fbbb517d1c550be38ae0eba26b0b39b2b656617396ecce8c9ccd1a107c0ee"},
+]
 geopandas = [
     {file = "geopandas-0.8.1-py2.py3-none-any.whl", hash = "sha256:ef90a7f5ce9337f412c1dab9e014b4076b639fb7fc0edcf8b57c252c91a096c4"},
     {file = "geopandas-0.8.1.tar.gz", hash = "sha256:e28a729e44ac53c1891b54b1aca60e3bc0bb9e88ad0f2be8e301a03b9510f6e2"},
@@ -2115,6 +2186,9 @@ lazy-object-proxy = [
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:a6ae12d08c0bf9909ce12385803a543bfe99b95fe01e752536a60af2b7797c62"},
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-win32.whl", hash = "sha256:5541cada25cd173702dbd99f8e22434105456314462326f06dba3e180f203dfd"},
     {file = "lazy_object_proxy-1.4.3-cp38-cp38-win_amd64.whl", hash = "sha256:59f79fef100b09564bc2df42ea2d8d21a64fdcda64979c0fa3db7bdaabaf6239"},
+]
+locket = [
+    {file = "locket-0.2.0.tar.gz", hash = "sha256:1fee63c1153db602b50154684f5725564e63a0f6d09366a1cb13dffcec179fb4"},
 ]
 marshmallow = [
     {file = "marshmallow-3.7.1-py2.py3-none-any.whl", hash = "sha256:67bf4cae9d3275b3fc74bd7ff88a7c98ee8c57c94b251a67b031dc293ecc4b76"},
@@ -2274,6 +2348,10 @@ pandas-vet = [
 parso = [
     {file = "parso-0.7.1-py2.py3-none-any.whl", hash = "sha256:97218d9159b2520ff45eb78028ba8b50d2bc61dcc062a9682666f2dc4bd331ea"},
     {file = "parso-0.7.1.tar.gz", hash = "sha256:caba44724b994a8a5e086460bb212abc5a8bc46951bf4a9a1210745953622eb9"},
+]
+partd = [
+    {file = "partd-1.1.0-py3-none-any.whl", hash = "sha256:7a491cf254e5ab09e9e6a40d80195e5e0e5e169115bfb8287225cb0c207536d2"},
+    {file = "partd-1.1.0.tar.gz", hash = "sha256:6e258bf0810701407ad1410d63d1a15cfd7b773fd9efe555dac6bb82cc8832b0"},
 ]
 pathspec = [
     {file = "pathspec-0.8.0-py2.py3-none-any.whl", hash = "sha256:7d91249d21749788d07a2d0f94147accd8f845507400749ea19c1ec9054a12b0"},
