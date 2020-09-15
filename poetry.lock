@@ -267,7 +267,7 @@ description = "Parallel PyData with Task Scheduling"
 name = "dask"
 optional = false
 python-versions = ">=3.6"
-version = "2.23.0"
+version = "2.26.0"
 
 [package.dependencies]
 pyyaml = "*"
@@ -275,10 +275,10 @@ pyyaml = "*"
 [package.extras]
 array = ["numpy (>=1.13.0)", "toolz (>=0.8.2)"]
 bag = ["cloudpickle (>=0.2.2)", "fsspec (>=0.6.0)", "toolz (>=0.8.2)", "partd (>=0.3.10)"]
-complete = ["bokeh (>=1.0.0)", "cloudpickle (>=0.2.2)", "distributed (>=2.0)", "fsspec (>=0.6.0)", "numpy (>=1.13.0)", "pandas (>=0.23.0)", "partd (>=0.3.10)", "toolz (>=0.8.2)"]
+complete = ["bokeh (>=1.0.0,<2.0.0 || >2.0.0)", "cloudpickle (>=0.2.2)", "distributed (>=2.0)", "fsspec (>=0.6.0)", "numpy (>=1.13.0)", "pandas (>=0.23.0)", "partd (>=0.3.10)", "toolz (>=0.8.2)"]
 dataframe = ["numpy (>=1.13.0)", "pandas (>=0.23.0)", "toolz (>=0.8.2)", "partd (>=0.3.10)", "fsspec (>=0.6.0)"]
 delayed = ["cloudpickle (>=0.2.2)", "toolz (>=0.8.2)"]
-diagnostics = ["bokeh (>=1.0.0)"]
+diagnostics = ["bokeh (>=1.0.0,<2.0.0 || >2.0.0)"]
 distributed = ["distributed (>=2.0)"]
 
 [[package]]
@@ -1059,22 +1059,6 @@ python-versions = ">=3.5"
 version = "7.2.0"
 
 [[package]]
-category = "main"
-description = "A decorator that changes the >> and << operators to mimic Elixir-style function pipes"
-name = "pipeop"
-optional = false
-python-versions = "*"
-version = "0.3.0"
-
-[[package]]
-category = "main"
-description = "Declarative syntactic sugar that enables piping in python."
-name = "pipey"
-optional = false
-python-versions = "*"
-version = "0.0.1a5"
-
-[[package]]
 category = "dev"
 description = "plugin and hook calling mechanisms for python"
 name = "pluggy"
@@ -1184,7 +1168,7 @@ test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
 [[package]]
 category = "dev"
 description = "Run a subprocess in a pseudo terminal"
-marker = "python_version >= \"3.4\" and sys_platform != \"win32\" or sys_platform != \"win32\""
+marker = "python_version >= \"3.4\" and sys_platform != \"win32\" or sys_platform != \"win32\" or python_version >= \"3.4\" and sys_platform != \"win32\" and (python_version >= \"3.4\" and sys_platform != \"win32\" or sys_platform != \"win32\")"
 name = "ptyprocess"
 optional = false
 python-versions = "*"
@@ -1788,7 +1772,7 @@ version = "2.0.0"
 heapdict = "*"
 
 [metadata]
-content-hash = "aedd6d25f649297da33416d4908f992e2613c6a34c6a3acb2d7c3e952ca43703"
+content-hash = "ad664d74a19236a5ba56550c00bada1ae60f4da4087a95d2a4eb4f25794f4028"
 lock-version = "1.0"
 python-versions = "^3.8"
 
@@ -1927,8 +1911,8 @@ darglint = [
     {file = "darglint-1.5.2.tar.gz", hash = "sha256:6b9461f96694c2cf1d8edb1597a783fe6840953b0eb18cc6cc1e72a26f196d79"},
 ]
 dask = [
-    {file = "dask-2.23.0-py3-none-any.whl", hash = "sha256:638adf45e0cbe744c05531f2617259098f071f72c1b6cbefb66116632b93e56d"},
-    {file = "dask-2.23.0.tar.gz", hash = "sha256:6f48f0e663762dd881625333412e3ac162055e7bcea121e1cabf84b88981a8f9"},
+    {file = "dask-2.26.0-py3-none-any.whl", hash = "sha256:09e2e3423df23acf59e54202351895a9bf3e18210e343b6247b33034207b0a3a"},
+    {file = "dask-2.26.0.tar.gz", hash = "sha256:44c5c358bf9037dcff1b8332379738b7766b2d93652fca850a10b6e8a05497f7"},
 ]
 decorator = [
     {file = "decorator-4.4.2-py2.py3-none-any.whl", hash = "sha256:41fa54c2a0cc4ba648be4fd43cff00aedf5b9465c9bf18d64325bc225f08f760"},
@@ -2141,6 +2125,15 @@ marshmallow-oneofschema = [
     {file = "marshmallow_oneofschema-2.0.1-py2.py3-none-any.whl", hash = "sha256:29673bcc415f4a2098e273bf3c8229bc1a33e91378885eac90b06943bd626110"},
 ]
 matplotlib = [
+    {file = "matplotlib-3.3.1-1-cp36-cp36m-win32.whl", hash = "sha256:fab11637734eb14affb9c5e20d44d69429c18b49595d6e67c69295de24827fc4"},
+    {file = "matplotlib-3.3.1-1-cp36-cp36m-win_amd64.whl", hash = "sha256:24392ac1a382ed753505286f1a1483bcfd67ed0c72d51be10c4c2013e386d0b7"},
+    {file = "matplotlib-3.3.1-1-cp37-cp37m-win32.whl", hash = "sha256:c4ffb25b9855bdb6cdaf21bbd4ab2c229be539248304ac5215b94c816ea6e32e"},
+    {file = "matplotlib-3.3.1-1-cp37-cp37m-win_amd64.whl", hash = "sha256:5a42c84264a1acbbf01c073a7bd05a0e80d99f94f10020d613b1b0526af9dcc2"},
+    {file = "matplotlib-3.3.1-1-cp38-cp38-win32.whl", hash = "sha256:bc978374b43737f2bbc4a6ec48e52ae8c92be6278a80d0e2ce92f0eb0841f15c"},
+    {file = "matplotlib-3.3.1-1-cp38-cp38-win_amd64.whl", hash = "sha256:6d0f03079f655ca0a2d2e0bf49c28e1ec43d9d544c33d8da1a88765f23018ecc"},
+    {file = "matplotlib-3.3.1-1-cp39-cp39-win32.whl", hash = "sha256:2375f039b8c6ad6c1d03f01bf31f086bbbf997bf25e246f3b67f69969cde3d98"},
+    {file = "matplotlib-3.3.1-1-cp39-cp39-win_amd64.whl", hash = "sha256:233bef5e3b3494f3b7057595ca814f23ba0ce67a03632ddf677be5132128b3db"},
+    {file = "matplotlib-3.3.1-1-pp36-pypy36_pp73-win32.whl", hash = "sha256:f62c0b9a5d38c26673a8862cbae4d26cffcda260848e4278246b4e00f5a95eaf"},
     {file = "matplotlib-3.3.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:282f8a077a1217f9f2ac178596f27c1ae94abbc6e7b785e1b8f25e83918e9199"},
     {file = "matplotlib-3.3.1-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:83ae7261f4d5ab387be2caee29c4f499b1566f31c8ac97a0b8ab61afd9e3da92"},
     {file = "matplotlib-3.3.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:1f9cf2b8500b833714a193cb24281153f5072d55b2e486009f1e81f0b7da3410"},
@@ -2218,6 +2211,7 @@ natsort = [
 ]
 nodeenv = [
     {file = "nodeenv-1.4.0-py2.py3-none-any.whl", hash = "sha256:4b0b77afa3ba9b54f4b6396e60b0c83f59eaeb2d63dc3cc7a70f7f4af96c82bc"},
+    {file = "nodeenv-1.4.0.tar.gz", hash = "sha256:26941644654d8dd5378720e38f62a3bac5f9240811fb3b8913d2663a17baa91c"},
 ]
 numpy = [
     {file = "numpy-1.19.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b1cca51512299841bf69add3b75361779962f9cee7d9ee3bb446d5982e925b69"},
@@ -2353,12 +2347,6 @@ pillow = [
     {file = "Pillow-7.2.0-pp36-pypy36_pp73-manylinux2010_x86_64.whl", hash = "sha256:e901964262a56d9ea3c2693df68bc9860b8bdda2b04768821e4c44ae797de117"},
     {file = "Pillow-7.2.0-pp36-pypy36_pp73-win32.whl", hash = "sha256:25930fadde8019f374400f7986e8404c8b781ce519da27792cbe46eabec00c4d"},
     {file = "Pillow-7.2.0.tar.gz", hash = "sha256:97f9e7953a77d5a70f49b9a48da7776dc51e9b738151b22dacf101641594a626"},
-]
-pipeop = [
-    {file = "pipeop-0.3.0.tar.gz", hash = "sha256:d41664f141eb17dbe0c52fdb49252cd2d640b953dbb706caa8412617a513301e"},
-]
-pipey = [
-    {file = "pipey-0.0.1a5.tar.gz", hash = "sha256:f4c343cc6ed6d18f6ff78201e14592d4307deb526cfa436a5cd37bc830b3f5e7"},
 ]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
