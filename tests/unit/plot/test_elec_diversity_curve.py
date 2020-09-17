@@ -11,9 +11,9 @@ from pandas.testing import assert_frame_equal
 from pandas.testing import assert_series_equal
 
 from drem.plot.elec_diversity_curve import _calculate_relative_peak_demand
-from drem.plot.elec_diversity_curve import _generate_sample
-from drem.plot.elec_diversity_curve import _get_sample_ids
-from drem.plot.elec_diversity_curve import _get_unique_ids
+from drem.plot.elec_diversity_curve import _extract_sample
+from drem.plot.elec_diversity_curve import _get_random_sample
+from drem.plot.elec_diversity_curve import _get_unique_column_values
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def elec_demands(elec_demands_dirpath: Path) -> dd.DataFrame:
     return dd.read_parquet(elec_demands_dirpath)
 
 
-def test_get_unique_ids(elec_demands: dd.DataFrame) -> None:
+def test_get_unique_column_values(elec_demands: dd.DataFrame) -> None:
     """Extract unique ids from Dask DataFrame column.
 
     Args:
@@ -72,22 +72,22 @@ def test_get_unique_ids(elec_demands: dd.DataFrame) -> None:
     """
     expected_output = pd.Series([1392, 1000], dtype="int16", name="id")
 
-    output = _get_unique_ids.run(elec_demands, on="id")
+    output = _get_unique_column_values.run(elec_demands, on="id")
 
     assert_series_equal(output, expected_output)
 
 
-def test_get_sample_ids() -> None:
+def test_get_random_sample() -> None:
     """Get id corresponding to sample from series of ids."""
     ids = pd.Series([1392, 1000])
     expected_output = np.array([1392])
 
-    output = _get_sample_ids.run(ids, sample_size=1, random_seed=0)
+    output = _get_random_sample.run(ids, size=1, seed=0)
 
     assert_array_equal(output, expected_output)
 
 
-def test_generate_sample(elec_demands: dd.DataFrame) -> None:
+def test_extract_sample(elec_demands: dd.DataFrame) -> None:
     """Get sample data corresponding to sample ids.
 
     Args:
@@ -110,9 +110,9 @@ def test_generate_sample(elec_demands: dd.DataFrame) -> None:
         },
     )
 
-    output = _generate_sample.run(
-        elec_demands, on="id", sample_ids=sample_ids,
-    ).reset_index(drop=True)
+    output = _extract_sample.run(elec_demands, on="id", ids=sample_ids).reset_index(
+        drop=True,
+    )
 
     assert_frame_equal(output, expected_output)
 
@@ -137,7 +137,7 @@ def test_calculate_relative_peak_demand() -> None:
     expected_output = np.float32(0.14)
 
     output = _calculate_relative_peak_demand.run(
-        sample_demand, group_on="datetime", target="demand", sample_size=2,
+        sample_demand, group_on="datetime", target="demand", size=2,
     )
 
     assert output == expected_output

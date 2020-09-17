@@ -66,6 +66,7 @@ def flow_state(elec_demands_dirpath: Path) -> State:
     )
 
 
+@pytest.mark.e2e
 def test_calculate_rel_peak_demands_flow(flow_state: Path) -> None:
     """Ensure flow result exists.
 

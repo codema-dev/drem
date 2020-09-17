@@ -1,5 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
+from typing import DefaultDict
 from typing import List
 
 import dask.dataframe as dd
@@ -24,36 +25,40 @@ def _read_parquet(filepath: Path) -> dd.DataFrame:
 
 
 @task
-def _get_unique_ids(elec_demands: dd.DataFrame, on: str) -> pd.Series:
+def _get_unique_column_values(ddf: dd.DataFrame, on: str) -> pd.Series:
 
-    return elec_demands[on].unique().compute()
-
-
-@task
-def _get_sample_ids(
-    unique_ids: pd.Series, sample_size: int, random_seed: int,
-) -> np.ndarray:
-
-    np.random.seed(random_seed)
-    return np.random.choice(unique_ids, sample_size)
+    return ddf[on].unique().compute()
 
 
 @task
-def _generate_sample(
-    elec_demands: dd.DataFrame, on: str, sample_ids: int,
-) -> pd.DataFrame:
+def _get_random_sample(series: pd.Series, size: int, seed: int) -> np.ndarray:
+    """Get a random sample subset of values.
 
-    return elec_demands[elec_demands[on].isin(sample_ids)].compute()
+    Args:
+        series (pd.Series): Data to be sampled
+        size (int): Size of sample
+        seed (int): see
+            https://numpy.org/doc/stable/reference/random/generated/numpy.random.seed.html
+
+    Returns:
+        np.ndarray: A random sample of the data
+    """
+    np.random.seed(seed)
+    return np.random.choice(series, size)
+
+
+@task
+def _extract_sample(ddf: dd.DataFrame, on: str, ids: int) -> pd.DataFrame:
+
+    return ddf[ddf[on].isin(ids)].compute()
 
 
 @task
 def _calculate_relative_peak_demand(
-    sample: pd.DataFrame, group_on: str, target: str, sample_size: int,
+    df: pd.DataFrame, group_on: str, target: str, size: int,
 ) -> int:
 
-    return (
-        sample.groupby(group_on)[target].agg(lambda arr: arr.sum() / sample_size).max()
-    )
+    return df.groupby(group_on)[target].agg(lambda arr: arr.sum() / size).max()
 
 
 with Flow("Calculate Relative Peak Demand for Sample Size N") as flow:
@@ -61,19 +66,16 @@ with Flow("Calculate Relative Peak Demand for Sample Size N") as flow:
     dirpath = Parameter("dirpath")
     elec_demands = _read_parquet(dirpath)
 
-    unique_ids = _get_unique_ids(elec_demands, on="id")
+    unique_ids = _get_unique_column_values(elec_demands, on="id")
     sample_sizes = Parameter("sample_sizes")
     random_seed = Parameter("random_seed")
 
-    sample_ids = _get_sample_ids(
-        unique_ids, sample_size=mapped(sample_sizes), random_seed=random_seed,
+    sample_ids = _get_random_sample(
+        unique_ids, size=mapped(sample_sizes), seed=random_seed,
     )
-    sample = _generate_sample(elec_demands, on="id", sample_ids=mapped(sample_ids))
+    sample = _extract_sample(elec_demands, on="id", ids=mapped(sample_ids))
     relative_peak_demands = _calculate_relative_peak_demand(
-        mapped(sample),
-        group_on="datetime",
-        target="demand",
-        sample_size=mapped(sample_sizes),
+        mapped(sample), group_on="datetime", target="demand", size=mapped(sample_sizes),
     )
 
 
@@ -85,7 +87,7 @@ if __name__ == "__main__":
     number_of_simulations = 20
 
     executor = DaskExecutor()
-    simulation_results: defaultdict[int, List[int]] = defaultdict(list)
+    simulation_results: DefaultDict[int, List[int]] = defaultdict(list)
     for simulation_number in range(number_of_simulations):
 
         state = flow.run(
