@@ -8,62 +8,76 @@
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 ![PyPI - License](https://img.shields.io/pypi/l/drem)
 
-The `drem` library currently automates a number of [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) (etl) tasks to generate data for Dublin-specific bottom-up energy modelling.
+The goal of `drem` is to automate:
 
-`drem` enables etl for the following data sets:
+- Downloading of data from various sources
+- Transforming this raw data into a usable format for the creation of a bottom-up energy model for Dublin
 
-- Residential:
+... to enable:
+- Reproducibility
+- Usage of 'Live'/up-to-date data sources
+
+> This process is also known as [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) or etl.  Under the hood `drem` uses `prefect` to [chain Python functions in a `prefect` flow into a data pipeline](https://docs.prefect.io/core/tutorial/02-etl-flow.html).
+
+You may also find `drem` useful to __download the data sets used in `drem` using simple Python commands__ rather than manually downloading them yourself from source (see [Basic Usage](#basic-usage)).
+
+`drem` currently uses the following data sets:
+
+- Residential buildings:
 
     - SEAI's 2016 Census Small Area [Statistics](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv), [Geometries](https://data.gov.ie/dataset/small-areas-ungeneralised-osi-national-statistical-boundaries-2015) & [Glossary](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx).
 
-    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx).
-    
+    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx) .
+
     - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) created by Shane McGuinness of Trinity College Dublin.
 
-`drem` provides a simple API to call __extract__, __transform__ and __load__ functions from the Command Line or alternatively to [chain functions in a `prefect` flow into a data pipeline](https://docs.prefect.io/core/tutorial/02-etl-flow.html).
-    
+- Commercial:
+
+    - [Valuation Office data](https://www.valoff.ie/en/open-data/api/)
+
+    - [CIBSE Energy Bencmarks](https://www.metrocommercial.co.uk/images/resources/CIBSE_TM46_Energy%20Benchmarks.pdf)
+
+    - SEAI Dublin Measurement & Verification _... available upon request_
+
+> See [energy-modelling-ireland/energy-data-sources](https://github.com/energy-modelling-ireland/energy-data-sources) for more Irish-specific energy sources.
+
 `drem` uses:
 - `prefect` to orchestrate the data pipeline using Python functions.
-- `pandas` to clean columnar data and `geopandas` to clean columnar geospatial data.
+- `pandas` to clean columnar data
+- `geopandas` to clean columnar geospatial data and geocode.
 - `requests` to extract and download data via HTTP requests
+- `pypostal` to standardise and parse address string columns
 
 
 
 ## Installation
 
 ```bash
-pip install git+https://github.com/codema-dev/drem
+pip install drem
 ```
 
 > Warning! Installing via `pip` enables only basic usage of the `drem` library such as downloading data from source from the Command Line. It does not enable full usage of externals (such using the C-library `libpostal` to fuzzy match address names); for this the `drem` `Dockerfile` development environment is required, see [Setup a Local Development environment using Visual Studio Code](#setup-a-local-development-environment-using-visual-studio-code) for more information.
 
+
 ## Basic usage
 
-### Running individual functions
-
-To view all currently implemented functions run the following in iPython:
+To view all currently implemented functions run the following in [`iPython`](https://ipython.readthedocs.io/en/stable/): or in a [Jupyter Notebook](https://jupyter.org/)
 
 ```python
 [1]: import drem
-[2]: drem.<TAB>
+[2]: drem.<TAB> # press ENTER to select a function
+[3]: drem.extract_ber? # ? to get help with usage of individual functions
 ```
 
-To get help with usage of individual functions run:
-
-```python
-[1]: import drem
-[2]: drem.<name-of-method>?
-```
-
-For example; to download individual raw data files and tidy them for Dublin run:
+Currently implemented download functions:
 
 ```python
 [1]: import drem
 [2]: sa_statistics_raw = drem.extract_sa_statistics.run()
-[3]: sa_statistics_dublin = drem.transform_sa_statistics.run(sa_statistics_raw)
+[2]: ber_raw = drem.extract_ber.run("youremail@address.ie") # WARNING: must register your email first at https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
+[3]: sa_geometries= drem.extract_sa_geometries.run()
+[4]: dublin_postcodes = drem.extract_dublin_postcodes.run()
 ```
-
-Currently `drem` calls the above functions in a `prefect` data pipeline (or flow) Python script that can be found at `src/drem/extract_transform_load.py`, for more information on creating and running `prefect` flows see the [`prefect` documentation](https://docs.prefect.io/core/concepts/flows.html#functional-api)
 
 ---
 
@@ -116,7 +130,7 @@ For more information see:
 - externals
     - [libpostal](https://github.com/openvenues/libpostal) enables fuzzy address matching
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
-    
+
 ---
 
 ## Contributing to `drem`
@@ -147,7 +161,7 @@ For more information see:
     - OSX/Linux: https://github.com/pyenv/pyenv#installation
 
 6. Install [`poetry`](https://python-poetry.org/docs/)
-    
+
     - run `poetry install` on the Command Line to install the `drem` dependencies
     - run `poetry shell` to activate your local `poetry` virtual environment
 
@@ -164,7 +178,7 @@ Once the `drem` container has been setup:
 - Run `poetry install` on the Command Line to install the `drem` dependencies
 - Run `poetry shell` to activate your local `poetry` virtual environment
 - Set your VSCode Python Interpreter to your `poetry` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
-    - Copy `/usr/local/lib/.cache/pypoetry/virtualenvs/` 
+    - Copy `/usr/local/lib/.cache/pypoetry/virtualenvs/`
     - Select your `Poetry` virtualenv such as `drem-TFRFQYJy-py3.8`
     - Choose `/bin/python3`
 
