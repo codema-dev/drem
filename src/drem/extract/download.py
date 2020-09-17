@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pathlib import Path
 from typing import Any
 from typing import Optional
@@ -59,11 +57,14 @@ class Download(Task):
     """Download file directly from URL.
 
     Example:
-        Save `data.csv` to current working directory:
-        ```python
-        download_data = Download(url=http://www.urltodata.ie/data.csv, savepath='data.csv')
-        download_data.run()
-        ```
+    Save `data.csv` to current working directory:
+    ```python
+    download_data = Download(
+        url=http://www.urltodata.ie/data.csv, savepath='data.csv',
+    )
+    download_data.run()
+    ```
+
     Args:
         Task (Task): see https://docs.prefect.io/core/concepts/tasks.html
     """
