@@ -25,6 +25,7 @@ pygeos = "^0.7.1"
 validate_email = "^1.3"
 dask = {extras = ["dataframe"], version = "^2.26.0"}
 seaborn = "^0.11.0"
+responses = "^0.12.0"
 
 
 [tool.poetry.dev-dependencies]

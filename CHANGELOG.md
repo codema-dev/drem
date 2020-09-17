@@ -6,7 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+- `drem.extract`
+    - Create generic `Download` Task class that can be called to create download tasks
+    to get data direct from any url:
+        ```python
+        from drem.extract.download import Download
 
+        download_cso_gas =
+        Download(url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",savepath="gas.html")
+
+        cso_gas = download_cso_gas.run()
+        ```
 
 ## [0.2.0] - 2020-09-17
 
