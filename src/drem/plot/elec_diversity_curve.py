@@ -13,7 +13,9 @@ from prefect import Parameter
 from prefect import mapped
 from prefect import task
 from prefect.engine.executors import DaskExecutor
+from prefect.engine.results import LocalResult
 
+from drem.filepaths import INTERIM_DIR
 from drem.filepaths import PROCESSED_DIR
 from drem.filepaths import ROUGHWORK_DIR
 
@@ -24,7 +26,9 @@ def _read_parquet(filepath: Path) -> dd.DataFrame:
     return dd.read_parquet(filepath)
 
 
-@task
+@task(
+    target="{task_name}", checkpoint=True, result=LocalResult(dir=INTERIM_DIR),
+)
 def _get_unique_column_values(ddf: dd.DataFrame, on: str) -> pd.Series:
 
     return ddf[on].unique().compute()
@@ -81,9 +85,9 @@ with Flow("Calculate Relative Peak Demand for Sample Size N") as flow:
 
 if __name__ == "__main__":
 
-    data_dir = PROCESSED_DIR / "SM_electricity"
-    plot_dir = ROUGHWORK_DIR / "diversity_curve"
-    sample_sizes = [1, 10, 100, 1000]
+    data_dir = str(PROCESSED_DIR / "SM_electricity")
+    plot_dir = str(ROUGHWORK_DIR / "diversity_curve")
+    sample_sizes = [1, 2, 10, 20, 50, 100, 200, 500, 1000, 2000]
     number_of_simulations = 20
 
     executor = DaskExecutor()
@@ -93,7 +97,7 @@ if __name__ == "__main__":
         state = flow.run(
             executor=executor,
             parameters=dict(
-                dirpath=dirpath,
+                dirpath=data_dir,
                 sample_sizes=sample_sizes,
                 random_seed=simulation_number,
             ),
