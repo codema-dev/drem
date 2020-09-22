@@ -96,3 +96,7 @@ dask-worker-space
 
 # ignore prefect-config as contains secrets...
 prefect-config.toml
+
+# ignore notebooks by default ...
+notebooks/*
+!notebooks/.gitkeep
