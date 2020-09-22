@@ -63,8 +63,9 @@ target/
 *.db
 *.rdb
 
-# Pycharm
+# IDE-specific
 .idea
+.vscode
 
 # Jupyter NB Checkpoints & notebooks
 .ipynb_checkpoints/
