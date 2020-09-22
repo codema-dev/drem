@@ -89,20 +89,22 @@ if __name__ == "__main__":
 
     simulation_results = defaultdict(dict)
 
-    for size in tqdm(sample_sizes):
+    for sample_sz in tqdm(sample_sizes):
 
         sample_size_results = defaultdict(list)
         for simulation_number in trange(number_of_simulations):
 
             state = flow.run(
                 parameters=dict(
-                    dirpath=data_dir, sample_size=size, random_seed=simulation_number,
+                    dirpath=data_dir,
+                    sample_size=sample_sz,
+                    random_seed=simulation_number,
                 ),
             )
             simulation_result = state.result[relative_peak_demands].result
             sample_size_results[simulation_number] = simulation_result
 
-        simulation_results[size] = sample_size_results
+        simulation_results[sample_sz] = sample_size_results
 
     filepath_to_simulation_results = str(ROUGHWORK_DIR / "sim_results.json")
     with open(filepath_to_simulation_results, "w") as file:
