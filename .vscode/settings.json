@@ -28,7 +28,7 @@
     "terminal.integrated.unicodeVersion": "6",
     "vim.useCtrlKeys": false,
     "vsicons.dontShowNewVersionMessage": true,
-    "window.zoomLevel": -1,
+    "window.zoomLevel": -2,
     "workbench.colorCustomizations": {
         "editorRuler.foreground": "#00ff15"
     },

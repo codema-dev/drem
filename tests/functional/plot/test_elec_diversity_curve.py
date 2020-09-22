@@ -60,7 +60,7 @@ def flow_state(elec_demands_dirpath: Path) -> State:
     return flow.run(
         parameters=dict(
             dirpath=elec_demands_dirpath,
-            sample_sizes=sample_sizes,
+            sample_size=sample_sizes,
             random_seed=random_seed,
         ),
     )
