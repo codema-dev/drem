@@ -14,7 +14,7 @@ from tdda.referencetest.referencetest import ReferenceTest
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
 from drem.transform.sa_statistics import _extract_dublin_small_areas
-from drem.transform.sa_statistics import _extract_year_built
+from drem.transform.sa_statistics import _extract_rows_from_glossary
 from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_year_built_columns
@@ -32,18 +32,85 @@ CLEANED_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_clean_year_built.csv"
 STATS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_statistics_clean.parquet"
 
 
-def test_extract_year_built(ref: ReferenceTest) -> None:
-    """Extracted columns match reference file.
+@pytest.fixture
+def sa_statistics_glossary() -> pd.DataFrame:
+    """Create Small Area Statistics Glossary.
+
+    Returns:
+        pd.DataFrame: Raw glossary table
+    """
+    return pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 1",
+                "Private households by type of accommodation ",
+                "Table 2",
+                "Permanent private households by year built ",
+                "Table 5",
+                "Permanent private households by central heating ",
+            ],
+            "Column Names": [
+                "T6_1_HB_H",
+                "T6_1_FA_H",
+                "T6_2_PRE19H",
+                "T6_2_19_45H",
+                "T6_5_NCH",
+                "T6_5_OCH",
+            ],
+            "Description of Field": [
+                "House/Bungalow (No. of households)",
+                "Flat/Apartment (No. of households)",
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+                "No central heating",
+                "Oil",
+            ],
+        },
+    )
+
+
+@pytest.fixture
+def sa_statistics_glossary_year_built() -> pd.DataFrame:
+    """Create Year Built Glossary.
+
+    Returns:
+        pd.DataFrame: Year built glossary
+    """
+    return pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 2",
+                "Permanent private households by year built ",
+            ],
+            "Column Names": ["T6_2_PRE19H", "T6_2_19_45H"],
+            "Description of Field": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+            ],
+        },
+    )
+
+
+def test_extracted_year_built_table_from_glossary_matches_expected(
+    sa_statistics_glossary: pd.DataFrame,
+    sa_statistics_glossary_year_built: pd.DataFrame,
+) -> None:
+    """Extracted table matches matches expected table.
 
     Args:
-        ref (ReferenceTest): a tdda plugin used to verify a DataFrame against a file.
+        sa_statistics_glossary (pd.DataFrame): Raw glossary table
+        sa_statistics_glossary_year_built (pd.DataFrame): Year built glossary
     """
-    statistics = pd.read_csv(STATS_IN)
-    glossary = pd.read_excel(GLOSSARY, engine="openpyxl")
+    expected_output = sa_statistics_glossary_year_built
 
-    output = _extract_year_built(statistics, glossary)
+    output = _extract_rows_from_glossary(
+        sa_statistics_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by year built ",
+        number_of_rows=2,
+    )
 
-    ref.assertDataFrameCorrect(output, EXTRACT_EOUT)
+    assert_frame_equal(output, expected_output)
 
 
 def test_melt_year_built_columns(ref: ReferenceTest) -> None:

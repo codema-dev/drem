@@ -8,30 +8,19 @@ from icontract import require
 from prefect import task
 
 
-def _extract_year_built(data: pd.DataFrame, glossary: pd.DataFrame) -> pd.DataFrame:
+def _extract_rows_from_glossary(
+    glossary: pd.DataFrame, target: str, table_name: str, number_of_rows: int,
+) -> pd.DataFrame:
 
-    index_of_year_built_row = glossary.query(
-        "`Tables Within Themes` == 'Permanent private households by year built '",
+    row_number_corresponding_to_table_name = glossary.query(
+        f"`{target}` == '{table_name}'",
     ).index.item()
-    # Need to subtract 1 as the relevant rows start one row above the text used to search
-    start_row: int = index_of_year_built_row - 1
 
-    index_of_occupancy_row = glossary.query(
-        "`Tables Within Themes` == 'Permanent private households by type of occupancy '",
-    ).index.item()
-    end_row: int = index_of_occupancy_row - 1
+    # The relevant table rows always start one row above the table_name
+    start_row: int = row_number_corresponding_to_table_name - 1
+    end_row: int = start_row + number_of_rows
 
-    year_built_glossary: pd.DataFrame = (
-        glossary.iloc[start_row:end_row][["Column Names", "Description of Field"]]
-        .set_index("Column Names")
-        .to_dict()["Description of Field"]
-    )
-
-    return (
-        data.copy()
-        .loc[:, ["GEOGID"] + list(year_built_glossary.keys())]
-        .rename(columns=year_built_glossary)
-    )
+    return glossary.iloc[start_row:end_row].reset_index(drop=True)
 
 
 def _melt_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -143,7 +132,13 @@ def transform_sa_statistics(
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
     """
     return (
-        statistics.pipe(_extract_year_built, glossary)
+        statistics.pipe(
+            _extract_rows_from_glossary,
+            glossary,
+            target="Tables Within Themes",
+            table_name="Permanent private households by year built ",
+            number_of_rows=22,
+        )
         .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
         .pipe(_extract_dublin_small_areas, sa_geometries)
