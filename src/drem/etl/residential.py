@@ -8,6 +8,7 @@ from prefect.tasks.secrets import PrefectSecret
 
 import drem
 
+from drem.estimate.sa_demand import EstimateSmallAreaDemand
 from drem.filepaths import DATA_DIR
 
 
@@ -20,6 +21,7 @@ email_address = PrefectSecret("email_address")
 read_parquet_to_dataframe = drem.ReadParquetToDataFrame(
     name="Read Parquet file to DataFrame",
 )
+estimate_sa_demand = EstimateSmallAreaDemand()
 load_to_parquet = drem.LoadToParquet(name="Load Data to Parquet file")
 
 
@@ -44,8 +46,8 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         sa_statistics_glossary,
         sa_geometries_clean,
         dublin_postcodes_clean,
-        ber_clean,
     )
 
-    load_to_parquet(sa_geometries_clean, processed_dir / "sa_geometries.parquet")
-    load_to_parquet(sa_statistics_clean, processed_dir / "sa_statistics.parquet")
+    sa_demand = estimate_sa_demand(sa_statistics_clean, ber_clean, sa_geometries_clean)
+
+    load_to_parquet(sa_demand, processed_dir / "sa_demand.parquet")

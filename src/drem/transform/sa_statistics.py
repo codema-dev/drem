@@ -1,7 +1,6 @@
 from typing import List
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 
 from icontract import ensure
@@ -125,79 +124,20 @@ def _link_small_areas_to_postcodes(
     )
 
 
-@require(
-    lambda ber: set(ber.columns)
-    == {"postcodes", "period_built", "mean_heat_demand_per_hh"},
-)
-def _link_small_areas_to_ber(
-    small_area_statistics: gpd.GeoDataFrame, ber: pd.DataFrame,
-) -> gpd.GeoDataFrame:
-
-    return small_area_statistics.merge(ber, on=["postcodes", "period_built"])
-
-
-def _estimate_total_residential_heat_demand_per_small_area(
-    small_area_statistics: gpd.GeoDataFrame,
-) -> gpd.GeoDataFrame:
-
-    small_area_statistics["total_heat_demand_per_archetype"] = (
-        small_area_statistics["households"]
-        * small_area_statistics["mean_heat_demand_per_hh"]
-    )
-
-    small_area_statistics_aggregated = (
-        small_area_statistics[
-            ["small_area", "total_heat_demand_per_archetype", "geometry"]
-        ]
-        .pivot_table(
-            index="small_area",
-            values=["total_heat_demand_per_archetype"],
-            aggfunc=np.sum,
-        )
-        .reset_index()
-        .merge(small_area_statistics[["small_area", "geometry"]])
-        .drop_duplicates()
-        .rename(columns={"total_heat_demand_per_archetype": "total_heat_demand_per_sa"})
-    )
-
-    small_area_statistics_aggregated["total_heat_demand_per_sa"] = (
-        small_area_statistics_aggregated["total_heat_demand_per_sa"] / 10 ** 6
-    )
-
-    return gpd.GeoDataFrame(small_area_statistics_aggregated, crs="epsg:4326")
-
-
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
     statistics: pd.DataFrame,
     glossary: pd.DataFrame,
     sa_geometries: gpd.GeoDataFrame,
     postcodes: gpd.GeoDataFrame,
-    ber: pd.DataFrame,
 ) -> pd.DataFrame:
     """Transform CSO Small Area Statistics.
-
-    By:
-        - Extracts year built columns via glossary
-        - Melts year built columns into rows for each year built type
-        - Clean year built column:
-            $ remove irrelevant substrings
-            $ drop irrelevant columns
-            $ rename columns
-            $ set dtypes
-        - Extract Dublin Small Areas
-        - Link Dublin Small Areas to geometries
-        - Link Small Areas to postcodes via a spatial join
-        - TODO: Map Period built to regulatory period
-        - Link Small Areas to BER on archetypes
-        - Use archetypes to estimate total residential heat demand per small area
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
         glossary (pd.DataFrame): CSO Small Area Statistics Glossary
         sa_geometries (gpd.GeoDataFrame): CSO Small Area Geometries
         postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
-        ber (pd.DataFrame): Archetyped BER Data
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
@@ -209,6 +149,4 @@ def transform_sa_statistics(
         .pipe(_extract_dublin_small_areas, sa_geometries)
         .pipe(_link_dublin_small_areas_to_geometries, sa_geometries)
         .pipe(_link_small_areas_to_postcodes, postcodes)
-        .pipe(_link_small_areas_to_ber, ber)
-        .pipe(_estimate_total_residential_heat_demand_per_small_area)
     )

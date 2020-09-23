@@ -13,13 +13,9 @@ from tdda.referencetest.referencetest import ReferenceTest
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
-from drem.transform.sa_statistics import (
-    _estimate_total_residential_heat_demand_per_small_area,
-)
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_year_built
 from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
-from drem.transform.sa_statistics import _link_small_areas_to_ber
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_year_built_columns
 
@@ -181,64 +177,3 @@ def test_link_small_areas_to_postcodes_raises_error() -> None:
 
     with pytest.raises(ViolationError):
         _link_small_areas_to_postcodes(small_areas, postcodes)
-
-
-def test_link_small_areas_to_ber() -> None:
-    """Small Areas merge with ber on postcodes, period built."""
-    small_areas: gpd.GeoDataFrame = gpd.GeoDataFrame(
-        {
-            "postcodes": ["Co. Dublin"],
-            "period_built": ["2011 or greater"],
-            "geometry": [Polygon([(1, 0), (1, 1), (3, 1)])],
-        },
-    )
-
-    ber: pd.DataFrame = pd.DataFrame(
-        {
-            "postcodes": ["Co. Dublin"],
-            "period_built": ["2011 or greater"],
-            "mean_heat_demand_per_hh": [10000],
-        },
-    )
-
-    expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
-        {
-            "postcodes": ["Co. Dublin"],
-            "period_built": ["2011 or greater"],
-            "geometry": [Polygon([(1, 0), (1, 1), (3, 1)])],
-            "mean_heat_demand_per_hh": [10000],
-        },
-    )
-
-    output: gpd.GeoDataFrame = _link_small_areas_to_ber(small_areas, ber)
-
-    assert_geodataframe_equal(output, expected_output, check_like=True)
-
-
-def test_estimate_total_residential_heat_demand_per_small_area() -> None:
-    """Total residential heat demand output matches expected output."""
-    small_area_statistics: gpd.GeoDataFrame = gpd.GeoDataFrame(
-        {
-            "small_area": [267112002, 267112002],
-            "period_built": ["1971 - 1980", "before 1919"],
-            "households": [21, 10],
-            "postcodes": ["Dublin 24", "Dublin 24"],
-            "geometry": [Point((1, 1)), Point((1, 1))],
-            "mean_heat_demand_per_hh": [15000, 20000],
-        },
-    )
-
-    expected_output: gpd.GeoDatkpaFrame = gpd.GeoDataFrame(
-        {
-            "small_area": [267112002],
-            "total_heat_demand_per_sa": [0.515],
-            "geometry": [Point((1, 1))],
-        },
-        crs="epsg:4326",
-    )
-
-    output: gpd.GeoDataFrame = _estimate_total_residential_heat_demand_per_small_area(
-        small_area_statistics,
-    )
-
-    assert_geodataframe_equal(output, expected_output, check_like=True)
