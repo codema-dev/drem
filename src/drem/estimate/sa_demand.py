@@ -46,12 +46,12 @@ def _divide_column(df: pd.DataFrame, target: str, result: str, by: int) -> pd.Da
 
 with Flow("Estimate Dublin Small Area Annual Energy Demands") as flow:
 
-    sa_statistics = Parameter("sa_statistics")
-    ber_archetypes = Parameter("ber_archetypes")
-    sa_geometries = Parameter("sa_geometries")
+    sa_stats = Parameter("sa_stats")
+    ber_arch = Parameter("ber_arch")
+    sa_geom = Parameter("sa_geom")
 
     sa_linked_to_ber_archetypes = _merge(
-        gdf=sa_statistics, df=ber_archetypes, on=["postcodes", "period_built"],
+        gdf=sa_stats, df=ber_arch, on=["postcodes", "period_built"],
     )
     sa_with_total_heat_demand_column = _multiply_columns(
         sa_linked_to_ber_archetypes,
@@ -71,7 +71,7 @@ with Flow("Estimate Dublin Small Area Annual Energy Demands") as flow:
         result="total_heat_demand_per_sa_gwh",
         by=10 ** 6,
     )
-    sa_demand_with_geometries = _merge(df=sa_demand_gwh, gdf=sa_geometries)
+    sa_demand_with_geometries = _merge(df=sa_demand_gwh, gdf=sa_geom)
 
 
 class EstimateSmallAreaDemand(Task):
@@ -103,9 +103,9 @@ class EstimateSmallAreaDemand(Task):
         with raise_on_exception():
             state = flow.run(
                 parameters=dict(
-                    sa_statistics=sa_statistics,
-                    ber_archetypes=ber_archetypes,
-                    sa_geometries=sa_geometries,
+                    sa_stats=sa_statistics,
+                    ber_arch=ber_archetypes,
+                    sa_geom=sa_geometries,
                 ),
             )
 
