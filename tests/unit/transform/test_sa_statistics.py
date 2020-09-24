@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Dict
 
 import geopandas as gpd
 import pandas as pd
@@ -13,11 +14,14 @@ from tdda.referencetest.referencetest import ReferenceTest
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _clean_year_built_columns
+from drem.transform.sa_statistics import _convert_columns_to_dict
+from drem.transform.sa_statistics import _extract_column_names_via_glossary
 from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_rows_from_glossary
 from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_year_built_columns
+from drem.transform.sa_statistics import _rename_columns_via_glossary
 
 
 STATS_IN: Path = UTEST_DATA_TRANSFORM / "sa_statistics_raw.csv"
@@ -33,8 +37,8 @@ STATS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_statistics_clean.parquet"
 
 
 @pytest.fixture
-def sa_statistics_glossary() -> pd.DataFrame:
-    """Create Small Area Statistics Glossary.
+def raw_glossary() -> pd.DataFrame:
+    """Create Raw Small Area Statistics Glossary.
 
     Returns:
         pd.DataFrame: Raw glossary table
@@ -70,11 +74,11 @@ def sa_statistics_glossary() -> pd.DataFrame:
 
 
 @pytest.fixture
-def sa_statistics_glossary_year_built() -> pd.DataFrame:
-    """Create Year Built Glossary.
+def raw_year_built_glossary() -> pd.DataFrame:
+    """Create Raw Year Built Glossary.
 
     Returns:
-        pd.DataFrame: Year built glossary
+        pd.DataFrame: Raw Year built glossary table
     """
     return pd.DataFrame(
         {
@@ -91,24 +95,127 @@ def sa_statistics_glossary_year_built() -> pd.DataFrame:
     )
 
 
+@pytest.fixture
+def year_built_glossary() -> Dict[str, str]:
+    """Create Year built glossary.
+
+    Returns:
+        Dict[str, str]: Maps Year Built encodings to values
+    """
+    return {
+        "T6_2_PRE19H": "Pre 1919 (No. of households)",
+        "T6_2_19_45H": "1919 - 1945 (No. of households)",
+    }
+
+
+@pytest.fixture
+def raw_statistics() -> pd.DataFrame:
+    """Create Raw Small Area Statistics.
+
+    Returns:
+        pd.DataFrame: Raw Statistics
+    """
+    return pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001"],
+            "T6_1_HB_H": [2],
+            "T6_1_FA_H": [3],
+            "T6_2_PRE19H": [10],
+            "T6_2_19_45H": [20],
+            "T6_5_NCH": [7],
+            "T6_5_OCH": 12,
+        },
+    )
+
+
 def test_extracted_year_built_table_from_glossary_matches_expected(
-    sa_statistics_glossary: pd.DataFrame,
-    sa_statistics_glossary_year_built: pd.DataFrame,
+    raw_glossary: pd.DataFrame, raw_year_built_glossary: pd.DataFrame,
 ) -> None:
     """Extracted table matches matches expected table.
 
     Args:
-        sa_statistics_glossary (pd.DataFrame): Raw glossary table
-        sa_statistics_glossary_year_built (pd.DataFrame): Year built glossary
+        raw_glossary (pd.DataFrame): Raw glossary table
+        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
     """
-    expected_output = sa_statistics_glossary_year_built
+    expected_output = raw_year_built_glossary
 
     output = _extract_rows_from_glossary(
-        sa_statistics_glossary,
+        raw_glossary,
         target="Tables Within Themes",
         table_name="Permanent private households by year built ",
         number_of_rows=2,
     )
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_convert_columns_to_dict_as_expected(
+    raw_year_built_glossary: pd.DataFrame, year_built_glossary: pd.DataFrame,
+) -> None:
+    """Extract 2 DataFrame columns and convert to Dict.
+
+    Args:
+        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
+        year_built_glossary (pd.DataFrame): Year built glossary
+    """
+    expected_output = year_built_glossary
+
+    output = _convert_columns_to_dict(
+        raw_year_built_glossary, columns=["Column Names", "Description of Field"],
+    )
+
+    assert output == expected_output
+
+
+def test_convert_columns_to_dict_raises_error_with_invalid_arg() -> None:
+    """Convert columns fails if > 2 columns passed."""
+    input_table = pd.DataFrame(
+        {"Column1": [0, 1, 2], "Column2": [0, 1, 2], "Column3": [0, 1, 2]},
+    )
+    with pytest.raises(ViolationError):
+        _convert_columns_to_dict(
+            input_table, columns=["Column1", "Column2", "Column3"],
+        )
+
+
+def test_extract_year_built_column_names_via_glossary(
+    raw_statistics: pd.DataFrame, year_built_glossary: Dict[str, str],
+) -> None:
+    """Extract year built column names from DataFrame via glossary.
+
+    Args:
+        raw_statistics (pd.DataFrame):  Raw Statistics
+        year_built_glossary (Dict[str, str]): Year built glossary
+    """
+    expected_output = pd.DataFrame(
+        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_19_45H": [20]},
+    )
+
+    output = _extract_column_names_via_glossary(
+        raw_statistics, year_built_glossary, additional_columns=["GEOGID"],
+    )
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_rename_columns_via_glossary(year_built_glossary: Dict[str, str]) -> None:
+    """Rename year built column names via glossary.
+
+    Args:
+        year_built_glossary (Dict[str, str]): Year built glossary
+    """
+    before_renaming = pd.DataFrame(
+        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_19_45H": [20]},
+    )
+    expected_output = pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001"],
+            "Pre 1919 (No. of households)": [10],
+            "1919 - 1945 (No. of households)": [20],
+        },
+    )
+
+    output = _rename_columns_via_glossary(before_renaming, year_built_glossary)
 
     assert_frame_equal(output, expected_output)
 

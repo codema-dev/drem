@@ -1,3 +1,4 @@
+from typing import Dict
 from typing import List
 
 import geopandas as gpd
@@ -21,6 +22,29 @@ def _extract_rows_from_glossary(
     end_row: int = start_row + number_of_rows
 
     return glossary.iloc[start_row:end_row].reset_index(drop=True)
+
+
+@require(lambda columns: len(columns) == 2)
+def _convert_columns_to_dict(
+    extracted_table: pd.DataFrame, columns: str,
+) -> Dict[str, str]:
+
+    return extracted_table[columns].set_index(columns[0]).to_dict()[columns[1]]
+
+
+def _extract_column_names_via_glossary(
+    statistics: pd.DataFrame, glossary: Dict[str, str], additional_columns: List[str],
+) -> pd.DataFrame:
+
+    columns_to_extract = additional_columns + list(glossary.keys())
+    return statistics.loc[:, columns_to_extract]
+
+
+def _rename_columns_via_glossary(
+    statistics: pd.DataFrame, glossary: Dict[str, str],
+) -> pd.DataFrame:
+
+    return statistics.rename(columns=glossary)
 
 
 def _melt_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -116,7 +140,7 @@ def _link_small_areas_to_postcodes(
 @task(name="Transform CSO Small Area Statistics via Glossary")
 def transform_sa_statistics(
     statistics: pd.DataFrame,
-    glossary: pd.DataFrame,
+    raw_glossary: pd.DataFrame,
     sa_geometries: gpd.GeoDataFrame,
     postcodes: gpd.GeoDataFrame,
 ) -> pd.DataFrame:
@@ -124,21 +148,30 @@ def transform_sa_statistics(
 
     Args:
         statistics (pd.DataFrame): CSO Small Area Statistics
-        glossary (pd.DataFrame): CSO Small Area Statistics Glossary
+        raw_glossary (pd.DataFrame): CSO Small Area Statistics Glossary
         sa_geometries (gpd.GeoDataFrame): CSO Small Area Geometries
         postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
 
     Returns:
         pd.DataFrame: Small Area Statistics in 'tidy-data' format
     """
+    raw_year_built_glossary = _extract_rows_from_glossary(
+        raw_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by year built ",
+        number_of_rows=22,
+    )
+    year_built_glossary = _convert_columns_to_dict(
+        raw_year_built_glossary, ["Tables Within Themes", "Description of Field"],
+    )
+
     return (
         statistics.pipe(
-            _extract_rows_from_glossary,
-            glossary,
-            target="Tables Within Themes",
-            table_name="Permanent private households by year built ",
-            number_of_rows=22,
+            _extract_column_names_via_glossary,
+            year_built_glossary,
+            additional_columns=["GEOGID"],
         )
+        .pipe(_rename_columns_via_glossary, year_built_glossary)
         .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
         .pipe(_extract_dublin_small_areas, sa_geometries)
