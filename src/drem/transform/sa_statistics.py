@@ -87,6 +87,15 @@ def _split_column_in_two_on_substring(
     return df
 
 
+def _replace_substring_in_column(
+    df: pd.DataFrame, target: str, result: str, pat: str, repl: str, **kwargs: Any,
+) -> pd.DataFrame:
+
+    df[result] = df[target].str.replace(pat=pat, repl=repl, **kwargs)
+
+    return df
+
+
 def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     return (

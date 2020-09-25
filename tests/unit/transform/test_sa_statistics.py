@@ -22,6 +22,7 @@ from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_columns
 from drem.transform.sa_statistics import _rename_columns_via_glossary
+from drem.transform.sa_statistics import _replace_substring_in_column
 from drem.transform.sa_statistics import _split_column_in_two_on_substring
 
 
@@ -227,26 +228,14 @@ def test_melt_columns() -> None:
         {
             "GEOGID": ["SA2017_017001001"],
             "Pre 1919 (No. of households)": [10],
-            "1919 - 1945 (No. of households)": [20],
             "Pre 1919 (No. of persons)": [25],
-            "1919 - 1945 (No. of persons)": [40],
         },
     )
     expected_output = pd.DataFrame(
         {
-            "GEOGID": [
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-            ],
-            "variable": [
-                "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
-                "Pre 1919 (No. of persons)",
-                "1919 - 1945 (No. of persons)",
-            ],
-            "value": [10, 20, 25, 40],
+            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
+            "variable": ["Pre 1919 (No. of households)", "Pre 1919 (No. of persons)"],
+            "value": [10, 25],
         },
     )
 
@@ -259,48 +248,18 @@ def test_split_column_in_two_on_substring() -> None:
     """Split column in two on substring."""
     before_split = pd.DataFrame(
         {
-            "GEOGID": [
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-            ],
-            "variable": [
-                "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
-                "Pre 1919 (No. of persons)",
-                "1919 - 1945 (No. of persons)",
-            ],
-            "value": [10, 20, 25, 40],
+            "GEOGID": ["SA2017_017001001"],
+            "variable": ["Pre 1919 (No. of households)"],
+            "value": [10],
         },
     )
     expected_output = pd.DataFrame(
         {
-            "GEOGID": [
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-                "SA2017_017001001",
-            ],
-            "variable": [
-                "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
-                "Pre 1919 (No. of persons)",
-                "1919 - 1945 (No. of persons)",
-            ],
-            "value": [10, 20, 25, 40],
-            "raw_year_built": [
-                "Pre 1919 ",
-                "1919 - 1945 ",
-                "Pre 1919 ",
-                "1919 - 1945 ",
-            ],
-            "raw_households_and_persons": [
-                "No. of households)",
-                "No. of households)",
-                "No. of persons)",
-                "No. of persons)",
-            ],
+            "GEOGID": ["SA2017_017001001"],
+            "variable": ["Pre 1919 (No. of households)"],
+            "value": [10],
+            "raw_year_built": ["Pre 1919 "],
+            "raw_households_and_persons": ["No. of households)"],
         },
     )
 
@@ -310,6 +269,24 @@ def test_split_column_in_two_on_substring() -> None:
         pat=r"(",
         left_column_name="raw_year_built",
         right_column_name="raw_households_and_persons",
+    )
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_replace_substring_in_column() -> None:
+    """Replace substring in column."""
+    before_removal = pd.DataFrame({"dirty_column": ["No. of households)"]})
+    expected_output = pd.DataFrame(
+        {"dirty_column": ["No. of households)"], "clean_column": ["households"]},
+    )
+
+    output = _replace_substring_in_column(
+        before_removal,
+        target="dirty_column",
+        result="clean_column",
+        pat=r"(No. of )|(\))",
+        repl="",
     )
 
     assert_frame_equal(output, expected_output)
