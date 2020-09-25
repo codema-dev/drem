@@ -72,6 +72,21 @@ def _melt_columns(df: pd.DataFrame, id_vars: List[str], **kwargs: Any) -> pd.Dat
     return df.melt(id_vars=id_vars, **kwargs)
 
 
+def _split_column_in_two_on_substring(
+    df: pd.DataFrame,
+    target: str,
+    pat: str,
+    left_column_name: str,
+    right_column_name: str,
+) -> pd.DataFrame:
+
+    df[[left_column_name, right_column_name]] = df[target].str.split(
+        pat=pat, expand=True,
+    )
+
+    return df
+
+
 def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     return (

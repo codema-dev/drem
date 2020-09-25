@@ -22,6 +22,7 @@ from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_columns
 from drem.transform.sa_statistics import _rename_columns_via_glossary
+from drem.transform.sa_statistics import _split_column_in_two_on_substring
 
 
 STATS_IN: Path = UTEST_DATA_TRANSFORM / "sa_statistics_raw.csv"
@@ -250,6 +251,66 @@ def test_melt_columns() -> None:
     )
 
     output = _melt_columns(before_melt, id_vars="GEOGID")
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_split_column_in_two_on_substring() -> None:
+    """Split column in two on substring."""
+    before_split = pd.DataFrame(
+        {
+            "GEOGID": [
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+            ],
+            "variable": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+                "Pre 1919 (No. of persons)",
+                "1919 - 1945 (No. of persons)",
+            ],
+            "value": [10, 20, 25, 40],
+        },
+    )
+    expected_output = pd.DataFrame(
+        {
+            "GEOGID": [
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+            ],
+            "variable": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+                "Pre 1919 (No. of persons)",
+                "1919 - 1945 (No. of persons)",
+            ],
+            "value": [10, 20, 25, 40],
+            "raw_year_built": [
+                "Pre 1919 ",
+                "1919 - 1945 ",
+                "Pre 1919 ",
+                "1919 - 1945 ",
+            ],
+            "raw_households_and_persons": [
+                "No. of households)",
+                "No. of households)",
+                "No. of persons)",
+                "No. of persons)",
+            ],
+        },
+    )
+
+    output = _split_column_in_two_on_substring(
+        before_split,
+        target="variable",
+        pat=r"(",
+        left_column_name="raw_year_built",
+        right_column_name="raw_households_and_persons",
+    )
 
     assert_frame_equal(output, expected_output)
 
