@@ -20,7 +20,7 @@ from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_rows_from_glossary
 from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
-from drem.transform.sa_statistics import _melt_year_built_columns
+from drem.transform.sa_statistics import _melt_columns
 from drem.transform.sa_statistics import _rename_columns_via_glossary
 
 
@@ -220,17 +220,38 @@ def test_rename_columns_via_glossary(year_built_glossary: Dict[str, str]) -> Non
     assert_frame_equal(output, expected_output)
 
 
-def test_melt_year_built_columns(ref: ReferenceTest) -> None:
-    """Melted columns match (tdda generated) reference file.
+def test_melt_columns() -> None:
+    """Melt selected columns to rows."""
+    before_melt = pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001"],
+            "Pre 1919 (No. of households)": [10],
+            "1919 - 1945 (No. of households)": [20],
+            "Pre 1919 (No. of persons)": [25],
+            "1919 - 1945 (No. of persons)": [40],
+        },
+    )
+    expected_output = pd.DataFrame(
+        {
+            "GEOGID": [
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+                "SA2017_017001001",
+            ],
+            "variable": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+                "Pre 1919 (No. of persons)",
+                "1919 - 1945 (No. of persons)",
+            ],
+            "value": [10, 20, 25, 40],
+        },
+    )
 
-    Args:
-        ref (ReferenceTest): a tdda plugin used to verify a DataFrame against a file.
-    """
-    statistics = pd.read_csv(EXTRACT_EOUT)
+    output = _melt_columns(before_melt, id_vars="GEOGID")
 
-    output = _melt_year_built_columns(statistics)
-
-    ref.assertDataFrameCorrect(output, MELT_EOUT)
+    assert_frame_equal(output, expected_output)
 
 
 def test_clean_year_built_columns(ref: ReferenceTest) -> None:

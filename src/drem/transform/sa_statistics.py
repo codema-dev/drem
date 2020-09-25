@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Dict
 from typing import List
 
@@ -47,23 +48,28 @@ def _rename_columns_via_glossary(
     return statistics.rename(columns=glossary)
 
 
-def _melt_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
+def _melt_columns(df: pd.DataFrame, id_vars: List[str], **kwargs: Any) -> pd.DataFrame:
+    """Melt columns into rows.
 
-    hh_columns: List[str] = [col for col in df.columns if "households" in col]
-    person_columns: List[str] = [col for col in df.columns if "persons" in col]
+    Example:
+        Before:
+                  GEOGID  Pre 1919 (No. of households)   ...
+        SA2017_017001001                            10   ...
 
-    hh: pd.DataFrame = pd.melt(
-        df,
-        value_vars=hh_columns,
-        id_vars="GEOGID",
-        var_name="period_built",
-        value_name="households",
-    )
-    persons: pd.DataFrame = pd.melt(
-        df, value_vars=person_columns, id_vars="GEOGID", value_name="people",
-    ).drop(columns=["GEOGID", "variable"])
+        After:
+                 GEOGID                       variable   value
+        SA2017_017001001  Pre 1919 (No. of households)      10
+                                                ...        ...
 
-    return pd.concat([hh, persons], axis=1)
+    Args:
+        df (pd.DataFrame): Data to be melted
+        id_vars (List[str]): Name of ID columns
+        **kwargs (Any): passed to https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.melt.html
+
+    Returns:
+        pd.DataFrame: [description]
+    """
+    return df.melt(id_vars=id_vars, **kwargs)
 
 
 def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -172,7 +178,6 @@ def transform_sa_statistics(
             additional_columns=["GEOGID"],
         )
         .pipe(_rename_columns_via_glossary, year_built_glossary)
-        .pipe(_melt_year_built_columns)
         .pipe(_clean_year_built_columns)
         .pipe(_extract_dublin_small_areas, sa_geometries)
         .pipe(_link_dublin_small_areas_to_geometries, sa_geometries)
