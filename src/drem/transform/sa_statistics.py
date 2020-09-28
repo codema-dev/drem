@@ -25,12 +25,15 @@ def _extract_rows_from_glossary(
     return glossary.iloc[start_row:end_row].reset_index(drop=True)
 
 
-@require(lambda columns: len(columns) == 2)
 def _convert_columns_to_dict(
-    extracted_table: pd.DataFrame, columns: str,
+    extracted_table: pd.DataFrame, column_name_index: str, column_name_values: str,
 ) -> Dict[str, str]:
 
-    return extracted_table[columns].set_index(columns[0]).to_dict()[columns[1]]
+    return (
+        extracted_table[[column_name_index, column_name_values]]
+        .set_index(column_name_index)
+        .to_dict()[column_name_values]
+    )
 
 
 def _extract_column_names_via_glossary(

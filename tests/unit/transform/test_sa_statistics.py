@@ -164,21 +164,12 @@ def test_convert_columns_to_dict_as_expected(
     expected_output = year_built_glossary
 
     output = _convert_columns_to_dict(
-        raw_year_built_glossary, columns=["Column Names", "Description of Field"],
+        raw_year_built_glossary,
+        column_name_index="Column Names",
+        column_name_values="Description of Field",
     )
 
     assert output == expected_output
-
-
-def test_convert_columns_to_dict_raises_error_with_invalid_arg() -> None:
-    """Convert columns fails if > 2 columns passed."""
-    input_table = pd.DataFrame(
-        {"Column1": [0, 1, 2], "Column2": [0, 1, 2], "Column3": [0, 1, 2]},
-    )
-    with pytest.raises(ViolationError):
-        _convert_columns_to_dict(
-            input_table, columns=["Column1", "Column2", "Column3"],
-        )
 
 
 def test_extract_year_built_column_names_via_glossary(
