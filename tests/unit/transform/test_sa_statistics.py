@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -10,10 +11,9 @@ from icontract import ViolationError
 from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 from shapely.geometry import Polygon
-from tdda.referencetest.referencetest import ReferenceTest
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
-from drem.transform.sa_statistics import _clean_year_built_columns
+from drem.transform.sa_statistics import _concat
 from drem.transform.sa_statistics import _convert_columns_to_dict
 from drem.transform.sa_statistics import _extract_column_names_via_glossary
 from drem.transform.sa_statistics import _extract_dublin_small_areas
@@ -21,6 +21,7 @@ from drem.transform.sa_statistics import _extract_rows_from_glossary
 from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_columns
+from drem.transform.sa_statistics import _pivot
 from drem.transform.sa_statistics import _rename_columns_via_glossary
 from drem.transform.sa_statistics import _replace_substring_in_column
 from drem.transform.sa_statistics import _split_column_in_two_on_substring
@@ -142,11 +143,10 @@ def test_extracted_year_built_table_from_glossary_matches_expected(
     """
     expected_output = raw_year_built_glossary
 
-    output = _extract_rows_from_glossary(
+    output = _extract_rows_from_glossary.run(
         raw_glossary,
         target="Tables Within Themes",
         table_name="Permanent private households by year built ",
-        number_of_rows=2,
     )
 
     assert_frame_equal(output, expected_output)
@@ -163,7 +163,7 @@ def test_convert_columns_to_dict_as_expected(
     """
     expected_output = year_built_glossary
 
-    output = _convert_columns_to_dict(
+    output = _convert_columns_to_dict.run(
         raw_year_built_glossary,
         column_name_index="Column Names",
         column_name_values="Description of Field",
@@ -185,11 +185,42 @@ def test_extract_year_built_column_names_via_glossary(
         {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_19_45H": [20]},
     )
 
-    output = _extract_column_names_via_glossary(
+    output = _extract_column_names_via_glossary.run(
         raw_statistics, year_built_glossary, additional_columns=["GEOGID"],
     )
 
     assert_frame_equal(output, expected_output)
+
+
+def test_extract_column_names_via_glossary_raises_error_with_unknown_columns(
+    raw_statistics: pd.DataFrame, year_built_glossary: Dict[str, str],
+) -> None:
+    """Raise error with unknown additional columns.
+
+    Args:
+        raw_statistics (pd.DataFrame):  Raw Statistics
+        year_built_glossary (Dict[str, str]): Year built glossary
+    """
+    with pytest.raises(ViolationError):
+        _extract_column_names_via_glossary.run(
+            raw_statistics, year_built_glossary, additional_columns=["I break things"],
+        )
+
+
+def test_extract_column_names_via_glossary_raises_error_with_unknown_glossary(
+    raw_statistics: pd.DataFrame,
+) -> None:
+    """Raise error with a dictionary with keys not in DataFrame columns.
+
+    Args:
+        raw_statistics (pd.DataFrame):  Raw Statistics
+    """
+    hot_potato_glossary = {"I break things": "in pandas"}
+
+    with pytest.raises(ViolationError):
+        _extract_column_names_via_glossary.run(
+            raw_statistics, hot_potato_glossary, additional_columns=["GEOGID"],
+        )
 
 
 def test_rename_columns_via_glossary(year_built_glossary: Dict[str, str]) -> None:
@@ -209,7 +240,7 @@ def test_rename_columns_via_glossary(year_built_glossary: Dict[str, str]) -> Non
         },
     )
 
-    output = _rename_columns_via_glossary(before_renaming, year_built_glossary)
+    output = _rename_columns_via_glossary.run(before_renaming, year_built_glossary)
 
     assert_frame_equal(output, expected_output)
 
@@ -231,7 +262,7 @@ def test_melt_columns() -> None:
         },
     )
 
-    output = _melt_columns(before_melt, id_vars="GEOGID")
+    output = _melt_columns.run(before_melt, id_vars="GEOGID")
 
     assert_frame_equal(output, expected_output)
 
@@ -255,7 +286,7 @@ def test_split_column_in_two_on_substring() -> None:
         },
     )
 
-    output = _split_column_in_two_on_substring(
+    output = _split_column_in_two_on_substring.run(
         before_split,
         target="variable",
         pat=r"(",
@@ -273,7 +304,7 @@ def test_replace_substring_in_column() -> None:
         {"dirty_column": ["No. of households)"], "clean_column": ["households"]},
     )
 
-    output = _replace_substring_in_column(
+    output = _replace_substring_in_column.run(
         before_removal,
         target="dirty_column",
         result="clean_column",
@@ -291,22 +322,59 @@ def test_strip_column() -> None:
         {"dirty_column": ["Pre 1919 "], "clean_column": ["Pre 1919"]},
     )
 
-    output = _strip_column(before_strip, target="dirty_column", result="clean_column")
+    output = _strip_column.run(
+        before_strip, target="dirty_column", result="clean_column",
+    )
 
     assert_frame_equal(output, expected_output)
 
 
-def test_clean_year_built_columns(ref: ReferenceTest) -> None:
-    """Cleaned columns match reference file.
+def test_pivot() -> None:
+    """Pivot rows to columns matches expected."""
+    before_pivot_table = pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
+            "households_and_persons": ["households", "persons"],
+            "year_built": ["Pre 1919", "1919 - 1945"],
+            "value": [4, 20],
+        },
+    )
+    expected_output = pd.DataFrame(
+        {"households": [4, np.nan], "persons": [np.nan, 20]},
+    )
 
-    Args:
-        ref (ReferenceTest): a tdda plugin used to verify a DataFrame against a file.
-    """
-    statistics = pd.read_csv(MELT_EOUT)
+    output = _pivot.run(
+        before_pivot_table, values="value", columns="households_and_persons",
+    )
 
-    output = _clean_year_built_columns(statistics)
+    assert_frame_equal(output, expected_output, check_like=True)
 
-    ref.assertDataFrameCorrect(output, CLEANED_EOUT)
+
+def test_concat() -> None:
+    """Concatenate DataFrames matches expected."""
+    left = pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
+            "households_and_persons": ["households", "persons"],
+            "year_built": ["Pre 1919", "1919 - 1945"],
+            "value": [4, 20],
+        },
+    )
+    right = pd.DataFrame({"households": [4, np.nan], "persons": [np.nan, 20]})
+    expected_output = pd.DataFrame(
+        {
+            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
+            "households_and_persons": ["households", "persons"],
+            "year_built": ["Pre 1919", "1919 - 1945"],
+            "value": [4, 20],
+            "households": [4, np.nan],
+            "persons": [np.nan, 20],
+        },
+    )
+
+    output = _concat.run([left, right], axis="columns")
+
+    assert_frame_equal(output, expected_output)
 
 
 def test_extract_dublin_small_areas() -> None:
