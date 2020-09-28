@@ -16,11 +16,11 @@ from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _concat
 from drem.transform.sa_statistics import _convert_columns_to_dict
 from drem.transform.sa_statistics import _extract_column_names_via_glossary
-from drem.transform.sa_statistics import _extract_dublin_small_areas
 from drem.transform.sa_statistics import _extract_rows_from_glossary
-from drem.transform.sa_statistics import _link_dublin_small_areas_to_geometries
+from drem.transform.sa_statistics import _get_columns
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_columns
+from drem.transform.sa_statistics import _merge_with_geometries
 from drem.transform.sa_statistics import _pivot
 from drem.transform.sa_statistics import _rename_columns_via_glossary
 from drem.transform.sa_statistics import _replace_substring_in_column
@@ -377,39 +377,19 @@ def test_concat() -> None:
     assert_frame_equal(output, expected_output)
 
 
-def test_extract_dublin_small_areas() -> None:
-    """Statistics are linked to Dublin data via small_area."""
-    statistics: pd.DataFrame = pd.DataFrame({"small_area": [111, 222]})
-    dublin_geometries: gpd.GeoDataFrame = gpd.GeoDataFrame(
-        {"small_area": [111], "geometry": [Point((0, 0))]},
-    )
-    expected_output: pd.DataFrame = pd.DataFrame({"small_area": [111]})
-
-    output = _extract_dublin_small_areas(statistics, dublin_geometries)
-
-    assert_frame_equal(output, expected_output)
-
-
-def test_extract_dublin_small_areas_raises_error() -> None:
-    """Function raises error if no common small_area column."""
-    statistics = pd.DataFrame({"small_area": ["267088001", "077089001"]})
-    geometries = gpd.GeoDataFrame({"SMALL_AREAS": ["267088001"]})
-
-    with pytest.raises(ViolationError):
-        _extract_dublin_small_areas(statistics, geometries)
-
-
-def test_link_dublin_small_areas_to_geometries() -> None:
+def test_merge_with_geometries() -> None:
     """Geometries are added to Statistics."""
-    statistics: pd.DataFrame = pd.DataFrame({"small_area": [111]})
+    statistics: pd.DataFrame = pd.DataFrame(
+        {"small_area": [111], "very_important_data": [42]},
+    )
     dublin_geometries: gpd.GeoDataFrame = gpd.GeoDataFrame(
         {"small_area": [111], "geometry": [Point((0, 0))]},
     )
     expected_output: gpd.GeoDataFrame = gpd.GeoDataFrame(
-        {"small_area": [111], "geometry": [Point((0, 0))]},
+        {"small_area": [111], "geometry": [Point((0, 0))], "very_important_data": [42]},
     )
 
-    output = _link_dublin_small_areas_to_geometries(statistics, dublin_geometries)
+    output = _merge_with_geometries.run(statistics, dublin_geometries, on="small_area")
 
     assert_geodataframe_equal(output, expected_output)
 
@@ -453,32 +433,14 @@ def test_link_small_areas_to_postcodes() -> None:
         },
     )
 
-    output = _link_small_areas_to_postcodes(small_areas, postcodes)
+    output = _link_small_areas_to_postcodes.run(small_areas, postcodes)
 
     assert_geodataframe_equal(output, expected_output, check_like=True)
 
 
-def test_link_small_areas_to_postcodes_raises_error() -> None:
-    """Raises error if output columns do not precisely match contract."""
-    small_areas = gpd.GeoDataFrame(
-        {
-            "small_area": [1, 2],
-            "geometry": [
-                Polygon([(1, 0), (1, 1), (3, 1)]),
-                Polygon([(1, 0), (1, 1), (0, 1)]),
-            ],
-        },
-    )
-
-    postcodes = gpd.GeoDataFrame(
-        {
-            "postcodes": ["Co. Dublin", "Dublin 1"],
-            "geometry": [
-                Polygon([(0, 0), (3, 0), (0, 3)]),  # only overlaps with small_area=1
-                Polygon([(3, 3), (0, 3), (3, 0)]),  # mostly overlaps with small_area==1
-            ],
-        },
-    )
+def test_get_columns_raises_error_if_passed_nonexistent_column_name() -> None:
+    """Raise error if passed non-existent column name."""
+    i_am_data = pd.DataFrame({"my_name_is": ["what"]})
 
     with pytest.raises(ViolationError):
-        _link_small_areas_to_postcodes(small_areas, postcodes)
+        _get_columns.run(i_am_data, ["my_name_is", "i_dont_exist"])

@@ -1,11 +1,12 @@
-from io import StringIO
-
+import geopandas as gpd
+import numpy as np
 import pandas as pd
 import pytest
 
-from pandas.testing import assert_frame_equal
+from geopandas.testing import assert_geodataframe_equal
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
+from shapely.geometry import Polygon
 
 from drem.transform.sa_statistics import TransformSaStatistics
 from drem.transform.sa_statistics import clean_year_built
@@ -73,22 +74,58 @@ def raw_sa_statistics() -> pd.DataFrame:
 
 
 @pytest.fixture
+def dublin_sa_geometries() -> gpd.GeoDataFrame:
+    """Create Dublin Small Area Geometries.
+
+    Returns:
+        gpd.GeoDataFrame: Dublin Small Area Geometries
+    """
+    return gpd.GeoDataFrame(
+        {
+            "small_area": ["017001001"],
+            "geometry": [Polygon([(0, 0), (0, 0.5), (0.5, 0)])],
+        },
+    )
+
+
+@pytest.fixture
+def dublin_postcodes() -> gpd.GeoDataFrame:
+    """Create Dublin Postcodes.
+
+    Returns:
+        gpd.GeoDataFrame: Dublin Postcodes
+    """
+    return gpd.GeoDataFrame(
+        {"postcodes": ["Co. Dublin"], "geometry": [Polygon([(0, 0), (0, 1), (1, 0)])]},
+    )
+
+
+@pytest.fixture
 def flow_state(
-    raw_sa_glossary: pd.DataFrame, raw_sa_statistics: pd.DataFrame,
+    raw_sa_glossary: pd.DataFrame,
+    raw_sa_statistics: pd.DataFrame,
+    dublin_postcodes: gpd.GeoDataFrame,
+    dublin_sa_geometries: gpd.GeoDataFrame,
 ) -> State:
     """Run etl flow with dummy test data.
 
     Args:
         raw_sa_glossary (pd.DataFrame): Raw glossary table
         raw_sa_statistics (pd.DataFrame): Raw Ireland Small Area Statistics
+        dublin_postcodes (gpd.GeoDataFrame): Dublin Postcodes
+        dublin_sa_geometries (gpd.GeoDataFrame): Dublin Small Area Geometries
 
     Returns:
         State: A Prefect State object containing flow run information
-
     """
     with raise_on_exception():
         state = flow.run(
-            dict(raw_sa_glossary=raw_sa_glossary, raw_sa_stats=raw_sa_statistics),
+            dict(
+                raw_sa_glossary=raw_sa_glossary,
+                raw_sa_stats=raw_sa_statistics,
+                dublin_pcodes=dublin_postcodes,
+                dublin_sa_geom=dublin_sa_geometries,
+            ),
         )
 
     return state
@@ -109,15 +146,20 @@ def test_transform_year_built_matches_expected(flow_state: State) -> None:
     Args:
         flow_state (State): A Prefect State object containing flow run information
     """
-    expected_output = pd.read_csv(
-        StringIO(
-            """small_area, period_built, households, persons
-            017001001, Pre 1919, 0.0, NaN
-            017001001, 1919 - 1945, NaN, 20.0
-            """,
-        ),
+    expected_output = gpd.GeoDataFrame(
+        {
+            "small_area": ["017001001", "017001001"],
+            "postcodes": ["Co. Dublin", "Co. Dublin"],
+            "period_built": ["Pre 1919", "1919 - 1945"],
+            "households": [10, np.nan],
+            "persons": [np.nan, 20],
+            "geometry": [
+                Polygon([(0, 0), (0, 0.5), (0.5, 0)]),
+                Polygon([(0, 0), (0, 0.5), (0.5, 0)]),
+            ],
+        },
     )
 
     output = flow_state.result[clean_year_built].result
 
-    assert assert_frame_equal(output, expected_output)
+    assert_geodataframe_equal(output, expected_output)

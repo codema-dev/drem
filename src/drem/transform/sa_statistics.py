@@ -7,7 +7,6 @@ from typing import Union
 import geopandas as gpd
 import pandas as pd
 
-from icontract import ensure
 from icontract import require
 from prefect import Flow
 from prefect import Parameter
@@ -147,39 +146,14 @@ def _concat(objs: Union[Iterable[pd.DataFrame]], **kwargs: Any) -> pd.DataFrame:
 
 
 @task
-def _get_columns(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
-
-    return df.copy().loc[:, columns]
-
-
-@require(lambda statistics: "small_area" in statistics.columns)
-@require(
-    lambda geometries: set(geometries.columns) > {"small_area", "geometry"}
-    or set(geometries.columns) == {"small_area", "geometry"},
-)
-def _extract_dublin_small_areas(
-    statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
+def _merge_with_geometries(
+    df: pd.DataFrame, geometries: gpd.GeoDataFrame, on: Iterable[str], **kwargs: Any,
 ) -> pd.DataFrame:
 
-    return geometries.copy().merge(statistics).drop(columns="geometry")
+    return geometries.merge(df, on=on, **kwargs)
 
 
-@require(lambda statistics: "small_area" in statistics.columns)
-@require(
-    lambda geometries: set(geometries.columns) > {"small_area", "geometry"}
-    or set(geometries.columns) == {"small_area", "geometry"},
-)
-def _link_dublin_small_areas_to_geometries(
-    statistics: pd.DataFrame, geometries: gpd.GeoDataFrame,
-) -> pd.DataFrame:
-
-    return geometries[["small_area", "geometry"]].copy().merge(statistics)
-
-
-@ensure(
-    lambda result: set(result.columns)
-    == {"small_area", "period_built", "households", "people", "postcodes", "geometry"},
-)
+@task
 def _link_small_areas_to_postcodes(
     small_area_statistics: gpd.GeoDataFrame, postcode_geometries: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -207,10 +181,22 @@ def _link_small_areas_to_postcodes(
     )
 
 
+@task
+@require(
+    lambda df, columns: set(columns) <= set(df.columns),
+    "df.columns doesn't contain all names in columns!",
+)
+def _get_columns(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
+
+    return df.copy().loc[:, columns]
+
+
 with Flow("Transform Dublin Small Area Statistics") as flow:
 
     raw_glossary = Parameter("raw_sa_glossary")
     raw_sa_stats = Parameter("raw_sa_stats")
+    dublin_sa_geom = Parameter("dublin_sa_geom")
+    dublin_pcodes = Parameter("dublin_pcodes")
 
     raw_year_built_glossary = _extract_rows_from_glossary(
         raw_glossary,
@@ -274,9 +260,22 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         [year_built_stats_with_col_whitespace_stripped, persons_and_hh_columns],
         axis="columns",
     )
+    year_built_with_dublin_sa_geometries = _merge_with_geometries(
+        year_built_stats_with_hh_and_people_split, dublin_sa_geom, on=["small_area"],
+    )
+    year_built_with_postcodes = _link_small_areas_to_postcodes(
+        year_built_with_dublin_sa_geometries, dublin_pcodes,
+    )
     clean_year_built = _get_columns(
-        year_built_stats_with_hh_and_people_split,
-        columns=["small_area", "period_built", "households", "persons"],
+        year_built_with_postcodes,
+        columns=[
+            "small_area",
+            "postcodes",
+            "period_built",
+            "households",
+            "persons",
+            "geometry",
+        ],
     )
 
 
