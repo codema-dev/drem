@@ -96,6 +96,15 @@ def _replace_substring_in_column(
     return df
 
 
+def _strip_column(
+    df: pd.DataFrame, target: str, result: str, **kwargs: Any,
+) -> pd.DataFrame:
+
+    df[result] = df[target].str.strip(**kwargs)
+
+    return df
+
+
 def _clean_year_built_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     return (

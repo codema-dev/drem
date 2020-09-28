@@ -24,6 +24,7 @@ from drem.transform.sa_statistics import _melt_columns
 from drem.transform.sa_statistics import _rename_columns_via_glossary
 from drem.transform.sa_statistics import _replace_substring_in_column
 from drem.transform.sa_statistics import _split_column_in_two_on_substring
+from drem.transform.sa_statistics import _strip_column
 
 
 STATS_IN: Path = UTEST_DATA_TRANSFORM / "sa_statistics_raw.csv"
@@ -288,6 +289,18 @@ def test_replace_substring_in_column() -> None:
         pat=r"(No. of )|(\))",
         repl="",
     )
+
+    assert_frame_equal(output, expected_output)
+
+
+def test_strip_column() -> None:
+    """Strip column strings of whitespace."""
+    before_strip = pd.DataFrame({"dirty_column": ["Pre 1919 "]})
+    expected_output = pd.DataFrame(
+        {"dirty_column": ["Pre 1919 "], "clean_column": ["Pre 1919"]},
+    )
+
+    output = _strip_column(before_strip, target="dirty_column", result="clean_column")
 
     assert_frame_equal(output, expected_output)
 
