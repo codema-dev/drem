@@ -20,19 +20,17 @@ def _extract_rows_from_glossary(
     glossary: pd.DataFrame, target: str, table_name: str,
 ) -> pd.DataFrame:
 
-    non_empty_rows = glossary[glossary[target].notna()]
-
-    row_number_corresponding_to_table_name = non_empty_rows.query(
-        f"`{target}` == '{table_name}'",
-    ).index.item()
+    non_empty_rows = glossary[glossary[target].notna()].reset_index()
 
     # The relevant table rows always start one row above the table_name
-    start_row: int = row_number_corresponding_to_table_name - 1
+    start_of_table = (
+        non_empty_rows.query(f"`{target}` == '{table_name}'").index.item() - 1
+    )
+    next_non_empty_row: int = start_of_table + 2
+    start_index: int = non_empty_rows.iloc[start_of_table]["index"]
+    end_index: int = non_empty_rows.iloc[next_non_empty_row]["index"]
 
-    next_non_empty_row: int = start_row + 2
-    end_row: int = non_empty_rows.iloc[next_non_empty_row].name
-
-    return glossary.iloc[start_row:end_row].reset_index(drop=True)
+    return glossary.iloc[start_index:end_index].reset_index(drop=True)
 
 
 @task
@@ -87,7 +85,8 @@ def _melt_columns(df: pd.DataFrame, id_vars: List[str], **kwargs: Any) -> pd.Dat
     Args:
         df (pd.DataFrame): Data to be melted
         id_vars (List[str]): Name of ID columns
-        **kwargs (Any): passed to https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.melt.html
+        **kwargs (Any): passed to
+            https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.melt.html
 
     Returns:
         pd.DataFrame: [description]
@@ -239,15 +238,8 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         pat=r"(SA2017_)",
         repl="",
     )
-    year_built_stats_with_substring_replaced = _replace_substring_in_column(
-        year_built_stats_with_column_split,
-        target="raw_households_and_persons",
-        result="households_and_persons",
-        pat=r"(No. of )|(\))",
-        repl="",
-    )
     year_built_stats_with_col_whitespace_stripped = _strip_column(
-        year_built_stats_with_substring_replaced,
+        year_built_stats_with_substring_year_built_replaced,
         target="raw_period_built",
         result="period_built",
     )
@@ -287,13 +279,19 @@ class TransformSaStatistics(Task):
     """
 
     def run(
-        self, raw_sa_glossary: pd.DataFrame, raw_sa_statistics: pd.DataFrame,
+        self,
+        raw_sa_glossary: pd.DataFrame,
+        raw_sa_statistics: pd.DataFrame,
+        dublin_postcodes: gpd.GeoDataFrame,
+        dublin_sa_geometries: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         """Run local flow.
 
         Args:
             raw_sa_glossary (pd.DataFrame): Raw Small Area Glossary
-            raw_sa_statistics (pd.DataFrame): Raw Ireland Small Area Statsitics
+            raw_sa_statistics (pd.DataFrame): Raw Ireland Small Area Statistics
+            dublin_postcodes (pd.DataFrame): Dublin Postcode Geometries
+            dublin_sa_geometries (pd.DataFrame): Dublin Small Area Geometries
 
         Returns:
             gpd.GeoDataFrame: Clean Dublin Small Area Statistics
@@ -302,8 +300,10 @@ class TransformSaStatistics(Task):
             state = flow.run(
                 parameters=dict(
                     raw_sa_glossary=raw_sa_glossary,
-                    raw_sa_statistics=raw_sa_statistics,
+                    raw_sa_stats=raw_sa_statistics,
+                    dublin_pcodes=dublin_postcodes,
+                    dublin_sa_geom=dublin_sa_geometries,
                 ),
             )
 
-        return state.result[year_built_stats_with_col_whitespace_stripped].result
+        return state.result[clean_year_built].result

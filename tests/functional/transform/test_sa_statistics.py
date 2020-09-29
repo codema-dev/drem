@@ -110,8 +110,8 @@ def flow_state(
     """Run etl flow with dummy test data.
 
     Args:
-        raw_sa_glossary (pd.DataFrame): Raw glossary table
         raw_sa_statistics (pd.DataFrame): Raw Ireland Small Area Statistics
+        raw_sa_glossary (pd.DataFrame): Raw glossary table
         dublin_postcodes (gpd.GeoDataFrame): Dublin Postcodes
         dublin_sa_geometries (gpd.GeoDataFrame): Dublin Small Area Geometries
 
@@ -121,8 +121,8 @@ def flow_state(
     with raise_on_exception():
         state = flow.run(
             dict(
-                raw_sa_glossary=raw_sa_glossary,
                 raw_sa_stats=raw_sa_statistics,
+                raw_sa_glossary=raw_sa_glossary,
                 dublin_pcodes=dublin_postcodes,
                 dublin_sa_geom=dublin_sa_geometries,
             ),
