@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Dict
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -13,7 +12,6 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from drem.filepaths import UTEST_DATA_TRANSFORM
-from drem.transform.sa_statistics import _concat
 from drem.transform.sa_statistics import _convert_columns_to_dict
 from drem.transform.sa_statistics import _extract_column_names_via_glossary
 from drem.transform.sa_statistics import _extract_rows_from_glossary
@@ -21,7 +19,7 @@ from drem.transform.sa_statistics import _get_columns
 from drem.transform.sa_statistics import _link_small_areas_to_postcodes
 from drem.transform.sa_statistics import _melt_columns
 from drem.transform.sa_statistics import _merge_with_geometries
-from drem.transform.sa_statistics import _pivot
+from drem.transform.sa_statistics import _pivot_table
 from drem.transform.sa_statistics import _rename_columns_via_glossary
 from drem.transform.sa_statistics import _replace_substring_in_column
 from drem.transform.sa_statistics import _split_column_in_two_on_substring
@@ -329,52 +327,33 @@ def test_strip_column() -> None:
     assert_frame_equal(output, expected_output)
 
 
-def test_pivot() -> None:
-    """Pivot rows to columns matches expected."""
+def test_pivot_table() -> None:
+    """Pivot table to expected format."""
     before_pivot_table = pd.DataFrame(
         {
             "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
             "households_and_persons": ["households", "persons"],
-            "year_built": ["Pre 1919", "1919 - 1945"],
+            "year_built": ["Pre 1919", "Pre 1919"],
             "value": [4, 20],
         },
     )
     expected_output = pd.DataFrame(
-        {"households": [4, np.nan], "persons": [np.nan, 20]},
+        {
+            "GEOGID": ["SA2017_017001001"],
+            "year_built": ["Pre 1919"],
+            "households": [4],
+            "persons": [20],
+        },
     )
 
-    output = _pivot.run(
-        before_pivot_table, values="value", columns="households_and_persons",
+    output = _pivot_table.run(
+        before_pivot_table,
+        index=["GEOGID", "year_built"],
+        values="value",
+        columns="households_and_persons",
     )
 
     assert_frame_equal(output, expected_output, check_like=True)
-
-
-def test_concat() -> None:
-    """Concatenate DataFrames matches expected."""
-    left = pd.DataFrame(
-        {
-            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
-            "households_and_persons": ["households", "persons"],
-            "year_built": ["Pre 1919", "1919 - 1945"],
-            "value": [4, 20],
-        },
-    )
-    right = pd.DataFrame({"households": [4, np.nan], "persons": [np.nan, 20]})
-    expected_output = pd.DataFrame(
-        {
-            "GEOGID": ["SA2017_017001001", "SA2017_017001001"],
-            "households_and_persons": ["households", "persons"],
-            "year_built": ["Pre 1919", "1919 - 1945"],
-            "value": [4, 20],
-            "households": [4, np.nan],
-            "persons": [np.nan, 20],
-        },
-    )
-
-    output = _concat.run([left, right], axis="columns")
-
-    assert_frame_equal(output, expected_output)
 
 
 def test_merge_with_geometries() -> None:
