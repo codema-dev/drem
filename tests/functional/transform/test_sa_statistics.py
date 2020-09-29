@@ -1,5 +1,4 @@
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -37,7 +36,7 @@ def raw_sa_glossary() -> pd.DataFrame:
                 "T6_1_HB_H",
                 "T6_1_FA_H",
                 "T6_2_PRE19H",
-                "T6_2_19_45H",
+                "T6_2_PRE19P",
                 "T6_5_NCH",
                 "T6_5_OCH",
             ],
@@ -45,7 +44,7 @@ def raw_sa_glossary() -> pd.DataFrame:
                 "House/Bungalow (No. of households)",
                 "Flat/Apartment (No. of persons)",
                 "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of persons)",
+                "Pre 1919 (No. of persons)",
                 "No central heating",
                 "Oil",
             ],
@@ -66,7 +65,7 @@ def raw_sa_statistics() -> pd.DataFrame:
             "T6_1_HB_H": [2],
             "T6_1_FA_H": [3],
             "T6_2_PRE19H": [10],
-            "T6_2_19_45H": [20],
+            "T6_2_PRE19P": [20],
             "T6_5_NCH": [7],
             "T6_5_OCH": 12,
         },
@@ -148,15 +147,12 @@ def test_transform_year_built_matches_expected(flow_state: State) -> None:
     """
     expected_output = gpd.GeoDataFrame(
         {
-            "small_area": ["017001001", "017001001"],
-            "postcodes": ["Co. Dublin", "Co. Dublin"],
-            "period_built": ["Pre 1919", "1919 - 1945"],
-            "households": [10, np.nan],
-            "persons": [np.nan, 20],
-            "geometry": [
-                Polygon([(0, 0), (0, 0.5), (0.5, 0)]),
-                Polygon([(0, 0), (0, 0.5), (0.5, 0)]),
-            ],
+            "small_area": ["017001001"],
+            "postcodes": ["Co. Dublin"],
+            "period_built": ["Pre 1919"],
+            "households": [10],
+            "persons": [20],
+            "geometry": [Polygon([(0, 0), (0, 0.5), (0.5, 0)])],
         },
     )
 

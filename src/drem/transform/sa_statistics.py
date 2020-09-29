@@ -131,11 +131,20 @@ def _strip_column(
 
 
 @task
-def _pivot(
-    df: pd.DataFrame, values: Iterable[str], columns: Iterable[str], **kwargs: Any,
+def _pivot_table(
+    df: pd.DataFrame,
+    index: Iterable[str],
+    values: Iterable[str],
+    columns: Iterable[str],
+    **kwargs: Any,
 ) -> pd.DataFrame:
 
-    return df.pivot(columns=columns, values=values, **kwargs)
+    pivoted = df.pivot_table(
+        index=index, columns=columns, values=values, **kwargs,
+    ).reset_index()
+    pivoted.columns.name = None
+
+    return pivoted
 
 
 @task
@@ -243,17 +252,14 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         target="raw_period_built",
         result="period_built",
     )
-    persons_and_hh_columns = _pivot(
+    persons_and_hh_columns = _pivot_table(
         year_built_stats_with_col_whitespace_stripped,
+        index=["small_area", "period_built"],
         values="value",
         columns="households_and_persons",
     )
-    year_built_stats_with_hh_and_people_split = _concat(
-        [year_built_stats_with_col_whitespace_stripped, persons_and_hh_columns],
-        axis="columns",
-    )
     year_built_with_dublin_sa_geometries = _merge_with_geometries(
-        year_built_stats_with_hh_and_people_split, dublin_sa_geom, on=["small_area"],
+        persons_and_hh_columns, dublin_sa_geom, on=["small_area"],
     )
     year_built_with_postcodes = _link_small_areas_to_postcodes(
         year_built_with_dublin_sa_geometries, dublin_pcodes,
