@@ -54,6 +54,8 @@ def raw_glossary() -> pd.DataFrame:
                 "Permanent private households by year built ",
                 "Table 5",
                 "Permanent private households by central heating ",
+                "Table 3",
+                "Number of households with internet	",
             ],
             "Column Names": [
                 "T6_1_HB_H",
@@ -62,6 +64,8 @@ def raw_glossary() -> pd.DataFrame:
                 "T6_2_19_45H",
                 "T6_5_NCH",
                 "T6_5_OCH",
+                "T15_3_B",
+                "T15_3_OTH",
             ],
             "Description of Field": [
                 "House/Bungalow (No. of households)",
@@ -70,28 +74,8 @@ def raw_glossary() -> pd.DataFrame:
                 "1919 - 1945 (No. of households)",
                 "No central heating",
                 "Oil",
-            ],
-        },
-    )
-
-
-@pytest.fixture
-def raw_year_built_glossary() -> pd.DataFrame:
-    """Create Raw Year Built Glossary.
-
-    Returns:
-        pd.DataFrame: Raw Year built glossary table
-    """
-    return pd.DataFrame(
-        {
-            "Tables Within Themes": [
-                "Table 2",
-                "Permanent private households by year built ",
-            ],
-            "Column Names": ["T6_2_PRE19H", "T6_2_19_45H"],
-            "Description of Field": [
-                "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
+                "Broadband",
+                "Other",
             ],
         },
     )
@@ -131,15 +115,26 @@ def raw_statistics() -> pd.DataFrame:
 
 
 def test_extracted_year_built_table_from_glossary_matches_expected(
-    raw_glossary: pd.DataFrame, raw_year_built_glossary: pd.DataFrame,
+    raw_glossary: pd.DataFrame,
 ) -> None:
-    """Extracted table matches matches expected table.
+    """Extracted year built table matches matches expected table.
 
     Args:
         raw_glossary (pd.DataFrame): Raw glossary table
-        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
     """
-    expected_output = raw_year_built_glossary
+    expected_output = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 2",
+                "Permanent private households by year built ",
+            ],
+            "Column Names": ["T6_2_PRE19H", "T6_2_19_45H"],
+            "Description of Field": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+            ],
+        },
+    )
 
     output = _extract_rows_from_glossary.run(
         raw_glossary,
@@ -150,15 +145,55 @@ def test_extracted_year_built_table_from_glossary_matches_expected(
     assert_frame_equal(output, expected_output)
 
 
+def test_extracted_boiler_type_table_from_glossary_matches_expected(
+    raw_glossary: pd.DataFrame,
+) -> None:
+    """Extracted boiler type table matches matches expected table.
+
+    Args:
+        raw_glossary (pd.DataFrame): Raw glossary table
+    """
+    expected_output = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 5",
+                "Permanent private households by central heating ",
+            ],
+            "Column Names": ["T6_5_NCH", "T6_5_OCH"],
+            "Description of Field": ["No central heating", "Oil"],
+        },
+    )
+
+    output = _extract_rows_from_glossary.run(
+        raw_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by central heating ",
+    )
+
+    assert_frame_equal(output, expected_output)
+
+
 def test_convert_columns_to_dict_as_expected(
-    raw_year_built_glossary: pd.DataFrame, year_built_glossary: pd.DataFrame,
+    year_built_glossary: pd.DataFrame,
 ) -> None:
     """Extract 2 DataFrame columns and convert to Dict.
 
     Args:
-        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
         year_built_glossary (pd.DataFrame): Year built glossary
     """
+    raw_year_built_glossary = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 2",
+                "Permanent private households by year built ",
+            ],
+            "Column Names": ["T6_2_PRE19H", "T6_2_19_45H"],
+            "Description of Field": [
+                "Pre 1919 (No. of households)",
+                "1919 - 1945 (No. of households)",
+            ],
+        },
+    )
     expected_output = year_built_glossary
 
     output = _convert_columns_to_dict.run(

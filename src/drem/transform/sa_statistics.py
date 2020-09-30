@@ -276,6 +276,17 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         ],
     )
 
+    raw_boiler_type_glossary = _extract_rows_from_glossary(
+        raw_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by central heating ",
+    )
+    boiler_type_glossary = _convert_columns_to_dict(
+        raw_year_built_glossary,
+        column_name_index="Column Names",
+        column_name_values="Description of Field",
+    )
+
 
 class TransformSaStatistics(Task):
     """Transform Small Area Statistics.
