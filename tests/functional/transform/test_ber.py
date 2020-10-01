@@ -66,6 +66,6 @@ def test_clean_ber_as_expected(raw_ber: pd.DataFrame, clean_ber: pd.DataFrame) -
     """
     expected_output = clean_ber
 
-    output = transform_ber.run(raw_ber=raw_ber)
+    output = transform_ber.run(ber=raw_ber)
 
     assert_frame_equal(output, expected_output)

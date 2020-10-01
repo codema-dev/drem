@@ -42,6 +42,6 @@ def test_create_ber_archetypes_as_expected(clean_ber: pd.DataFrame) -> None:
         },
     )
 
-    output = create_ber_archetypes.run(clean_ber=clean_ber)
+    output = create_ber_archetypes.run(ber=clean_ber)
 
     assert_frame_equal(output, expected_output)

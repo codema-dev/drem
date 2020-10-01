@@ -66,16 +66,16 @@ class CreateBERArchetypes(Task):
     """
 
     @require(lambda clean_ber: isinstance(clean_ber, pd.DataFrame))
-    def run(self, clean_ber: pd.DataFrame) -> pd.DataFrame:
+    def run(self, ber: pd.DataFrame) -> pd.DataFrame:
         """Run Flow.
 
         Args:
-            clean_ber (pd.DataFrame): Clean BER Data
+            ber (pd.DataFrame): Clean BER Data
 
         Returns:
             pd.DataFrame: BER archetype averages
         """
         with raise_on_exception():
-            state = flow.run(parameters=dict(clean_ber=clean_ber))
+            state = flow.run(parameters=dict(ber=clean_ber))
 
         return state.result[ber_archetypes].result

@@ -72,17 +72,17 @@ class TransformBER(Task):
             https://docs.prefect.io/api/latest/core/task.html#task-2
     """
 
-    @require(lambda raw_ber: isinstance(raw_ber, pd.DataFrame))
-    def run(self, raw_ber: pd.DataFrame) -> pd.DataFrame:
+    @require(lambda ber: isinstance(raw_ber, pd.DataFrame))
+    def run(self, ber: pd.DataFrame) -> pd.DataFrame:
         """Run flow.
 
         Args:
-            raw_ber (pd.DataFrame): Raw BER Data
+            ber (pd.DataFrame): Raw BER Data
 
         Returns:
             pd.DataFrame: Clean BER Data
         """
         with raise_on_exception():
-            state = flow.run(parameters=dict(raw_ber=raw_ber))
+            state = flow.run(parameters=dict(raw_ber=ber))
 
         return state.result[bin_year_built_into_census_categories].result
