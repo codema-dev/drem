@@ -1,18 +1,24 @@
 import numpy as np
 import pandas as pd
 
+from icontract import require
+from prefect import Flow
+from prefect import Parameter
+from prefect import Task
 from prefect import task
+from prefect.utilities.debug import raise_on_exception
+
+import drem.utilities.pandas_tasks as pdt
 
 
-def _extract_dublin_rows(ber_ireland: pd.DataFrame) -> pd.DataFrame:
+@task
+def _bin_year_of_construction_as_in_census(
+    ber: pd.DataFrame, target: str, result: str,
+) -> pd.DataFrame:
 
-    dublin_rows = ber_ireland["CountyName"].str.contains("Dublin")
-    return ber_ireland[dublin_rows]
+    ber = ber.copy()
 
-
-def _bin_year_of_construction_as_in_census(ber: pd.DataFrame) -> pd.DataFrame:
-
-    year = ber["Year_of_Construction"].fillna(0).astype(int).to_numpy()
+    year = ber[target].fillna(0).astype(int).to_numpy()
 
     conditions = [
         year <= 1919,
@@ -40,25 +46,43 @@ def _bin_year_of_construction_as_in_census(ber: pd.DataFrame) -> pd.DataFrame:
         "not stated",
     ]
 
-    ber.loc[:, "period_built"] = np.select(conditions, choices, default="ERROR")
+    ber.loc[:, result] = np.select(conditions, choices, default="ERROR")
 
     return ber
 
 
-@task
-def transform_ber(ber_raw: pd.DataFrame) -> pd.DataFrame:
-    """Tidy BER data set.
+with Flow("Cleaning the BER Data...") as flow:
 
-    See tests/functional for more information
+    raw_ber = Parameter("raw_ber")
+
+    get_dublin_rows = pdt.get_rows_where_column_contains_substring(
+        raw_ber, target="CountyName", substring="Dublin",
+    )
+    rename_postcodes = pdt.rename(get_dublin_rows, columns={"CountyName": "postcodes"})
+    bin_year_built_into_census_categories = _bin_year_of_construction_as_in_census(
+        rename_postcodes, target="Year_of_Construction", result="cso_period_built",
+    )
+
+
+class TransformBER(Task):
+    """Clean BER Data in a Prefect flow.
 
     Args:
-        ber_raw (pd.DataFrame): Raw Ireland BER Residential Housing Data set
-
-    Returns:
-        pd.DataFrame: Clean Dublin BER Residential Housing Data set
+        Task (prefect.Task): see
+            https://docs.prefect.io/api/latest/core/task.html#task-2
     """
-    return (
-        ber_raw.pipe(_extract_dublin_rows)
-        .pipe(_bin_year_of_construction_as_in_census)
-        .rename(columns={"CountyName": "postcodes"})
-    )
+
+    @require(lambda raw_ber: isinstance(raw_ber, pd.DataFrame))
+    def run(self, raw_ber: pd.DataFrame) -> pd.DataFrame:
+        """Run flow.
+
+        Args:
+            raw_ber (pd.DataFrame): Raw BER Data
+
+        Returns:
+            pd.DataFrame: Clean BER Data
+        """
+        with raise_on_exception():
+            state = flow.run(parameters=dict(raw_ber=raw_ber))
+
+        return state.result[bin_year_built_into_census_categories].result
