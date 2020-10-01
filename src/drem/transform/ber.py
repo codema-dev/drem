@@ -40,7 +40,7 @@ def _bin_year_of_construction_as_in_census(ber: pd.DataFrame) -> pd.DataFrame:
         "not stated",
     ]
 
-    ber["period_built"] = np.select(conditions, choices, default="ERROR")
+    ber.loc[:, "period_built"] = np.select(conditions, choices, default="ERROR")
 
     return ber
 

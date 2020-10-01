@@ -12,6 +12,7 @@ from prefect import task
     lambda df, column_names: set(column_names).issubset(set(df.columns)),
     "df.columns doesn't contain all names in columns!",
 )
+@require(lambda df: isinstance(df, pd.DataFrame))
 def get_columns(df: pd.DataFrame, column_names: Iterable[str]) -> pd.DataFrame:
     """Get DataFrame columns (copy to a new DataFrame).
 
