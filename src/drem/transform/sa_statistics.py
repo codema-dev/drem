@@ -230,7 +230,7 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         year_built_stats_with_columns_melted,
         target="variable",
         pat=r"(",
-        left_column_name="raw_period_built",
+        left_column_name="raw_cso_period_built",
         right_column_name="raw_households_and_persons",
     )
     year_built_stats_with_substring_no_of_replaced = _replace_substring_in_column(
@@ -241,7 +241,7 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         repl="",
     )
     year_built_stats_with_substring_year_built_replaced = _replace_substring_in_column(
-        year_built_stats_with_column_split,
+        year_built_stats_with_substring_no_of_replaced,
         target="GEOGID",
         result="small_area",
         pat=r"(SA2017_)",
@@ -249,12 +249,12 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
     )
     year_built_stats_with_col_whitespace_stripped = _strip_column(
         year_built_stats_with_substring_year_built_replaced,
-        target="raw_period_built",
-        result="period_built",
+        target="raw_cso_period_built",
+        result="cso_period_built",
     )
     persons_and_hh_columns = _pivot_table(
         year_built_stats_with_col_whitespace_stripped,
-        index=["small_area", "period_built"],
+        index=["small_area", "cso_period_built"],
         values="value",
         columns="households_and_persons",
     )
@@ -269,7 +269,7 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         columns=[
             "small_area",
             "postcodes",
-            "period_built",
+            "cso_period_built",
             "households",
             "persons",
             "geometry",

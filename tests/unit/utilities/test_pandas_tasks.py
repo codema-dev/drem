@@ -38,7 +38,7 @@ def test_get_rows_where_column_contains_substring_matches_expected() -> None:
     )
     expected_output = pd.DataFrame({"postcodes": ["Co. Dublin", "Dublin 1"]})
 
-    output = pdt.get_rows_where_column_contains_substring(
+    output = pdt.get_rows_where_column_contains_substring.run(
         before_filtering, target="postcodes", substring="Dublin",
     )
 

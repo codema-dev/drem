@@ -8,8 +8,10 @@ from prefect.tasks.secrets import PrefectSecret
 
 import drem
 
+from drem.estimate.ber_archetypes import CreateBERArchetypes
 from drem.estimate.sa_demand import EstimateSmallAreaDemand
 from drem.filepaths import DATA_DIR
+from drem.transform.ber import TransformBER
 from drem.transform.sa_statistics import TransformSaStatistics
 
 
@@ -26,6 +28,8 @@ read_parquet_to_dataframe = drem.ReadParquetToDataFrame(
 
 estimate_sa_demand = EstimateSmallAreaDemand()
 transform_sa_statistics = TransformSaStatistics()
+transform_ber = TransformBER()
+create_ber_archetypes = CreateBERArchetypes()
 
 load_to_parquet = drem.LoadToParquet(name="Load Data to Parquet file")
 
@@ -43,9 +47,11 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     dublin_postcodes_raw = drem.extract_dublin_postcodes(external_dir)
     ber_raw = drem.extract_ber(email_address, external_dir)
 
+    ber_clean = transform_ber(ber_raw)
+    ber_archetypes = create_ber_archetypes(ber_clean)
+
     sa_geometries_clean = drem.transform_sa_geometries(sa_geometries_raw)
     dublin_postcodes_clean = drem.transform_dublin_postcodes(dublin_postcodes_raw)
-    ber_clean = drem.transform_ber(ber_raw)
     sa_statistics_clean = transform_sa_statistics(
         raw_sa_statistics=sa_statistics_raw,
         raw_sa_glossary=sa_statistics_glossary,
@@ -53,6 +59,8 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         dublin_sa_geometries=sa_geometries_clean,
     )
 
-    sa_demand = estimate_sa_demand(sa_statistics_clean, ber_clean, sa_geometries_clean)
+    sa_demand = estimate_sa_demand(
+        sa_statistics_clean, ber_archetypes, sa_geometries_clean,
+    )
 
     load_to_parquet(sa_demand, processed_dir / "sa_demand.parquet")

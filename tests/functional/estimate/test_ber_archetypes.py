@@ -19,7 +19,7 @@ def clean_ber() -> pd.DataFrame:
     return pd.DataFrame(
         {
             "postcodes": ["Co. Dublin"],
-            "period_built": ["before 1919"],
+            "cso_period_built": ["before 1919"],
             "DeliveredEnergyMainSpace": [1],
             "DeliveredEnergyMainWater": [1],
             "DeliveredEnergySecondarySpace": [1],
@@ -37,7 +37,7 @@ def test_create_ber_archetypes_as_expected(clean_ber: pd.DataFrame) -> None:
     expected_output = pd.DataFrame(
         {
             "postcodes": ["Co. Dublin"],
-            "period_built": ["before 1919"],
+            "cso_period_built": ["before 1919"],
             "mean_heat_demand_per_archetype": [4],
         },
     )

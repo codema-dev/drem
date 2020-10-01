@@ -28,7 +28,7 @@ with Flow("Create BER Archetypes") as flow:
         clean_ber,
         column_names=[
             "postcodes",
-            "period_built",
+            "cso_period_built",
             "DeliveredEnergyMainSpace",
             "DeliveredEnergyMainWater",
             "DeliveredEnergySecondarySpace",
@@ -47,11 +47,11 @@ with Flow("Create BER Archetypes") as flow:
     )
     select_columns_from_aggregated = pdt.get_columns(
         sum_hh_heat_demand_columns,
-        column_names=["postcodes", "period_built", "total_heat_demand_per_hh"],
+        column_names=["postcodes", "cso_period_built", "total_heat_demand_per_hh"],
     )
     ber_archetypes = _get_mean_heat_demand_per_archetype(
         select_columns_from_aggregated,
-        group_by=["postcodes", "period_built"],
+        group_by=["postcodes", "cso_period_built"],
         target="total_heat_demand_per_hh",
         result="mean_heat_demand_per_archetype",
     )

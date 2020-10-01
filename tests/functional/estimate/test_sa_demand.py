@@ -15,7 +15,7 @@ def test_estimate_small_area_demand_matches_expected() -> None:
     small_area_statistics = gpd.GeoDataFrame(
         {
             "small_area": [267112002, 267112002],
-            "period_built": ["1971 - 1980", "before 1919"],
+            "cso_period_built": ["1971 - 1980", "before 1919"],
             "households": [21, 10],
             "postcodes": ["Dublin 24", "Dublin 24"],
             "geometry": [Point((1, 1)), Point((1, 1))],
@@ -24,8 +24,8 @@ def test_estimate_small_area_demand_matches_expected() -> None:
     ber_archetypes = pd.DataFrame(
         {
             "postcodes": ["Dublin 24", "Dublin 24"],
-            "period_built": ["1971 - 1980", "before 1919"],
-            "mean_heat_demand_per_hh": [15000, 20000],
+            "cso_period_built": ["1971 - 1980", "before 1919"],
+            "mean_heat_demand_per_archetype": [15000, 20000],
         },
     )
     sa_geometries = gpd.GeoDataFrame(
