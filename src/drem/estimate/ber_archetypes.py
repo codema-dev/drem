@@ -65,7 +65,7 @@ class CreateBERArchetypes(Task):
             https://docs.prefect.io/api/latest/core/task.html#task-2
     """
 
-    @require(lambda clean_ber: isinstance(clean_ber, pd.DataFrame))
+    @require(lambda ber: isinstance(ber, pd.DataFrame))
     def run(self, ber: pd.DataFrame) -> pd.DataFrame:
         """Run Flow.
 
@@ -76,6 +76,6 @@ class CreateBERArchetypes(Task):
             pd.DataFrame: BER archetype averages
         """
         with raise_on_exception():
-            state = flow.run(parameters=dict(ber=clean_ber))
+            state = flow.run(parameters=dict(clean_ber=ber))
 
         return state.result[ber_archetypes].result

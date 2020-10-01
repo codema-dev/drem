@@ -54,7 +54,7 @@ def test_clean_ber_raises_error_with_invalid_input() -> None:
     i_am_not_a_dataframe = 12
 
     with pytest.raises(ViolationError):
-        transform_ber.run(raw_ber=i_am_not_a_dataframe)
+        transform_ber.run(ber=i_am_not_a_dataframe)
 
 
 def test_clean_ber_as_expected(raw_ber: pd.DataFrame, clean_ber: pd.DataFrame) -> None:

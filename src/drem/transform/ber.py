@@ -72,7 +72,7 @@ class TransformBER(Task):
             https://docs.prefect.io/api/latest/core/task.html#task-2
     """
 
-    @require(lambda ber: isinstance(raw_ber, pd.DataFrame))
+    @require(lambda ber: isinstance(ber, pd.DataFrame))
     def run(self, ber: pd.DataFrame) -> pd.DataFrame:
         """Run flow.
 
