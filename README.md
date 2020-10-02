@@ -1,12 +1,13 @@
 # Dublin Region Energy Masterplan (drem)
 
-[![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
+![PyPI - License](https://img.shields.io/pypi/l/drem)
 [![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
 ![build](https://github.com/codema-dev/drem/workflows/build/badge.svg)
+[![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
+[![DeepSource](https://deepsource.io/gh/codema-dev/drem.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/codema-dev/drem/?ref=repository-badge)
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
-[![image](https://img.shields.io/badge/continuous%20quality-deepsource-lightgrey)](https://deepsource.io/gh/codema-dev/drem/)
-[![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-![PyPI - License](https://img.shields.io/pypi/l/drem)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 
 The goal of `drem` is to automate:
 
