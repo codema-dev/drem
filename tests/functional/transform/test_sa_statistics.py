@@ -31,6 +31,8 @@ def raw_sa_glossary() -> pd.DataFrame:
                 "Permanent private households by year built ",
                 "Table 5",
                 "Permanent private households by central heating ",
+                "Table 3",
+                "Number of households with internet	",
             ],
             "Column Names": [
                 "T6_1_HB_H",
@@ -39,14 +41,18 @@ def raw_sa_glossary() -> pd.DataFrame:
                 "T6_2_PRE19P",
                 "T6_5_NCH",
                 "T6_5_OCH",
+                "T15_3_B",
+                "T15_3_OTH",
             ],
             "Description of Field": [
                 "House/Bungalow (No. of households)",
-                "Flat/Apartment (No. of persons)",
+                "Flat/Apartment (No. of households)",
                 "Pre 1919 (No. of households)",
                 "Pre 1919 (No. of persons)",
                 "No central heating",
                 "Oil",
+                "Broadband",
+                "Other",
             ],
         },
     )
@@ -67,7 +73,9 @@ def raw_sa_statistics() -> pd.DataFrame:
             "T6_2_PRE19H": [10],
             "T6_2_PRE19P": [20],
             "T6_5_NCH": [7],
-            "T6_5_OCH": 12,
+            "T6_5_OCH": [12],
+            "T15_3_B": [5],
+            "T15_3_OTH": [2],
         },
     )
 

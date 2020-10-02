@@ -14,6 +14,8 @@ from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
+import drem.utilities.pandas_tasks as pdt
+
 
 @task
 def _extract_rows_from_glossary(
@@ -240,7 +242,7 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         pat=r"(No. of )|(\))",
         repl="",
     )
-    year_built_stats_with_substring_year_built_replaced = _replace_substring_in_column(
+    year_built_stats_small_areas_renamed = _replace_substring_in_column(
         year_built_stats_with_substring_no_of_replaced,
         target="GEOGID",
         result="small_area",
@@ -248,7 +250,7 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         repl="",
     )
     year_built_stats_with_col_whitespace_stripped = _strip_column(
-        year_built_stats_with_substring_year_built_replaced,
+        year_built_stats_small_areas_renamed,
         target="raw_cso_period_built",
         result="cso_period_built",
     )
@@ -274,6 +276,45 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
             "persons",
             "geometry",
         ],
+    )
+
+    raw_boiler_glossary = _extract_rows_from_glossary(
+        raw_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by central heating ",
+    )
+    boiler_glossary = _convert_columns_to_dict(
+        raw_boiler_glossary,
+        column_name_index="Column Names",
+        column_name_values="Description of Field",
+    )
+
+    raw_boiler_stats = _extract_column_names_via_glossary(
+        raw_sa_stats, boiler_glossary, additional_columns=["GEOGID"],
+    )
+    decode_boiler_stats = _rename_columns_via_glossary(
+        raw_boiler_stats, boiler_glossary,
+    )
+    melt_boiler_stats = _melt_columns(decode_boiler_stats, id_vars=["GEOGID"])
+    rename_boiler_stats_columns = pdt.rename(
+        melt_boiler_stats, columns={"variable": "boiler_type", "value": "total"},
+    )
+    rename_boiler_stats_small_areas = _replace_substring_in_column(
+        rename_boiler_stats_columns,
+        target="GEOGID",
+        result="small_area",
+        pat=r"(SA2017_)",
+        repl="",
+    )
+    link_boiler_stats_to_sa_geometries = _merge_with_geometries(
+        rename_boiler_stats_small_areas, dublin_sa_geom, on=["small_area"],
+    )
+    link_boiler_stats_to_postcodes = _link_small_areas_to_postcodes(
+        link_boiler_stats_to_sa_geometries, dublin_pcodes,
+    )
+    clean_boiler_stats = pdt.get_columns(
+        link_boiler_stats_to_postcodes,
+        column_names=["small_area", "postcodes", "boiler_type", "total", "geometry"],
     )
 
 
@@ -312,4 +353,7 @@ class TransformSaStatistics(Task):
                 ),
             )
 
-        return state.result[clean_year_built].result
+        return {
+            "period_built": state.result[clean_year_built].result,
+            "boiler_types": state.result[clean_boiler_stats].result,
+        }

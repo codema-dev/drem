@@ -54,44 +54,28 @@ def raw_glossary() -> pd.DataFrame:
                 "Permanent private households by year built ",
                 "Table 5",
                 "Permanent private households by central heating ",
+                "Table 3",
+                "Number of households with internet	",
             ],
             "Column Names": [
                 "T6_1_HB_H",
                 "T6_1_FA_H",
                 "T6_2_PRE19H",
-                "T6_2_19_45H",
+                "T6_2_PRE19P",
                 "T6_5_NCH",
                 "T6_5_OCH",
+                "T15_3_B",
+                "T15_3_OTH",
             ],
             "Description of Field": [
                 "House/Bungalow (No. of households)",
                 "Flat/Apartment (No. of households)",
                 "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
+                "Pre 1919 (No. of persons)",
                 "No central heating",
                 "Oil",
-            ],
-        },
-    )
-
-
-@pytest.fixture
-def raw_year_built_glossary() -> pd.DataFrame:
-    """Create Raw Year Built Glossary.
-
-    Returns:
-        pd.DataFrame: Raw Year built glossary table
-    """
-    return pd.DataFrame(
-        {
-            "Tables Within Themes": [
-                "Table 2",
-                "Permanent private households by year built ",
-            ],
-            "Column Names": ["T6_2_PRE19H", "T6_2_19_45H"],
-            "Description of Field": [
-                "Pre 1919 (No. of households)",
-                "1919 - 1945 (No. of households)",
+                "Broadband",
+                "Other",
             ],
         },
     )
@@ -106,7 +90,7 @@ def year_built_glossary() -> Dict[str, str]:
     """
     return {
         "T6_2_PRE19H": "Pre 1919 (No. of households)",
-        "T6_2_19_45H": "1919 - 1945 (No. of households)",
+        "T6_2_PRE19P": "Pre 1919 (No. of persons)",
     }
 
 
@@ -123,7 +107,7 @@ def raw_statistics() -> pd.DataFrame:
             "T6_1_HB_H": [2],
             "T6_1_FA_H": [3],
             "T6_2_PRE19H": [10],
-            "T6_2_19_45H": [20],
+            "T6_2_PRE19P": [20],
             "T6_5_NCH": [7],
             "T6_5_OCH": 12,
         },
@@ -131,15 +115,26 @@ def raw_statistics() -> pd.DataFrame:
 
 
 def test_extracted_year_built_table_from_glossary_matches_expected(
-    raw_glossary: pd.DataFrame, raw_year_built_glossary: pd.DataFrame,
+    raw_glossary: pd.DataFrame,
 ) -> None:
-    """Extracted table matches matches expected table.
+    """Extracted year built table matches matches expected table.
 
     Args:
         raw_glossary (pd.DataFrame): Raw glossary table
-        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
     """
-    expected_output = raw_year_built_glossary
+    expected_output = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 2",
+                "Permanent private households by year built ",
+            ],
+            "Column Names": ["T6_2_PRE19H", "T6_2_PRE19P"],
+            "Description of Field": [
+                "Pre 1919 (No. of households)",
+                "Pre 1919 (No. of persons)",
+            ],
+        },
+    )
 
     output = _extract_rows_from_glossary.run(
         raw_glossary,
@@ -150,15 +145,55 @@ def test_extracted_year_built_table_from_glossary_matches_expected(
     assert_frame_equal(output, expected_output)
 
 
+def test_extracted_boiler_type_table_from_glossary_matches_expected(
+    raw_glossary: pd.DataFrame,
+) -> None:
+    """Extracted boiler type table matches matches expected table.
+
+    Args:
+        raw_glossary (pd.DataFrame): Raw glossary table
+    """
+    expected_output = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 5",
+                "Permanent private households by central heating ",
+            ],
+            "Column Names": ["T6_5_NCH", "T6_5_OCH"],
+            "Description of Field": ["No central heating", "Oil"],
+        },
+    )
+
+    output = _extract_rows_from_glossary.run(
+        raw_glossary,
+        target="Tables Within Themes",
+        table_name="Permanent private households by central heating ",
+    )
+
+    assert_frame_equal(output, expected_output)
+
+
 def test_convert_columns_to_dict_as_expected(
-    raw_year_built_glossary: pd.DataFrame, year_built_glossary: pd.DataFrame,
+    year_built_glossary: pd.DataFrame,
 ) -> None:
     """Extract 2 DataFrame columns and convert to Dict.
 
     Args:
-        raw_year_built_glossary (pd.DataFrame): Raw Year built glossary table
         year_built_glossary (pd.DataFrame): Year built glossary
     """
+    raw_year_built_glossary = pd.DataFrame(
+        {
+            "Tables Within Themes": [
+                "Table 2",
+                "Permanent private households by year built ",
+            ],
+            "Column Names": ["T6_2_PRE19H", "T6_2_PRE19P"],
+            "Description of Field": [
+                "Pre 1919 (No. of households)",
+                "Pre 1919 (No. of persons)",
+            ],
+        },
+    )
     expected_output = year_built_glossary
 
     output = _convert_columns_to_dict.run(
@@ -180,7 +215,7 @@ def test_extract_year_built_column_names_via_glossary(
         year_built_glossary (Dict[str, str]): Year built glossary
     """
     expected_output = pd.DataFrame(
-        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_19_45H": [20]},
+        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_PRE19P": [20]},
     )
 
     output = _extract_column_names_via_glossary.run(
@@ -228,13 +263,13 @@ def test_rename_columns_via_glossary(year_built_glossary: Dict[str, str]) -> Non
         year_built_glossary (Dict[str, str]): Year built glossary
     """
     before_renaming = pd.DataFrame(
-        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_19_45H": [20]},
+        {"GEOGID": ["SA2017_017001001"], "T6_2_PRE19H": [10], "T6_2_PRE19P": [20]},
     )
     expected_output = pd.DataFrame(
         {
             "GEOGID": ["SA2017_017001001"],
             "Pre 1919 (No. of households)": [10],
-            "1919 - 1945 (No. of households)": [20],
+            "Pre 1919 (No. of persons)": [20],
         },
     )
 
