@@ -63,4 +63,11 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         sa_statistics_clean, ber_archetypes, sa_geometries_clean,
     )
 
+    load_to_parquet(ber_clean, processed_dir / "ber.parquet")
+    load_to_parquet(
+        sa_statistics_clean["period_built"], processed_dir / "sa_period_built.parquet",
+    )
+    load_to_parquet(
+        sa_statistics_clean["boiler_type"], processed_dir / "sa_boiler_type.parquet",
+    )
     load_to_parquet(sa_demand, processed_dir / "sa_demand.parquet")
