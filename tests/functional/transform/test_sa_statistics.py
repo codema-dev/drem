@@ -149,7 +149,7 @@ def test_transform_year_built_matches_expected(flow_state: State) -> None:
         {
             "small_area": ["017001001"],
             "postcodes": ["Co. Dublin"],
-            "period_built": ["Pre 1919"],
+            "cso_period_built": ["Pre 1919"],
             "households": [10],
             "persons": [20],
             "geometry": [Polygon([(0, 0), (0, 0.5), (0.5, 0)])],
