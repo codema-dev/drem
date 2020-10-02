@@ -12,15 +12,17 @@ _estimate_small_area_demand = EstimateSmallAreaDemand()
 
 def test_estimate_small_area_demand_matches_expected() -> None:
     """Total residential heat demand output matches expected output."""
-    small_area_statistics = gpd.GeoDataFrame(
-        {
-            "small_area": [267112002, 267112002],
-            "cso_period_built": ["1971 - 1980", "before 1919"],
-            "households": [21, 10],
-            "postcodes": ["Dublin 24", "Dublin 24"],
-            "geometry": [Point((1, 1)), Point((1, 1))],
-        },
-    )
+    small_area_statistics = {
+        "period_built": gpd.GeoDataFrame(
+            {
+                "small_area": [267112002, 267112002],
+                "cso_period_built": ["1971 - 1980", "before 1919"],
+                "households": [21, 10],
+                "postcodes": ["Dublin 24", "Dublin 24"],
+                "geometry": [Point((1, 1)), Point((1, 1))],
+            },
+        ),
+    }
     ber_archetypes = pd.DataFrame(
         {
             "postcodes": ["Dublin 24", "Dublin 24"],

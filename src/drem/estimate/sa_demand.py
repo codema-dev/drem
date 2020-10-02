@@ -50,8 +50,9 @@ with Flow("Estimate Dublin Small Area Annual Energy Demands") as flow:
     ber_arch = Parameter("ber_arch")
     sa_geom = Parameter("sa_geom")
 
+    period_built_sa_stats = sa_stats["period_built"]
     sa_linked_to_ber_archetypes = _merge(
-        gdf=sa_stats, df=ber_arch, on=["postcodes", "cso_period_built"],
+        gdf=period_built_sa_stats, df=ber_arch, on=["postcodes", "cso_period_built"],
     )
     sa_with_total_heat_demand_column = _multiply_columns(
         sa_linked_to_ber_archetypes,
