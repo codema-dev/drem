@@ -355,5 +355,5 @@ class TransformSaStatistics(Task):
 
         return {
             "period_built": state.result[clean_year_built].result,
-            "boiler_types": state.result[clean_boiler_stats].result,
+            "boiler_type": state.result[clean_boiler_stats].result,
         }
