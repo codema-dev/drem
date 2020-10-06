@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 from typing import Optional
 
 import geopandas as gpd
@@ -11,18 +12,17 @@ from drem.utilities.zip import unzip_file
 
 
 @task
-def excel_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -> None:
+def excel_to_parquet(dirpath: Path, filename: str) -> None:
     """Convert excel file to parquet.
 
     Args:
-        input_dirpath (Path): Path to input directory
-        output_dirpath (Path): Path to save directory
+        dirpath (Path): Path to input directory
         filename (str): Name of file
     """
     logger = prefect.context.get("logger")
 
-    filepath_excel = input_dirpath / f"{filename}.xlsx"
-    filepath_parquet = output_dirpath / f"{filename}.parquet"
+    filepath_excel = dirpath / f"{filename}.xlsx"
+    filepath_parquet = dirpath / f"{filename}.parquet"
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
@@ -30,29 +30,31 @@ def excel_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -
 
 
 @task
-def csv_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -> None:
+def csv_to_parquet(
+    dirpath: Path, filename: str, file_extension: str = "csv", **kwargs: Any,
+) -> None:
     """Convert csv file to parquet.
 
     Args:
-        input_dirpath (Path): Path to input directory
-        output_dirpath (Path): Path to save directory
+        dirpath (Path): Path to input directory
         filename (str): Name of file
+        file_extension (str): Name of file extension. Defaults to "csv"
+        **kwargs (Any): Passed to pandas.read_csv
     """
     logger = prefect.context.get("logger")
 
-    filepath_csv = input_dirpath / f"{filename}.csv"
-    filepath_parquet = output_dirpath / f"{filename}.parquet"
+    filepath_csv = dirpath / f"{filename}.{file_extension}"
+    filepath_parquet = dirpath / f"{filename}.parquet"
 
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        pd.read_csv(filepath_csv).to_parquet(filepath_parquet)
+        pd.read_csv(filepath_csv, **kwargs).to_parquet(filepath_parquet)
 
 
 @task
 def shapefile_to_parquet(
-    input_dirpath: Path,
-    output_dirpath: Path,
+    dirpath: Path,
     filename: str,
     zipped: Optional[bool] = False,
     path_to_shapefile: Optional[str] = None,
@@ -68,8 +70,7 @@ def shapefile_to_parquet(
             `zipfile = "gadm36_AFG_shp.zip!data/gadm36_AFG_1.shp"`
 
     Args:
-        input_dirpath (Path): Path to input directory
-        output_dirpath (Path): Path to save directory
+        dirpath (Path): Path to input directory
         filename (str): Name of file
         zipped (Optional[bool], optional): File extension (such as 'zip'). Defaults to
             False.
@@ -79,14 +80,14 @@ def shapefile_to_parquet(
     logger = prefect.context.get("logger")
 
     if zipped:
-        unzip_file(input_dirpath / f"{filename}.zip")
+        unzip_file(dirpath / f"{filename}.zip")
 
     if path_to_shapefile:
-        filepath_shapefile = input_dirpath / filename / path_to_shapefile
+        filepath_shapefile = dirpath / filename / path_to_shapefile
     else:
-        filepath_shapefile = input_dirpath / filename
+        filepath_shapefile = dirpath / filename
 
-    filepath_parquet = output_dirpath / f"{filename}.parquet"
+    filepath_parquet = dirpath / f"{filename}.parquet"
 
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")

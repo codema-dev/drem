@@ -90,7 +90,7 @@ class Download(Task):
             filename (str): Name of file
             file_extension (str): File extension (such as '.csv')
         """
-        savepath = savedir / f"{filename}{file_extension}"
+        savepath = savedir / f"{filename}.{file_extension}"
 
         if not savepath.exists():
             with requests.get(url=self.url, stream=True) as response:
