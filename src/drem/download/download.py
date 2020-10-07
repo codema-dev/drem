@@ -88,7 +88,7 @@ class Download(Task):
         Args:
             savedir (Path): Path to save directory.
             filename (str): Name of file
-            file_extension (str): File extension (such as '.csv')
+            file_extension (str): File extension (such as 'csv')
         """
         savepath = savedir / f"{filename}.{file_extension}"
 
