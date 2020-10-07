@@ -10,17 +10,18 @@ from prefect import task
 
 
 @task
-def excel_to_parquet(dirpath: Path, filename: str) -> None:
+def excel_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -> None:
     """Convert excel file to parquet.
 
     Args:
-        dirpath (Path): Path to input directory
+        input_dirpath (Path): Path to input directory
+        output_dirpath (Path): Path to output directory
         filename (str): Name of file
     """
     logger = prefect.context.get("logger")
 
-    filepath_excel = dirpath / f"{filename}.xlsx"
-    filepath_parquet = dirpath / f"{filename}.parquet"
+    filepath_excel = input_dirpath / f"{filename}.xlsx"
+    filepath_parquet = output_dirpath / f"{filename}.parquet"
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
@@ -29,20 +30,25 @@ def excel_to_parquet(dirpath: Path, filename: str) -> None:
 
 @task
 def csv_to_parquet(
-    dirpath: Path, filename: str, file_extension: str = "csv", **kwargs: Any,
+    input_dirpath: Path,
+    output_dirpath: Path,
+    filename: str,
+    file_extension: str = "csv",
+    **kwargs: Any,
 ) -> None:
     """Convert csv file to parquet.
 
     Args:
-        dirpath (Path): Path to input directory
+        input_dirpath (Path): Path to input directory
+        output_dirpath (Path): Path to output directory
         filename (str): Name of file
         file_extension (str): Name of file extension. Defaults to "csv"
         **kwargs (Any): Passed to pandas.read_csv
     """
     logger = prefect.context.get("logger")
 
-    filepath_csv = dirpath / f"{filename}.{file_extension}"
-    filepath_parquet = dirpath / f"{filename}.parquet"
+    filepath_csv = input_dirpath / f"{filename}.{file_extension}"
+    filepath_parquet = output_dirpath / f"{filename}.parquet"
 
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
@@ -52,12 +58,16 @@ def csv_to_parquet(
 
 @task
 def shapefile_to_parquet(
-    dirpath: Path, filename: str, path_to_shapefile: Optional[str] = None,
+    input_dirpath: Path,
+    output_dirpath: Path,
+    filename: str,
+    path_to_shapefile: Optional[str] = None,
 ) -> None:
     """Convert ESRI Shapefile to parquet.
 
     Args:
-        dirpath (Path): Path to input directory
+        input_dirpath (Path): Path to input directory
+        output_dirpath (Path): Path to output directory
         filename (str): Name of file
         path_to_shapefile (Optional[str], optional): Path to shapefile from within
             folder (if '.shp' is nested in an inner-folder). Defaults to None.
@@ -65,11 +75,11 @@ def shapefile_to_parquet(
     logger = prefect.context.get("logger")
 
     if path_to_shapefile:
-        filepath_shapefile = dirpath / filename / path_to_shapefile
+        filepath_shapefile = input_dirpath / filename / path_to_shapefile
     else:
-        filepath_shapefile = dirpath / filename
+        filepath_shapefile = input_dirpath / filename
 
-    filepath_parquet = dirpath / f"{filename}.parquet"
+    filepath_parquet = output_dirpath / f"{filename}.parquet"
 
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")

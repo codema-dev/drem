@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+from pathlib import Path
 from re import VERBOSE
 
 import geopandas as gpd
@@ -22,22 +21,20 @@ def _rename_postcodes(postcodes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 @task(name="Transform Dublin Postcodes")
-def transform_dublin_postcodes(postcodes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def transform_dublin_postcodes(dirpath: Path, filename: str) -> gpd.GeoDataFrame:
     """Transform Dublin Postcodes.
 
-    By:
-        - Convert coordinate reference system to latitude | longitude.
-        - Rename column to postcodes
-        - Replace all non Dublin <number> postcodes with Co. Dublin
-
     Args:
-        postcodes (gpd.GeoDataFrame): [description]
+        dirpath (Path): Directory where data is stored
+        filename (str): Name of data
 
     Returns:
-        gpd.GeoDataFrame: [description]
+        gpd.GeoDataFrame: Clean postcodes data
     """
+    filepath = dirpath / f"{filename}.parquet"
     return (
-        postcodes.to_crs("epsg:4326")
+        gpd.read_parquet(filepath)
+        .to_crs("epsg:4326")
         .rename(columns={"Yelp_postc": "postcodes"})
         .pipe(_rename_postcodes)
     )

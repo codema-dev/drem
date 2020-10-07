@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import Iterable
@@ -203,10 +204,12 @@ def _get_columns(df: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
 
 with Flow("Transform Dublin Small Area Statistics") as flow:
 
-    raw_glossary = Parameter("raw_sa_glossary")
-    raw_sa_stats = Parameter("raw_sa_stats")
+    sa_stats_fpath = Parameter("sa_stats_fpath")
+    sa_glossary_fpath = Parameter("sa_glossary_fpath")
     dublin_sa_geom = Parameter("dublin_sa_geom")
     dublin_pcodes = Parameter("dublin_pcodes")
+
+    raw_glossary = pdt.read_parquet(sa_glossary_fpath)
 
     raw_year_built_glossary = _extract_rows_from_glossary(
         raw_glossary,
@@ -218,6 +221,8 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         column_name_index="Column Names",
         column_name_values="Description of Field",
     )
+
+    raw_sa_stats = pdt.read_parquet(sa_stats_fpath)
 
     raw_year_built_stats = _extract_column_names_via_glossary(
         raw_sa_stats, year_built_glossary, additional_columns=["GEOGID"],
@@ -327,27 +332,31 @@ class TransformSaStatistics(Task):
 
     def run(
         self,
-        raw_sa_glossary: pd.DataFrame,
-        raw_sa_statistics: pd.DataFrame,
+        dirpath: Path,
+        sa_statistics_filename: str,
+        sa_glossary_filename: str,
         dublin_postcodes: gpd.GeoDataFrame,
         dublin_sa_geometries: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         """Run local flow.
 
         Args:
-            raw_sa_glossary (pd.DataFrame): Raw Small Area Glossary
-            raw_sa_statistics (pd.DataFrame): Raw Ireland Small Area Statistics
+            dirpath (Path): Path to directory containing raw data files
+            sa_glossary_filename (str): Name of raw Glossary file
+            sa_statistics_filename (str): Name of raw Statistics file
             dublin_postcodes (pd.DataFrame): Dublin Postcode Geometries
             dublin_sa_geometries (pd.DataFrame): Dublin Small Area Geometries
 
         Returns:
             gpd.GeoDataFrame: Clean Dublin Small Area Statistics
         """
+        sa_statistics_filepath = dirpath / f"{sa_statistics_filename}.parquet"
+        sa_glossary_filepath = dirpath / f"{sa_glossary_filename}.parquet"
         with raise_on_exception():
             state = flow.run(
                 parameters=dict(
-                    raw_sa_glossary=raw_sa_glossary,
-                    raw_sa_stats=raw_sa_statistics,
+                    sa_glossary_fpath=sa_glossary_filepath,
+                    sa_stats_fpath=sa_statistics_filepath,
                     dublin_pcodes=dublin_postcodes,
                     dublin_sa_geom=dublin_sa_geometries,
                 ),
@@ -357,3 +366,6 @@ class TransformSaStatistics(Task):
             "period_built": state.result[clean_year_built].result,
             "boiler_type": state.result[clean_boiler_stats].result,
         }
+
+
+transform_sa_statistics = TransformSaStatistics()

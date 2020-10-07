@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pathlib import Path
 from typing import Union
 
@@ -26,3 +24,6 @@ class LoadToParquet(Task):
             filepath (Path): Save path for data
         """
         df.to_parquet(filepath)
+
+
+load_to_parquet = LoadToParquet(name="Load Data to Parquet file")

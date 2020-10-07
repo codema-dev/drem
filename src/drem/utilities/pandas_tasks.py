@@ -88,15 +88,13 @@ def rename(df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
 
 
 @task
-def read_parquet(dirpath: Path, filename: str) -> pd.DataFrame:
+def read_parquet(filepath: Path) -> pd.DataFrame:
     """Read parquet.
 
     Args:
-        dirpath (Path): Path to directory containing file
-        filename (str): File name
+        filepath (Path): Path to file
 
     Returns:
         pd.DataFrame: DataFrame of parquet file
     """
-    filepath = dirpath / f"{filename}.parquet"
     return pd.read_parquet(filepath)

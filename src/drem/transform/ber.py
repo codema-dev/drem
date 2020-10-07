@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-from icontract import require
 from prefect import Flow
 from prefect import Parameter
 from prefect import Task
@@ -53,8 +54,9 @@ def _bin_year_of_construction_as_in_census(
 
 with Flow("Cleaning the BER Data...") as flow:
 
-    raw_ber = Parameter("raw_ber")
+    ber_fpath = Parameter("ber_fpath")
 
+    raw_ber = pdt.read_parquet(ber_fpath)
     get_dublin_rows = pdt.get_rows_where_column_contains_substring(
         raw_ber, target="CountyName", substring="Dublin",
     )
@@ -72,17 +74,21 @@ class TransformBER(Task):
             https://docs.prefect.io/api/latest/core/task.html#task-2
     """
 
-    @require(lambda ber: isinstance(ber, pd.DataFrame))
-    def run(self, ber: pd.DataFrame) -> pd.DataFrame:
+    def run(self, dirpath: Path, filename: str) -> pd.DataFrame:
         """Run flow.
 
         Args:
-            ber (pd.DataFrame): Raw BER Data
+            dirpath (Path): Directory where data is stored
+            filename (str): Name of data
 
         Returns:
             pd.DataFrame: Clean BER Data
         """
+        ber_filepath = dirpath / f"{filename}.parquet"
         with raise_on_exception():
-            state = flow.run(parameters=dict(raw_ber=ber))
+            state = flow.run(parameters=dict(ber_fpath=ber_filepath))
 
         return state.result[bin_year_built_into_census_categories].result
+
+
+transform_ber = TransformBER()

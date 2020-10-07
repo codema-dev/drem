@@ -42,7 +42,7 @@ def _copy_dublin_sa_geometries(
         mask = geometries["COUNTYNAME"].isin(
             ["Dun Laoghaire-Rathdown", "Fingal", "South Dublin", "Dublin City"],
         )
-        geometries[mask].to_file(output_filepath)
+        geometries[mask].to_file(output_filepath, index=False)
 
         logger.info(f"Zipping {output_filepath}")
         make_archive(output_filepath, "zip", output_filepath)
@@ -60,7 +60,8 @@ def _sample_sa_statistics(
         logger.info(f"{output_filepath} already exists!")
     else:
         logger.info(f"Copying {input_filepath} to {output_dirpath}")
-        pd.read_csv(input_filepath).sample(sample_size).to_csv(output_filepath)
+        sa_stats_sample = pd.read_csv(input_filepath).sample(sample_size)
+        sa_stats_sample.to_csv(output_filepath, index=False)
 
 
 def _copy_dublin_postcodes(
@@ -101,13 +102,16 @@ def _sample_berpublicsearch(
         mkdir(output_filepath.parent)
 
         logger.info(f"Copying {input_filepath} to {output_filepath}")
-        pd.read_csv(
+        ber_sample = pd.read_csv(
             input_filepath,
             sep="\t",
             encoding="latin-1",
             error_bad_lines=False,
             low_memory=False,
-        ).sample(sample_size).to_csv(output_filepath)
+        ).sample(sample_size)
+        ber_sample.to_csv(
+            output_filepath, index=False, sep="\t", encoding="latin-1",
+        )
 
         logger.info(f"Zipping {output_filepath.parent}")
         make_archive(output_filepath.parent, "zip", output_filepath.parent)
