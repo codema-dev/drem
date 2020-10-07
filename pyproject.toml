@@ -27,6 +27,7 @@ dask = {extras = ["dataframe"], version = "^2.26.0"}
 seaborn = "^0.11.0"
 responses = "^0.12.0"
 graphviz = "^0.14.1"
+loguru = "^0.5.3"
 
 
 [tool.poetry.dev-dependencies]
