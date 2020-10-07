@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from typing import Iterable
 from typing import Union
@@ -84,3 +85,18 @@ def rename(df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
         pd.DataFrame: DataFrame with axes labels altered
     """
     return df.rename(**kwargs)
+
+
+@task
+def read_parquet(dirpath: Path, filename: str) -> pd.DataFrame:
+    """Read parquet.
+
+    Args:
+        dirpath (Path): Path to directory containing file
+        filename (str): File name
+
+    Returns:
+        pd.DataFrame: DataFrame of parquet file
+    """
+    filepath = dirpath / f"{filename}.parquet"
+    return pd.read_parquet(filepath)
