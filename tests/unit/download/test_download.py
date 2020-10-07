@@ -30,7 +30,7 @@ def test_download_task_saves_file_for_valid_request(tmp_path: Path) -> None:
         savedir=savedir, filename=filename, file_extension=file_extension,
     )
 
-    savepath = savedir / f"{filename}{file_extension}"
+    savepath = savedir / f"{filename}.{file_extension}"
     assert savepath.exists()
 
 
