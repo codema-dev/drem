@@ -7,8 +7,8 @@ from prefect import Task
 from validate_email import validate_email
 
 from drem.download.download import download_file_from_response
-from drem.extract.read_json import read_json
 from drem.filepaths import REQUESTS_DIR
+from drem.utilities.json import read_json
 
 
 CWD: Path = Path.cwd()
