@@ -28,17 +28,19 @@ You may also find `drem` useful to __download any data sets used in `drem` using
 
     - SEAI's 2016 Census Small Area [Statistics](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv), [Geometries](https://data.gov.ie/dataset/small-areas-ungeneralised-osi-national-statistical-boundaries-2015) & [Glossary](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx).
 
-    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx) .
+    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx): dwelling fabric information.
 
-    - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) created by Shane McGuinness of Trinity College Dublin.
+    - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) (created by Shane McGuinness of Trinity College Dublin).
+
+    - [CRU Smart Meter Trials 2009-10](https://www.ucd.ie/issda/data/commissionforenergyregulationcer/): 15-minute resolution demands & participant surveys _... available upon request_.
 
 - Commercial:
 
-    - [Valuation Office data](https://www.valoff.ie/en/open-data/api/)
+    - [Valuation Office data](https://www.valoff.ie/en/open-data/api/): commercial building floor areas etc.
 
-    - [CIBSE Energy Bencmarks](https://www.metrocommercial.co.uk/images/resources/CIBSE_TM46_Energy%20Benchmarks.pdf)
+    - [CIBSE Energy Benchmarks](https://www.cibse.org/Knowledge/knowledge-items/detail?id=a0q20000008I7evAAC)
 
-    - SEAI Dublin Measurement & Verification _... available upon request_
+    - [SEAI Dublin Measurement & Verification data](https://www.seai.ie/): annual gas/electricity demands for Public sector buildings _... available upon request_.
 
 > See [energy-modelling-ireland/energy-data-sources](https://github.com/energy-modelling-ireland/energy-data-sources) for more Irish-specific energy sources.
 

@@ -6,10 +6,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-- Remove all `drem.*` namespace tasks and import them directly via `from drem.transform.ber import transform_ber`
+
+
+---
+
+
+## [0.3.1] - 2020-10-07
+
+### Added
+
+- Create generic `Download` Task class that can be called to create download tasks to get data direct from any url.  Unit test this generic module using `responses` to mock http requests.
+
+- Clean electricity demands in closed-access [CRU Smart Meter Trials Data](https://www.ucd.ie/issda/data/commissionforenergyregulationcer/) in `drem.transform.cru_electricity` into a usable tabular format via `dask.dataframe`
+
+- Create an electricity diversity curve using closed-access [CRU Smart Meter Trials Data](https://www.ucd.ie/issda/data/commissionforenergyregulationcer/) electricity data
+
+### Changed
+
 - Replace `drem.extract` with separate `download`, `unzip` and `convert` tasks so that each task is doing one thing and one thing only (more modular code) & read-in files of raw data in `transform`:
+
     - use of `great_expectations` at each stage of the process to ensure expectations are met s.a. downloaded data is as expected (column names, missing values etc.) and each `transform` task is cleaning in the specified manner.  This replaces the previous implementation of fragile functional tests on each `transform` task which would break upon a simple column name change.  `great_expectations` are quicker to whip up as they are automated...
-- Create generic `Download` Task class that can be called to create download tasks to get data direct from any url
+
+    - Rewrite `drem.utilities.ftest_data` so that instead of creating sample parquet files of raw data to be run through the functional flow test (which skips download, unzip & convert) it creates data in the same file format as the actual raw data used in non-test flows (so now only download tasks are skipped in the functional/end-to-end tests)
+
+    - Create a module `drem.utilities.convert` to transform any file format (xlsx, csv, shp) into parquet in the etl flow (previously this was done during catch-all extract tasks)
+
+    - Create a module `drem.utilities.zip` to unzip zipped folders prior to conversion to parquet.
+
+    - Refactor `drem.extract.ber` into `drem.download.ber` which merely logs into BER Public search and downloads the data (so leaves unzipping & converting to parquet to other tasks...)
+
+    - Rewrite entire `drem.etl.residential` using generic `Download` tasks (defining url for each in task initialisation @ top of module), unzip zipped folders, convert to parquet & transform task using a filepath input (rather than passing a DataFrame).
+
+- Pull generic pandas tasks into `drem.utilities.pandas_tasks` and run `import drem.utilities.pandas_tasks as pdt` to call em within any flow
+
+- Refactor `drem.transform.ber` into `drem.estimate.ber_archetypes` and `drem.transform.ber` with transform only performing cleaning/filtering operations.  This enables generic command line operations on clean ber Dublin data with all 204 columns as archetype generation is no longer a barrier...
+
+- Refactor all transform tasks into `prefect` sub-flows so:
+
+    - transform tasks log their progress step-by-step so that it is obvious at which step a transform task fails and why
+
+    - enables use of prefect [flow visualization](https://docs.prefect.io/core/advanced_tutorials/visualization.html#flow-visualization) for transform tasks as well as etl flows so that non-programmers can easily see what steps are being performed on the data.
+
+### Removed
+
+- Remove all `drem.*` namespace tasks and import them directly via `from drem.transform.ber import transform_ber`
+
+- Delete all non-etl functional tests (previously had a functional test for each transform task) as am replacing em all with `great_expectations` tasks.  Previous implementation was too fragile as it broke every time a single column was changed.  Expecations on the other hand are designed to be dynamic and easily updatable...
+
+- Remove all `tdda` related code as has been replaced by `great_expectations` for functional tests and `pytest` for individual task tests...  This includes removing all unit test data from source control...
+
+
+---
+
+
+## [0.3.0] - 2020-10-07
+
+- Same as 0.3.1 except CHANGELOG was incomplete
+
+
+---
+
 
 ## [0.2.0] - 2020-09-17
 
@@ -98,6 +154,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit load Prefect tasks such as `drem.load_sa_geometries` have been removed; generic load tasks can be created via [instantiation of custom load Prefect tasks](https://docs.prefect.io/core/concepts/tasks.html#tasks) such as `drem.LoadToParquet`
 
 
+---
+
+
 ## [0.1.2] - 2020-08-20
 
 ### Added
@@ -116,6 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add tags for [`black`](https://black.readthedocs.io/en/stable/?badge=stable), [`Wemake-python-styleguide`](https://wemake-python-stylegui.de/en/latest/pages/usage/violations/index.html), `PyPi`, `deepsource`, `MIT License`, `Github Actions`
 
+
+---
 
 
 ## [0.1.1] - 2020-08-20
@@ -155,6 +216,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Copy `drem` code from `rdmolony` to `codema-dev` and restart Git History from there...
 
-[Unreleased]: https://github.com/codema-dev/drem/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/codema-dev/drem/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/codema-dev/drem/compare/v0.3.1...v0.3.0
+[0.3.0]: https://github.com/codema-dev/drem/compare/v0.3.0...v0.2.0
+[0.2.0]: https://github.com/codema-dev/drem/compare/v0.2.0...v0.1.2
 [0.1.2]: https://github.com/codema-dev/drem/compare/v0.1.2...v0.1.1
 [0.1.1]: https://github.com/codema-dev/drem/releases/tag/v0.1.1
