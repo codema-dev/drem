@@ -20,7 +20,7 @@ The goal of `drem` is to automate:
 
 > This process is also known as [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) or etl.  Under the hood `drem` uses `prefect` to [chain Python functions in a `prefect` flow into a data pipeline](https://docs.prefect.io/core/tutorial/02-etl-flow.html).
 
-You may also find `drem` useful to __download the data sets used in `drem` using simple Python commands__ rather than manually downloading them yourself from source (see [Basic Usage](#basic-usage)).
+You may also find `drem` useful to __download any data sets used in `drem` using simple Python commands__ rather than manually downloading them yourself from source (see [Basic Usage](#basic-usage)).
 
 `drem` currently uses the following data sets:
 
@@ -57,36 +57,56 @@ You may also find `drem` useful to __download the data sets used in `drem` using
 pip install drem
 ```
 
-> Warning! Installing via `pip` enables only basic usage of the `drem` library such as downloading data from source from the Command Line. It does not enable full usage of externals (such using the C-library `libpostal` to fuzzy match address names); for this the `drem` `Dockerfile` development environment is required, see [Setup a Local Development environment using Visual Studio Code](#setup-a-local-development-environment-using-visual-studio-code) for more information.
+Or to get the latest version:
+```bash
+pip install git+https://github.com/codema-dev/drem
+```
+
 
 
 ## Basic usage
 
-To view all currently implemented functions run the following in [`iPython`](https://ipython.readthedocs.io/en/stable/): or in a [Jupyter Notebook](https://jupyter.org/)
+To view & run all currently implemented functions run the following in [`iPython`](https://ipython.readthedocs.io/en/stable/): or in a [Jupyter Notebook](https://jupyter.org/)
 
 ```python
-[1]: import drem
-[2]: drem.<TAB> # press ENTER to select a function
-[3]: drem.extract_ber? # ? to get help with usage of individual functions
-```
-
-Currently implemented download functions:
-
-```python
-[1]: import drem
-[2]: sa_statistics_raw = drem.extract_sa_statistics.run()
-[2]: ber_raw = drem.extract_ber.run("youremail@address.ie") # WARNING: must register your email first at https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
-[3]: sa_geometries= drem.extract_sa_geometries.run()
-[4]: dublin_postcodes = drem.extract_dublin_postcodes.run()
+from pathlib import Path
+from drem.etl import residential
+residential.<TAB>   # to see available functions & classes
+drem.download_ber?  # ? to get help with usage of individual functions
+drem.download_ber.run(
+        email_address="your-email-address", # WARNING: must register your email first at https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
+        savedir=Path.cwd(), # set your current-working-directory as your save directory
+        filename="ber",
+)
 ```
 
 ---
 
 ## Advanced Usage
 
-TODO
+To run the `drem` residential etl flow:
+
+- Download this repository to your local hard-drive by clicking the green `Code` button and selecting `Download ZIP` or via `git clone https://github.com/codema-dev/drem`
+
+- [Register your email address with SEAI](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx)
+
+- Save your SEAI-registered email address as an environmental variable to register it as a local [`prefect` secret](https://docs.prefect.io/core/concepts/secrets.html#overview) in bash/zsh
+
+    > To run `drem` on `Windows` you'll have to manually install all non-Python dependencies yourself such as Visual Studio C++ build tools (see [here](https://mingw-w64.org/doku.php) or [here](https://github.com/felixrieseberg/windows-build-tools)), GDAL (see [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/)) etc. or alternatively you could [Setup a Local Docker Development environment using Visual Studio Code](#setup-a-local-development-environment-using-visual-studio-code).
+
+    ```bash
+    export PREFECT__CONTEXT__SECRETS__email_address=your-email-address@some-domain.ie
+    ```
+- Run the flow in a python shell
+    ```python
+    from drem.etl.residential import flow
+
+    state = flow.run()
+    ```
+
 
 ---
+
 
 ## Directory structure
 

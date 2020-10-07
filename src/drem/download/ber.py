@@ -26,9 +26,7 @@ class DownloadBER(Task):
         lambda email_address: validate_email(email_address),
         "Email address is invalid!",
     )
-    def run(
-        self, email_address: str, savedir: Path, filename: str, file_extension: str,
-    ) -> None:
+    def run(self, email_address: str, savedir: Path, filename: str) -> None:
         """Login & Download BER data.
 
         Warning:
@@ -39,9 +37,8 @@ class DownloadBER(Task):
             email_address (str): Registered Email address with SEAI
             savedir (Path): Save directory
             filename (str): File name
-            file_extension (str): File extension (such as csv)
         """
-        savepath = savedir / f"{filename}.{file_extension}"
+        savepath = savedir / f"{filename}.zip"
 
         with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
             ber_form_data = json.load(json_file)

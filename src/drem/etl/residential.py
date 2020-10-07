@@ -77,10 +77,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         file_extension="zip",
     )
     ber_downloaded = download_ber(
-        email_address=email_address,
-        savedir=external_dir,
-        filename=ber_filename,
-        file_extension="csv",
+        email_address=email_address, savedir=external_dir, filename=ber_filename,
     )
 
     # Unzip all zipped data folders
