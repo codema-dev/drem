@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict
 
 import geopandas as gpd
@@ -11,7 +10,6 @@ from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.sa_statistics import _convert_columns_to_dict
 from drem.transform.sa_statistics import _extract_column_names_via_glossary
 from drem.transform.sa_statistics import _extract_rows_from_glossary
@@ -24,18 +22,6 @@ from drem.transform.sa_statistics import _rename_columns_via_glossary
 from drem.transform.sa_statistics import _replace_substring_in_column
 from drem.transform.sa_statistics import _split_column_in_two_on_substring
 from drem.transform.sa_statistics import _strip_column
-
-
-STATS_IN: Path = UTEST_DATA_TRANSFORM / "sa_statistics_raw.csv"
-GLOSSARY: Path = UTEST_DATA_TRANSFORM / "sa_glossary.xlsx"
-SA_GEOMETRIES: Path = UTEST_DATA_TRANSFORM / "dublin_sa_geometries_clean.parquet"
-POSTCODE_GEOMETRIES: Path = UTEST_DATA_TRANSFORM / "dublin_postcodes_clean.parquet"
-
-EXTRACT_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_extract_year_built.csv"
-MELT_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_melt_year_built.csv"
-CLEANED_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_clean_year_built.csv"
-
-STATS_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_sa_statistics_clean.parquet"
 
 
 @pytest.fixture

@@ -1,17 +1,10 @@
-from pathlib import Path
-
 import pandas as pd
 import pytest
 
 from icontract import ViolationError
 from pandas.testing import assert_frame_equal
 
-from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.dublin_postcodes import _rename_postcodes
-
-
-POSTCODES_IN: Path = UTEST_DATA_TRANSFORM / "dublin_postcodes_raw.parquet"
-POSTCODES_EOUT: Path = UTEST_DATA_TRANSFORM / "dublin_postcodes_clean.parquet"
 
 
 def test_rename_postcodes() -> None:

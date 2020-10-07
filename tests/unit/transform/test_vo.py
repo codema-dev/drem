@@ -8,7 +8,6 @@ from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 
-from drem.filepaths import UTEST_DATA_TRANSFORM
 from drem.transform.vo import _apply_benchmarks_to_vo_floor_area
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
@@ -19,10 +18,6 @@ from drem.transform.vo import _remove_null_address_strings
 from drem.transform.vo import _replace_rows_equal_to_string
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 from drem.transform.vo import _strip_whitespace
-
-
-VO_IN: Path = UTEST_DATA_TRANSFORM / "vo_raw.parquet"
-VO_EOUT: Path = UTEST_DATA_TRANSFORM / "vo_clean.parquet"
 
 
 def test_fillna_in_columns_where_column_name_contains_substring() -> None:
