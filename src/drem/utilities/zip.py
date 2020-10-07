@@ -23,23 +23,23 @@ def unzip_file(filepath: Path) -> None:
             zipped_file.extractall(unzipped_dir)
 
 
-@require(lambda dirpath: isinstance(dirpath, Path))
-@require(lambda dirpath: dirpath.suffix == ".zip")
-def unzip_directory(dirpath: Path) -> None:
-    """Unzip a zipped directory.
+def unzip_folder(filepath: Path) -> None:
+    """Unzip a zipped folder.
 
     Args:
-        dirpath (Path): Directory to unzip
+        filepath (Path): Folder to unzip
     """
-    dirpath_unzipped: Path = dirpath.with_suffix("")
+    dirpath_unzipped: Path = filepath.with_suffix("")
+
     if dirpath_unzipped.exists():
-        logger.info("{dirpath} has already been unzipped!")
+        logger.info(f"{filepath} has already been unzipped!")
     else:
         mkdir(dirpath_unzipped)
-        unpack_archive(dirpath, dirpath_unzipped, "zip")
+        unpack_archive(filepath, dirpath_unzipped)
 
 
 @task
+@require(lambda dirpath: isinstance(dirpath, Path))
 def unzip(dirpath: Path, filename: str, file_extension: str = "zip") -> None:
     """Unzip directory in Prefect Task.
 
@@ -49,4 +49,10 @@ def unzip(dirpath: Path, filename: str, file_extension: str = "zip") -> None:
         file_extension (str): File extension of file to be unzipped. Defaults to 'zip'
     """
     filepath = dirpath / f"{filename}.{file_extension}"
-    unzip_directory(filepath)
+    filepath_unzipped = dirpath / filename
+
+    if filepath_unzipped.exists():
+        logger.info(f"{filepath_unzipped} has already been unzipped!")
+    else:
+        mkdir(filepath_unzipped)
+        unpack_archive(filepath, filepath_unzipped)
