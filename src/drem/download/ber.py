@@ -1,3 +1,5 @@
+import json
+
 from pathlib import Path
 
 import requests
@@ -8,7 +10,6 @@ from validate_email import validate_email
 
 from drem.download.download import download_file_from_response
 from drem.filepaths import REQUESTS_DIR
-from drem.utilities.json import read_json
 
 
 CWD: Path = Path.cwd()
@@ -41,7 +42,9 @@ class DownloadBER(Task):
             file_extension (str): File extension (such as csv)
         """
         savepath = savedir / f"{filename}.{file_extension}"
-        ber_form_data = read_json(REQUESTS_DIR / "ber_forms.json")
+
+        with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
+            ber_form_data = json.load(json_file)
 
         # Register login email address in form
         ber_form_data["login"][
