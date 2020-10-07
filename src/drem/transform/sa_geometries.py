@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+from pathlib import Path
 
 import geopandas as gpd
 import icontract
@@ -27,23 +27,20 @@ def extract_dublin_local_authorities(geometries: gpd.GeoDataFrame) -> gpd.GeoDat
 
 
 @task(name="Transform Small Area Geometries")
-def transform_sa_geometries(geometries: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def transform_sa_geometries(dirpath: Path, filename: str) -> gpd.GeoDataFrame:
     """Transform Small Area geometries.
 
-    By:
-        - Extract Dublin information out of Ireland data.
-        - Convert coordinate reference system to latitude | longitude.
-        - Select relevant columns.
-        - Rename columns to standardised.
-
     Args:
-        geometries (gpd.GeoDataFrame): Filepath to a locally stored download of the data
+        dirpath (Path): Directory where data is stored
+        filename (str): Name of data
 
     Returns:
-        gpd.GeoDataFrame: Small Area Dublin geometries with a select number of columns
+        gpd.GeoDataFrame: Clean Small Area Geometries
     """
+    filepath = dirpath / f"{filename}.parquet"
     return (
-        geometries.pipe(extract_dublin_local_authorities)
+        gpd.read_parquet(filepath)
+        .pipe(extract_dublin_local_authorities)
         .to_crs("epsg:4326")
         .loc[:, ["SMALL_AREA", "geometry"]]
         .rename(columns={"SMALL_AREA": "small_area"})

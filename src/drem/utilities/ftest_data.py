@@ -1,61 +1,121 @@
-#!/usr/bin/env python
-
 # Create sample data for functional tests.
 
+from os import mkdir
 from pathlib import Path
 from shutil import copyfile
+from shutil import copytree
+from shutil import make_archive
+from shutil import rmtree
 
 import geopandas as gpd
 import pandas as pd
 
-from drem.transform.sa_geometries import extract_dublin_local_authorities
+from loguru import logger
+from unidecode import unidecode
 
 
-def _copy_sa_glossary(input_dirpath: Path, output_dirpath: Path) -> None:
+def _copy(filename: str, input_dirpath: Path, output_dirpath: Path) -> None:
 
-    input_filepath = input_dirpath / "sa_glossary.parquet"
-    output_filepath = output_dirpath / "sa_glossary.parquet"
-
-    if not output_filepath.exists():
+    input_filepath = input_dirpath / filename
+    output_filepath = output_dirpath / filename
+    if output_filepath.exists():
+        logger.info(f"{output_filepath} already exists!")
+    else:
+        logger.info(f"Copying {input_filepath} to {output_dirpath}")
         copyfile(input_filepath, output_filepath)
 
 
-def _copy_dublin_sa_geometries(input_dirpath: Path, output_dirpath: Path) -> None:
+def _copy_dublin_sa_geometries(
+    filename: str, input_dirpath: Path, output_dirpath: Path,
+) -> None:
 
-    input_filepath = input_dirpath / "sa_geometries.parquet"
-    output_filepath = output_dirpath / "sa_geometries.parquet"
+    input_filepath = input_dirpath / filename
+    output_filepath = output_dirpath / filename
+    output_filepath_zipped = output_dirpath / f"{filename}.zip"
 
-    if not output_filepath.exists():
-        gpd.read_parquet(input_filepath).pipe(
-            extract_dublin_local_authorities,
-        ).to_parquet(output_filepath)
+    if output_filepath_zipped.exists():
+        logger.info(f"{output_filepath_zipped} already exists!")
+    else:
+        logger.info(f"Copying {input_filepath} to {output_filepath}")
+        geometries = gpd.read_file(input_filepath)
+        geometries.loc[:, "COUNTYNAME"] = geometries["COUNTYNAME"].apply(unidecode)
+        mask = geometries["COUNTYNAME"].isin(
+            ["Dun Laoghaire-Rathdown", "Fingal", "South Dublin", "Dublin City"],
+        )
+        geometries[mask].to_file(output_filepath, index=False)
 
-
-def _sample_sa_statistics(input_dirpath: Path, output_dirpath: Path) -> None:
-
-    input_filepath = input_dirpath / "sa_statistics.parquet"
-    output_filepath = output_dirpath / "sa_statistics.parquet"
-
-    if not output_filepath.exists():
-        pd.read_parquet(input_filepath).sample(200).to_parquet(output_filepath)
-
-
-def _copy_dublin_postcodes(input_dirpath: Path, output_dirpath: Path) -> None:
-
-    input_filepath = input_dirpath / "dublin_postcodes.parquet"
-    output_filepath = output_dirpath / "dublin_postcodes.parquet"
-
-    if not output_filepath.exists():
-        copyfile(input_filepath, output_filepath)
+        logger.info(f"Zipping {output_filepath}")
+        make_archive(output_filepath, "zip", output_filepath)
+        rmtree(output_filepath)
 
 
-def _sample_berpublicsearch(input_dirpath: Path, output_dirpath: Path) -> None:
+def _sample_sa_statistics(
+    filename: str, input_dirpath: Path, output_dirpath: Path, sample_size: int,
+) -> None:
 
-    input_filepath = input_dirpath / "BERPublicsearch.parquet"
-    output_filepath = output_dirpath / "BERPublicsearch.parquet"
+    input_filepath = input_dirpath / filename
+    output_filepath = output_dirpath / filename
 
-    if not output_filepath.exists():
-        pd.read_parquet(input_filepath).sample(200).to_parquet(output_filepath)
+    if output_filepath.exists():
+        logger.info(f"{output_filepath} already exists!")
+    else:
+        logger.info(f"Copying {input_filepath} to {output_dirpath}")
+        sa_stats_sample = pd.read_csv(input_filepath).sample(sample_size)
+        sa_stats_sample.to_csv(output_filepath, index=False)
+
+
+def _copy_dublin_postcodes(
+    filename: str, input_dirpath: Path, output_dirpath: Path,
+) -> None:
+
+    input_filepath = input_dirpath / filename
+    output_filepath = output_dirpath / filename
+    output_filepath_zipped = output_dirpath / f"{filename}.zip"
+
+    if output_filepath_zipped.exists():
+        logger.info(f"{output_filepath_zipped} already exists!")
+    else:
+        logger.info(f"Copying {input_filepath} to {output_filepath}")
+        copytree(input_filepath, output_filepath)
+
+        logger.info(f"Zipping {output_filepath}")
+        make_archive(output_filepath, "zip", output_filepath)
+        rmtree(output_filepath)
+
+
+def _sample_berpublicsearch(
+    filename: str,
+    input_dirpath: Path,
+    output_dirpath: Path,
+    sample_size: int,
+    path_to_txt: str,
+) -> None:
+
+    input_filepath = input_dirpath / filename / path_to_txt
+    output_filepath = output_dirpath / filename / path_to_txt
+    output_filepath_zipped = output_dirpath / f"{filename}.zip"
+
+    if output_filepath_zipped.exists():
+        logger.info(f"{output_filepath_zipped} already exists!")
+    else:
+        logger.info(f"Creating {output_filepath.parent}")
+        mkdir(output_filepath.parent)
+
+        logger.info(f"Copying {input_filepath} to {output_filepath}")
+        ber_sample = pd.read_csv(
+            input_filepath,
+            sep="\t",
+            encoding="latin-1",
+            error_bad_lines=False,
+            low_memory=False,
+        ).sample(sample_size)
+        ber_sample.to_csv(
+            output_filepath, index=False, sep="\t", encoding="latin-1",
+        )
+
+        logger.info(f"Zipping {output_filepath.parent}")
+        make_archive(output_filepath.parent, "zip", output_filepath.parent)
+        rmtree(output_filepath.parent)
 
 
 def create_ftest_data(input_dirpath: Path, output_dirpath: Path) -> None:
@@ -65,8 +125,25 @@ def create_ftest_data(input_dirpath: Path, output_dirpath: Path) -> None:
         input_dirpath (Path): Path to directory containing input data
         output_dirpath (Path): Path to directory where output data will be saved
     """
-    _copy_sa_glossary(input_dirpath, output_dirpath)
-    _copy_dublin_sa_geometries(input_dirpath, output_dirpath)
-    _sample_sa_statistics(input_dirpath, output_dirpath)
-    _copy_dublin_postcodes(input_dirpath, output_dirpath)
-    _sample_berpublicsearch(input_dirpath, output_dirpath)
+    _copy(
+        "small_area_glossary_2016.xlsx", input_dirpath, output_dirpath,
+    )
+    _copy_dublin_sa_geometries(
+        "small_area_geometries_2016", input_dirpath, output_dirpath,
+    )
+    _sample_sa_statistics(
+        "small_area_statistics_2016.csv",
+        input_dirpath,
+        output_dirpath,
+        sample_size=200,
+    )
+    _copy_dublin_postcodes(
+        "dublin_postcodes", input_dirpath, output_dirpath,
+    )
+    _sample_berpublicsearch(
+        "BERPublicsearch",
+        input_dirpath,
+        output_dirpath,
+        sample_size=200,
+        path_to_txt="BERPublicsearch.txt",
+    )

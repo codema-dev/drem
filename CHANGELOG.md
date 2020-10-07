@@ -6,17 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-- `drem.extract`
-    - Create generic `Download` Task class that can be called to create download tasks
-    to get data direct from any url:
-        ```python
-        from drem.extract.download import Download
-
-        download_cso_gas =
-        Download(url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",savepath="gas.html")
-
-        cso_gas = download_cso_gas.run()
-        ```
+- Remove all `drem.*` namespace tasks and import them directly via `from drem.transform.ber import transform_ber`
+- Replace `drem.extract` with separate `download`, `unzip` and `convert` tasks so that each task is doing one thing and one thing only (more modular code) & read-in files of raw data in `transform`:
+    - use of `great_expectations` at each stage of the process to ensure expectations are met s.a. downloaded data is as expected (column names, missing values etc.) and each `transform` task is cleaning in the specified manner.  This replaces the previous implementation of fragile functional tests on each `transform` task which would break upon a simple column name change.  `great_expectations` are quicker to whip up as they are automated...
+- Create generic `Download` Task class that can be called to create download tasks to get data direct from any url
 
 ## [0.2.0] - 2020-09-17
 

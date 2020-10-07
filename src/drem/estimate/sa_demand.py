@@ -111,3 +111,6 @@ class EstimateSmallAreaDemand(Task):
             )
 
         return state.result[sa_demand_with_geometries].result
+
+
+estimate_sa_demand = EstimateSmallAreaDemand()

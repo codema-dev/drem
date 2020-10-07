@@ -79,3 +79,6 @@ class CreateBERArchetypes(Task):
             state = flow.run(parameters=dict(clean_ber=ber))
 
         return state.result[ber_archetypes].result
+
+
+create_ber_archetypes = CreateBERArchetypes()
