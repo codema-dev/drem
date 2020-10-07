@@ -7,20 +7,6 @@ import pytest
 from _pytest.logging import caplog as _caplog
 from _pytest.monkeypatch import MonkeyPatch
 from loguru import logger
-from tdda.referencetest import referencepytest
-
-
-def pytest_addoption(parser):
-    referencepytest.addoption(parser)
-
-
-def pytest_collection_modifyitems(session, config, items):
-    referencepytest.tagged(config, items)
-
-
-@pytest.fixture(scope="module")
-def ref(request):
-    return referencepytest.ref(request)
 
 
 @pytest.fixture(autouse=True)
