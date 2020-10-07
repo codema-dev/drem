@@ -19,7 +19,7 @@ def test_convert_csv_to_parquet(tmp_path: Path) -> None:
     expected_file_output = tmp_path / "data.parquet"
 
     convert.csv_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        dirpath=tmp_path, filename=filename,
     )
 
     assert expected_file_output.exists()
@@ -38,7 +38,7 @@ def test_convert_excel_to_parquet(tmp_path: Path) -> None:
     expected_file_output = tmp_path / "data.xlsx"
 
     convert.excel_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        dirpath=tmp_path, filename=filename,
     )
 
     assert expected_file_output.exists()
@@ -58,7 +58,7 @@ def test_convert_shapefile_to_parquet(tmp_path: Path) -> None:
     expected_file_output = tmp_path / "data.parquet"
 
     convert.shapefile_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        dirpath=tmp_path, filename=filename,
     )
 
     assert expected_file_output.exists()
