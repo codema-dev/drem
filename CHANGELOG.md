@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     - enables use of prefect [flow visualization](https://docs.prefect.io/core/advanced_tutorials/visualization.html#flow-visualization) for transform tasks as well as etl flows so that non-programmers can easily see what steps are being performed on the data.
 
+- Refactor Small Area Statitistics so can query any table in glossary excel file by copying and pasting the table name in the `Table Within Themes` column to the `drem.transform.sa_statistics._extract_rows_from_glossary` function's `target` argument.  Previously, this function was hard-coded to extract only the period built table from glossary.
+
 ### Removed
 
 - Remove all `drem.*` namespace tasks and import them directly via `from drem.transform.ber import transform_ber`
