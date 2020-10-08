@@ -15,7 +15,6 @@ from prefect import task
     lambda df, column_names: set(column_names).issubset(set(df.columns)),
     "df.columns doesn't contain all names in columns!",
 )
-@require(lambda df: isinstance(df, pd.DataFrame))
 def get_columns(df: pd.DataFrame, column_names: Iterable[str]) -> pd.DataFrame:
     """Get DataFrame columns (copy to a new DataFrame).
 
@@ -34,7 +33,6 @@ def get_columns(df: pd.DataFrame, column_names: Iterable[str]) -> pd.DataFrame:
     lambda df, target: set(target).issubset(set(df.columns)),
     "df.columns doesn't contain all names in columns!",
 )
-@require(lambda df: isinstance(df, pd.DataFrame))
 def get_sum_of_columns(
     df: pd.DataFrame, target: Union[str, Iterable[str]], result: str,
 ) -> pd.DataFrame:
@@ -54,7 +52,6 @@ def get_sum_of_columns(
 
 
 @task
-@require(lambda df: isinstance(df, pd.DataFrame))
 def get_rows_where_column_contains_substring(
     df: pd.DataFrame, target: str, substring: str,
 ) -> pd.DataFrame:
@@ -122,7 +119,7 @@ def read_html(filepath: Path, **kwargs: Any) -> List[pd.DataFrame]:
 
 @task
 def replace_substring_in_column(
-    df: pd.DataFrame, target: str, result: str, pat: str, repl: str, **kwargs: Any,
+    df: pd.DataFrame, target: str, result: str, **kwargs: Any,
 ) -> pd.DataFrame:
     """Replace substring in DataFrame string column.
 
@@ -132,8 +129,6 @@ def replace_substring_in_column(
         df (pd.DataFrame): DataFrame
         target (str): Name of target column
         result (str): Name of result column
-        pat (str): Substring to replace
-        repl (str): Substring to swap in
         **kwargs (Any): Passed to pandas.Series.str.replace
 
     Returns:
@@ -141,7 +136,7 @@ def replace_substring_in_column(
     """
     df = df.copy()
 
-    df[result] = df[target].astype(str).str.replace(pat, repl, **kwargs)
+    df[result] = df[target].astype(str).str.replace(**kwargs)
 
     return df
 

@@ -70,8 +70,7 @@ class TransformBER(Task):
     """Clean BER Data in a Prefect flow.
 
     Args:
-        Task (prefect.Task): see
-            https://docs.prefect.io/api/latest/core/task.html#task-2
+        Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
     """
 
     def run(self, dirpath: Path, filename: str) -> pd.DataFrame:

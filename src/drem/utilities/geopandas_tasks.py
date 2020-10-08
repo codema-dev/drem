@@ -7,7 +7,7 @@ from prefect import task
 
 
 @task
-def change_crs(gdf: gpd.GeoDataFrame, **kwargs: Any) -> gpd.GeoDataFrame:
+def to_crs(gdf: gpd.GeoDataFrame, **kwargs: Any) -> gpd.GeoDataFrame:
     """Transform geometries to a new coordinate reference system.
 
     See https://geopandas.org/reference.html?highlight=to_crs#geopandas.GeoDataFrame.to_crs
@@ -52,3 +52,19 @@ def read_file(filepath: Path, **kwargs: Any) -> gpd.GeoDataFrame:
         gpd.GeoDataFrame: GeoDataFrame
     """
     return gpd.read_file(filepath, **kwargs)
+
+
+@task
+def dissolve(gdf: gpd.GeoDataFrame, **kwargs: Any) -> gpd.GeoDataFrame:
+    """Dissolve geometries within groupby into single observation.
+
+    See https://geopandas.org/reference.html?highlight=dissolve#geopandas.GeoDataFrame.dissolve
+
+    Args:
+        gdf (gpd.GeoDataFrame): GeoDataFrame
+        **kwargs (Any): Passed to geopandas.GeoDataFrame.dissolve
+
+    Returns:
+        gpd.GeoDataFrame: GeoDataFrame
+    """
+    return gdf.dissolve(**kwargs).reset_index()
