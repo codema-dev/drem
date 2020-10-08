@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactor `drem.transform.dublin_postcodes` into a `prefect` flow & dissolve all Co Dublin postcodes into one multipolygon geometry using `geopandas` dissolve.
+
+- Pull generalisable `pandas` and `geopandas` prefect tasks into `drem.utilities.pandas_tasks` and `drem.utilities.geopandas_tasks` respectively.  Only unit tested if functionality differs from `pandas` or `geopandas` implementation...
+
 
 ---
 
