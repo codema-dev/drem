@@ -49,9 +49,7 @@ df_cea_extracted[['floors_ag', 'floors_bg']] = df_cea_extracted[['floors_ag', 'f
 df_output = df_cea_extracted.drop_duplicates('Name', keep='last')
 #Zone shapefile
 df_output.to_file(driver = 'ESRI Shapefile', filename = PROCESSED_DIR / 'ZoneCEA')
-site = points_in_poly['geometry']
-#Site shapefile
-site.to_file(driver = 'ESRI Shapefile', filename = PROCESSED_DIR / 'SiteCEA')
+
 #Create a surroundings shapefile with Name/height_ag/floors_ag/description/category/geometry
 surroundings = df_output[['Name','height_ag', 'floors_ag', 'geometry', 'category']]
 surroundings['description'] = 'none'
