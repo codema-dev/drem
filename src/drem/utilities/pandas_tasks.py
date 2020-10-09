@@ -16,7 +16,9 @@ from prefect import task
     "df.columns doesn't contain all names in columns!",
 )
 def get_columns(df: pd.DataFrame, column_names: Iterable[str]) -> pd.DataFrame:
-    """Get DataFrame columns (copy to a new DataFrame).
+    """Access a group of rows by label(s) or a boolean array.
+
+    See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html
 
     Args:
         df (pd.DataFrame): Any single-indexed Pandas DataFrame
@@ -176,3 +178,59 @@ def merge(left: pd.DataFrame, right: pd.DataFrame, **kwargs: Any) -> pd.DataFram
     left = left.copy()
 
     return left.merge(right, **kwargs)
+
+
+@task
+def get_rows_by_index(df: pd.DataFrame, row_indexes: Iterable[str]) -> pd.DataFrame:
+    """Access a group of rows by integer-location based indexing.
+
+    See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html
+
+    Args:
+        df (pd.DataFrame): DataFrame
+        row_indexes (Iterable[str]): Names of rows to be extracted
+
+    Returns:
+        pd.DataFrame: DataFrame
+    """
+    return df.copy().iloc[row_indexes, :]
+
+
+@task
+def concat(**kwargs: Any) -> pd.DataFrame:
+    """Concatenate pandas objects along a particular axis with optional set logic along the other axes.
+
+    See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html
+
+    Args:
+        **kwargs (Any): Passed to pandas.concat
+
+    Returns:
+        pd.DataFrame: DataFrame
+    """
+    return pd.concat(**kwargs)
+
+
+@task
+def replace(
+    df: pd.DataFrame, target: str, result: str, to_replace: Any, value: Any,
+) -> pd.DataFrame:
+    """Replace values given in to_replace with value.
+
+    See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.replace.html
+
+    Args:
+        df (pd.DataFrame): DataFrame
+        target (str): Name of target column
+        result (str): Name of result column
+        to_replace (Any): Values that will be replaced
+        value (Any): Value to replace any values matching to_replace with
+
+    Returns:
+        pd.DataFrame: DataFrame
+    """
+    df = df.copy()
+
+    df[result] = df[target].replace(to_replace, value)
+
+    return df
