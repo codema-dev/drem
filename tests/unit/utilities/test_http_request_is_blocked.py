@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from drem.download.download import download
+from drem.utilities.download import download
 
 
 def test_task_http_request_is_blocked(tmp_path: Path) -> None:

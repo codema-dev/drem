@@ -8,8 +8,8 @@ from icontract import require
 from prefect import Task
 from validate_email import validate_email
 
-from drem.download.download import download_file_from_response
 from drem.filepaths import REQUESTS_DIR
+from drem.utilities.download import download_file_from_response
 
 
 CWD: Path = Path.cwd()

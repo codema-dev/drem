@@ -5,7 +5,6 @@ from prefect import Parameter
 from prefect.tasks.secrets import PrefectSecret
 
 from drem.download.ber import DownloadBER
-from drem.download.download import Download
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import EXTERNAL_DIR
@@ -16,6 +15,7 @@ from drem.transform.dublin_postcodes import transform_dublin_postcodes
 from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
 from drem.utilities import convert
+from drem.utilities.download import Download
 from drem.utilities.zip import unzip
 
 
