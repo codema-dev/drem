@@ -5,7 +5,7 @@ import responses
 
 from requests.exceptions import HTTPError
 
-from drem.download.download import Download
+from drem.utilities.download import Download
 
 
 @responses.activate
