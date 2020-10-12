@@ -53,6 +53,16 @@ poetry2conda = "^0.3.0"
 [tool.poetry2conda]
 name = "drem-env"
 
+[tool.poetry2conda.dependencies]
+bs4 = { channel = "pip" }
+graphviz = { channel = "pip" }
+validate_email = { channel = "pip" }
+pygeos = { channel = "pip" }
+prefect = { channel = "pip" }
+pyarrow = { channel = "pip" }
+icontract = { channel = "pip" }
+loguru = { channel = "pip" }
+
 [tool.isort]
 line_length = 88
 force_single_line = true
