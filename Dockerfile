@@ -4,8 +4,31 @@ FROM python:3.8-slim
 
 ENV HOME=/usr/local/lib
 
+ENV PATH=/opt/conda/bin:$PATH
+
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y curl
+    && apt-get install --no-install-recommends -y \
+    sudo \
+    curl \
+    wget \
+    git-core \
+    vim \
+    zsh \
+    fonts-powerline \
+    gcc \
+    bzip2 \
+    ca-certificates \
+    git
+
+# Install & build conda
+# Source: https://hub.docker.com/r/continuumio/miniconda3/dockerfile
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh && \
+    /opt/conda/bin/conda clean -tipsy && \
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo "conda activate base" >> ~/.bashrc
 
 # Install & build Poetry
 # Source: https://github.com/airdock-io/docker-python-poetry
@@ -16,17 +39,6 @@ ENV PATH=$HOME/.poetry/bin:$PATH
 
 # Install & build zsh dev environment
 # Source: https://gist.github.com/MichalZalecki/4a87880bbe7a3a5428b5aebebaa5cd97
-RUN apt-get update \
-    && apt-get install -y \
-    sudo \
-    curl \
-    wget \
-    git-core \
-    vim \
-    zsh \
-    fonts-powerline \
-    gcc
-
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true \
     && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
 
