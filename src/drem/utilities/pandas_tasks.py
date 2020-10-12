@@ -234,3 +234,22 @@ def replace(
     df[result] = df[target].replace(to_replace, value)
 
     return df
+
+
+@task
+def groupby_sum(df: pd.DataFrame, by: Iterable[str], target: str) -> pd.DataFrame:
+    """Group DataFrame using a mapper or by a Series of columns.
+
+    See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.groupby.html
+
+    Args:
+        df (pd.DataFrame): DataFrame
+        by (Iterable[str]): The names of columns by to be grouped.
+        target (str): The name of the column to be summed.
+
+    Returns:
+        pd.DataFrame: DataFrame
+    """
+    df = df.copy()
+
+    return df.groupby(by=by, as_index=False)[target].sum()

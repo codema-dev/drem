@@ -28,6 +28,7 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     fpath = Parameter("fpath")
     dublin_pcodes = Parameter("dublin_pcodes")
+    sa_boiler_stats = Parameter("sa_boiler_stats")
 
     raw_gas_tables = pdt.read_html(fpath)
 
@@ -74,8 +75,25 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
         axis="index",
     )
 
+    # Postcode Gas Boiler Statistics
+    # ------------------------------
+    gas_boilers_extracted = pdt.get_rows_where_column_contains_substring(
+        sa_boiler_stats, target="boiler_type", substring="Natural gas",
+    )
+    gas_boilers_by_postcode = pdt.groupby_sum(
+        gas_boilers_extracted, by="postcodes", target="total",
+    )
+    gas_boilers_renamed = pdt.rename(
+        gas_boilers_by_postcode, mapper={"total": "gas_hh_2016"},
+    )
+    resid_gas_with_boiler_totals = pdt.merge(
+        resid_annual_gas_by_county_and_pcode, gas_boilers_renamed, how="left",
+    )
+
+    # Postcode Geometries
+    # -------------------
     resid_gas_with_postcode_geometries = pdt.merge(
-        dublin_pcodes, resid_annual_gas_by_county_and_pcode, how="left",
+        dublin_pcodes, resid_gas_with_boiler_totals, how="left",
     )
 
 
@@ -87,7 +105,11 @@ class TransformCSOGas(Task):
     """
 
     def run(
-        self, dirpath: Path, filename: str, dublin_postcodes: gpd.GeoDataFrame,
+        self,
+        dirpath: Path,
+        filename: str,
+        dublin_postcodes: gpd.GeoDataFrame,
+        small_area_boiler_statistics: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         """Run module Prefect flow.
 
@@ -95,12 +117,17 @@ class TransformCSOGas(Task):
             dirpath (Path): Path to directory containing data
             filename (str): Name of CSO Gas html file
             dublin_postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
+            small_area_boiler_statistics (pd.DataFrame): Small Area Boiler Statistics
 
         Returns:
             Dict[str, gpd.GeoDataFrame]: Dublin Gas Demand by Sector
         """
         filepath = dirpath / f"{filename}.html"
-        state = flow.run(fpath=filepath, dublin_pcodes=dublin_postcodes)
+        state = flow.run(
+            fpath=filepath,
+            dublin_pcodes=dublin_postcodes,
+            sa_boiler_stats=small_area_boiler_statistics,
+        )
         return {
             "Residential": state.result[resid_gas_with_postcode_geometries].result,
         }
