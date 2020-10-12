@@ -1953,11 +1953,7 @@ version = "2.0.0"
 heapdict = "*"
 
 [metadata]
-<<<<<<< Updated upstream
-content-hash = "d99525736617091dce4b41565bbe5cc573a0ea0caa47ada33ab42048a40c7d8a"
-=======
 content-hash = "f9647891fafd033a6614cd24e440e89b160aad3a09b1cfd3c16bc5f468685db5"
->>>>>>> Stashed changes
 lock-version = "1.0"
 python-versions = "^3.8"
 
