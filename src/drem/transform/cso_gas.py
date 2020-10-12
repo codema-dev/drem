@@ -84,7 +84,7 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
         gas_boilers_extracted, by="postcodes", target="total",
     )
     gas_boilers_renamed = pdt.rename(
-        gas_boilers_by_postcode, mapper={"total": "gas_hh_2016"},
+        gas_boilers_by_postcode, columns={"total": "gas_hh_2016"},
     )
     resid_gas_with_boiler_totals = pdt.merge(
         resid_annual_gas_by_county_and_pcode, gas_boilers_renamed, how="left",
