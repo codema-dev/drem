@@ -40,30 +40,36 @@ class DownloadBER(Task):
         """
         savepath = savedir / f"{filename}.zip"
 
-        with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
-            ber_form_data = json.load(json_file)
+        if savepath.exists():
 
-        # Register login email address in form
-        ber_form_data["login"][
-            "ctl00$DefaultContent$Register$dfRegister$Name"
-        ] = email_address
+            self.logger.info(f"{savepath} already exists!")
 
-        with requests.Session() as session:
+        else:
 
-            # Login to BER Research Tool using email address
-            session.post(
-                url="https://ndber.seai.ie/BERResearchTool/Register/Register.aspx",
-                headers=ber_form_data["headers"],
-                data=ber_form_data["login"],
-            )
+            with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
+                ber_form_data = json.load(json_file)
 
-            # Download Ber data via a post request
-            with session.post(
-                url="https://ndber.seai.ie/BERResearchTool/ber/search.aspx",
-                headers=ber_form_data["headers"],
-                data=ber_form_data["download_all_data"],
-                stream=True,
-            ) as response:
+            # Register login email address in form
+            ber_form_data["login"][
+                "ctl00$DefaultContent$Register$dfRegister$Name"
+            ] = email_address
 
-                response.raise_for_status()
-                download_file_from_response(response, savepath)
+            with requests.Session() as session:
+
+                # Login to BER Research Tool using email address
+                session.post(
+                    url="https://ndber.seai.ie/BERResearchTool/Register/Register.aspx",
+                    headers=ber_form_data["headers"],
+                    data=ber_form_data["login"],
+                )
+
+                # Download Ber data via a post request
+                with session.post(
+                    url="https://ndber.seai.ie/BERResearchTool/ber/search.aspx",
+                    headers=ber_form_data["headers"],
+                    data=ber_form_data["download_all_data"],
+                    stream=True,
+                ) as response:
+
+                    response.raise_for_status()
+                    download_file_from_response(response, savepath)

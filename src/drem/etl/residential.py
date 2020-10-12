@@ -11,6 +11,7 @@ from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
+from drem.transform.cso_gas import transform_cso_gas
 from drem.transform.dublin_postcodes import transform_dublin_postcodes
 from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
@@ -24,6 +25,7 @@ small_area_glossary_filename = "small_area_glossary_2016"
 small_area_geometries_filename = "small_area_geometries_2016"
 dublin_postcode_geometries_filename = "dublin_postcodes"
 ber_filename = "BERPublicsearch"
+cso_gas_filename = "cso_gas_2019"
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -46,6 +48,10 @@ download_dublin_postcode_geometries = Download(
     url="https://github.com/rdmolony/dublin-postcode-shapefiles/archive/master.zip",
 )
 download_ber = DownloadBER(name="Download Ireland BER Data")
+download_cso_gas = Download(
+    name="Download CSO 2019 Postcode Annual Network Gas Consumption",
+    url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",
+)
 
 load_to_parquet = LoadToParquet(name="Load Data to Parquet file")
 
@@ -78,6 +84,9 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
     ber_downloaded = download_ber(
         email_address=email_address, savedir=external_dir, filename=ber_filename,
+    )
+    cso_gas_downloaded = download_cso_gas(
+        savedir=external_dir, filename=cso_gas_filename, file_extension="html",
     )
 
     # Unzip all zipped data folders
@@ -142,6 +151,12 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         dublin_postcodes=dublin_postcodes_clean,
         dublin_sa_geometries=sa_geometries_clean,
     )
+    cso_gas_clean = transform_cso_gas(
+        dirpath=external_dir,
+        filename=cso_gas_filename,
+        dublin_postcodes=dublin_postcodes_clean,
+        small_area_boiler_statistics=sa_statistics_clean["boiler_type"],
+    )
 
     sa_demand = estimate_sa_demand(
         sa_statistics_clean, ber_archetypes, sa_geometries_clean,
@@ -153,6 +168,9 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
     load_to_parquet(
         sa_statistics_clean["boiler_type"], PROCESSED_DIR / "sa_boiler_type.parquet",
+    )
+    load_to_parquet(
+        cso_gas_clean["Residential"], PROCESSED_DIR / "cso_gas_residential.parquet",
     )
     load_to_parquet(sa_demand, PROCESSED_DIR / "sa_demand.parquet")
 
@@ -173,3 +191,4 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     sa_geometries_clean.set_upstream(sa_geometries_converted)
     dublin_postcodes_clean.set_upstream(dublin_postcodes_converted)
     ber_clean.set_upstream(ber_converted)
+    cso_gas_clean.set_upstream(cso_gas_downloaded)
