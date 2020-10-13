@@ -32,8 +32,8 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     raw_gas_tables = pdt.read_html(fpath)
 
-    # Residential Annual Gas Consumption
-    # ----------------------------------
+    # Residential Postcode Annual Gas Consumption
+    # -------------------------------------------
     table_number_of_resid_annual_gas_by_pcode = 11
     raw_resid_annual_gas_by_pcode = raw_gas_tables[
         table_number_of_resid_annual_gas_by_pcode
@@ -53,6 +53,8 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
         flags=re.VERBOSE,
     )
 
+    # Residential County Annual Gas Consumption
+    # -----------------------------------------
     table_number_of_resid_annual_gas_by_county = 9
     raw_resid_annual_gas_by_county = raw_gas_tables[
         table_number_of_resid_annual_gas_by_county
@@ -75,8 +77,8 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
         axis="index",
     )
 
-    # Postcode Gas Boiler Statistics
-    # ------------------------------
+    # Residential Postcode Gas Boiler Statistics
+    # ------------------------------------------
     gas_boilers_extracted = pdt.get_rows_where_column_contains_substring(
         sa_boiler_stats, target="boiler_type", substring="Natural gas",
     )
@@ -90,10 +92,58 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
         resid_annual_gas_by_county_and_pcode, gas_boilers_renamed, how="left",
     )
 
+    # Non-residential Annual Gas Consumption
+    # --------------------------------------
+    table_number_of_non_resid_annual_gas_by_pcode = 10
+    raw_non_resid_annual_gas_by_pcode = raw_gas_tables[
+        table_number_of_non_resid_annual_gas_by_pcode
+    ]
+    non_resid_annual_gas_by_pcode_col_names_replaced = _replace_column_name_with_third_row(
+        raw_non_resid_annual_gas_by_pcode,
+    )
+    non_resid_annual_gas_by_pcode_standardised = pdt.replace_substring_in_column(
+        non_resid_annual_gas_by_pcode_col_names_replaced,
+        target="Dublin Postal District",
+        result="postcodes",
+        pat=r"""     # Replace all substrings
+            0       # starting with 0
+            (?=\d)  # followed by a number
+            """,
+        repl="",  # with an empty string
+        flags=re.VERBOSE,
+    )
+
+    # Non-residential County Annual Gas Consumption
+    # ---------------------------------------------
+    table_number_of_non_resid_annual_gas_by_county = 8
+    raw_non_resid_annual_gas_by_county = raw_gas_tables[
+        table_number_of_resid_annual_gas_by_county
+    ]
+    non_resid_annual_gas_by_county_col_names_replaced = _replace_column_name_with_third_row(
+        raw_non_resid_annual_gas_by_county,
+    )
+    non_resid_annual_gas_by_county_standardised = pdt.replace(
+        non_resid_annual_gas_by_county_col_names_replaced,
+        target="County",
+        result="postcodes",
+        to_replace="Dublin County",
+        value="Co. Dublin",
+    )
+    non_resid_annual_gas_by_county_and_pcode = pdt.concat(
+        objs=[
+            non_resid_annual_gas_by_pcode_standardised,
+            non_resid_annual_gas_by_county_standardised,
+        ],
+        axis="index",
+    )
+
     # Postcode Geometries
     # -------------------
     resid_gas_with_postcode_geometries = pdt.merge(
         dublin_pcodes, resid_gas_with_boiler_totals, how="left",
+    )
+    non_resid_gas_with_postcode_geometries = pdt.merge(
+        dublin_pcodes, non_resid_annual_gas_by_county_and_pcode, how="left",
     )
 
 
@@ -130,6 +180,9 @@ class TransformCSOGas(Task):
         )
         return {
             "Residential": state.result[resid_gas_with_postcode_geometries].result,
+            "Non-Residential": state.result[
+                non_resid_gas_with_postcode_geometries
+            ].result,
         }
 
 
