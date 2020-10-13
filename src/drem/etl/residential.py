@@ -172,6 +172,10 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     load_to_parquet(
         cso_gas_clean["Residential"], PROCESSED_DIR / "cso_gas_residential.parquet",
     )
+    load_to_parquet(
+        cso_gas_clean["Non-Residential"],
+        PROCESSED_DIR / "cso_gas_non_residential.parquet",
+    )
     load_to_parquet(sa_demand, PROCESSED_DIR / "sa_demand.parquet")
 
     # Define dependencies
