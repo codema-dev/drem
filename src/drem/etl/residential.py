@@ -2,6 +2,8 @@ import warnings
 
 from prefect import Flow
 from prefect import Parameter
+from prefect import Task
+from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
 from drem.download.ber import DownloadBER
@@ -9,6 +11,7 @@ from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import VISUALIZATION_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
 from drem.transform.cso_gas import transform_cso_gas
@@ -17,6 +20,7 @@ from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
 from drem.utilities import convert
 from drem.utilities.download import Download
+from drem.utilities.visualize import VisualizeMixin
 from drem.utilities.zip import unzip
 
 
@@ -196,3 +200,33 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     dublin_postcodes_clean.set_upstream(dublin_postcodes_converted)
     ber_clean.set_upstream(ber_converted)
     cso_gas_clean.set_upstream(cso_gas_downloaded)
+
+
+class ResidentialETL(Task, VisualizeMixin):
+    """Create Residential ETL Task.
+
+    Args:
+        Task (Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
+    """
+
+    def run(self) -> State:
+        """Run Residential ETL Flow.
+
+        Returns:
+            State: see https://docs.prefect.io/core/concepts/results.html#result-objects
+        """
+        return flow.run()
+
+
+residential_etl = ResidentialETL()
+
+if __name__ == "__main__":
+
+    state = residential_etl.run()
+    residential_etl.save_flow_visualization_to_file(
+        dirpath=VISUALIZATION_DIR / "etl",
+        filename="residential",
+        flow=flow,
+        flow_state=state,
+    )

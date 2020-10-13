@@ -4,6 +4,7 @@ from pathlib import Path
 from prefect import Flow
 from prefect import Task
 from prefect import task
+from prefect.engine.state import State
 
 from drem.utilities.visualize import VisualizeMixin
 
@@ -31,9 +32,13 @@ class GenericFlowRunTask(Task, VisualizeMixin):
         VisualizeMixin ([type]): Mixin to add flow visualization method
     """
 
-    def run(self) -> None:
-        """Run module flow."""
-        flow.run()
+    def run(self) -> State:
+        """Run module flow.
+
+        Returns:
+            State: see https://docs.prefect.io/core/concepts/results.html#result-objects
+        """
+        return flow.run()
 
 
 generic_task = GenericFlowRunTask()
@@ -48,6 +53,23 @@ def test_visualize_mixin_creates_pdf_flow_visualization(tmp_path: Path) -> None:
     filename = "generic_task"
     generic_task.save_flow_visualization_to_file(
         dirpath=tmp_path, filename=filename, flow=flow,
+    )
+
+    assert f"{filename}.pdf" in listdir(tmp_path)
+
+
+def test_visualize_mixin_creates_pdf_flow_visualization_with_state(
+    tmp_path: Path,
+) -> None:
+    """Test visualize mixin creates a pdf flow visualization.
+
+    Args:
+        tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
+    """
+    filename = "generic_task"
+    state = generic_task.run()
+    generic_task.save_flow_visualization_to_file(
+        dirpath=tmp_path, filename=filename, flow=flow, flow_state=state,
     )
 
     assert f"{filename}.pdf" in listdir(tmp_path)
