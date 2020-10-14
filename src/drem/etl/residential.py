@@ -221,12 +221,10 @@ class ResidentialETL(Task, VisualizeMixin):
 
 residential_etl = ResidentialETL()
 
+
 if __name__ == "__main__":
 
     state = residential_etl.run()
     residential_etl.save_flow_visualization_to_file(
-        dirpath=VISUALIZATION_DIR / "etl",
-        filename="residential",
-        flow=flow,
-        flow_state=state,
+        savepath=VISUALIZATION_DIR / "etl" / "residential", flow=flow, flow_state=state,
     )

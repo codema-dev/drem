@@ -36,7 +36,7 @@ class GenericFlowRunTask(Task, VisualizeMixin):
         """Run module flow.
 
         Returns:
-            State: see https://docs.prefect.io/core/concepts/results.html#result-objects
+            State: see
         """
         return flow.run()
 
@@ -52,7 +52,7 @@ def test_visualize_mixin_creates_pdf_flow_visualization(tmp_path: Path) -> None:
     """
     filename = "generic_task"
     generic_task.save_flow_visualization_to_file(
-        dirpath=tmp_path, filename=filename, flow=flow,
+        savepath=tmp_path / filename, flow=flow,
     )
 
     assert f"{filename}.pdf" in listdir(tmp_path)
@@ -69,7 +69,7 @@ def test_visualize_mixin_creates_pdf_flow_visualization_with_state(
     filename = "generic_task"
     state = generic_task.run()
     generic_task.save_flow_visualization_to_file(
-        dirpath=tmp_path, filename=filename, flow=flow, flow_state=state,
+        savepath=tmp_path / filename, flow=flow, flow_state=state,
     )
 
     assert f"{filename}.pdf" in listdir(tmp_path)

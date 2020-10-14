@@ -9,21 +9,15 @@ class VisualizeMixin(object):
     """Visualize Prefect Flows."""
 
     def save_flow_visualization_to_file(
-        self,
-        dirpath: Path,
-        filename: str,
-        flow: Flow,
-        flow_state: Optional[State] = None,
+        self, savepath: Path, flow: Flow, flow_state: Optional[State] = None,
     ) -> None:
         """Save Prefect Flow visualization to file.
 
         Args:
-            dirpath (Path): Path to save directory
-            filename (str): Name of file
+            savepath (Path): Path to save file
             flow (Flow): Prefect flow to visualize
             flow_state (Optional[State], optional): see https://docs.prefect.io/core/concepts/results.html#result-objects
         """
-        savepath = dirpath / filename
         if flow_state:
             flow.visualize(flow_state=flow_state, filename=savepath)
         else:
