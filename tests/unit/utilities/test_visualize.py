@@ -2,12 +2,17 @@ from os import listdir
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from prefect import Flow
 from prefect import Task
 from prefect import task
 from prefect.engine.state import State
 
 from drem.utilities.visualize import VisualizeMixin
+
+
+graphviz = pytest.importorskip("graphviz")
 
 
 @task
