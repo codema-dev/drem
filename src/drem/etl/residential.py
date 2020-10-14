@@ -2,6 +2,8 @@ import warnings
 
 from prefect import Flow
 from prefect import Parameter
+from prefect import Task
+from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
 from drem.download.ber import DownloadBER
@@ -9,6 +11,7 @@ from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import VISUALIZATION_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
 from drem.transform.cso_gas import transform_cso_gas
@@ -17,6 +20,7 @@ from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
 from drem.utilities import convert
 from drem.utilities.download import Download
+from drem.utilities.visualize import VisualizeMixin
 from drem.utilities.zip import unzip
 
 
@@ -136,8 +140,6 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     # Clean data
     # ----------
     ber_clean = transform_ber(dirpath=external_dir, filename=ber_filename)
-    ber_archetypes = create_ber_archetypes(ber_clean)
-
     sa_geometries_clean = transform_sa_geometries(
         dirpath=external_dir, filename=small_area_geometries_filename,
     )
@@ -158,6 +160,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         small_area_boiler_statistics=sa_statistics_clean["boiler_type"],
     )
 
+    ber_archetypes = create_ber_archetypes(ber_clean)
     sa_demand = estimate_sa_demand(
         sa_statistics_clean, ber_archetypes, sa_geometries_clean,
     )
@@ -196,3 +199,56 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     dublin_postcodes_clean.set_upstream(dublin_postcodes_converted)
     ber_clean.set_upstream(ber_converted)
     cso_gas_clean.set_upstream(cso_gas_downloaded)
+
+
+class ResidentialETL(Task, VisualizeMixin):
+    """Create Residential ETL Task.
+
+    Args:
+        Task (Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
+    """
+
+    def run(self) -> State:
+        """Run Residential ETL Flow.
+
+        Returns:
+            State: see https://docs.prefect.io/core/concepts/results.html#result-objects
+        """
+        return flow.run()
+
+
+residential_etl = ResidentialETL()
+
+
+def visualize_subflows() -> None:
+    """Create flow visualizations for each subflow."""
+    transform_ber.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / ber_filename,
+        flow=transform_ber.flow,
+    )
+    transform_dublin_postcodes.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / dublin_postcode_geometries_filename,
+        flow=transform_dublin_postcodes.flow,
+    )
+    transform_sa_statistics.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / small_area_statistics_filename,
+        flow=transform_sa_statistics.flow,
+    )
+    transform_cso_gas.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / cso_gas_filename,
+        flow=transform_cso_gas.flow,
+    )
+
+    create_ber_archetypes.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "estimate" / "ber_archetypes",
+        flow=create_ber_archetypes.flow,
+    )
+
+
+def run_flow() -> None:
+    """Run Residential ETL Flow."""
+    state = residential_etl.run()
+    residential_etl.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "etl" / "residential", flow=flow, flow_state=state,
+    )

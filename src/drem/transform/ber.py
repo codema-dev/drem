@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,8 @@ from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -66,12 +69,22 @@ with Flow("Cleaning the BER Data...") as flow:
     )
 
 
-class TransformBER(Task):
+class TransformBER(Task, VisualizeMixin):
     """Clean BER Data in a Prefect flow.
 
     Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
 
     def run(self, dirpath: Path, filename: str) -> pd.DataFrame:
         """Run flow.
@@ -85,7 +98,7 @@ class TransformBER(Task):
         """
         ber_filepath = dirpath / f"{filename}.parquet"
         with raise_on_exception():
-            state = flow.run(parameters=dict(ber_fpath=ber_filepath))
+            state = self.flow.run(parameters=dict(ber_fpath=ber_filepath))
 
         return state.result[bin_year_built_into_census_categories].result
 

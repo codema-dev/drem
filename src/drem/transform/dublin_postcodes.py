@@ -1,6 +1,7 @@
 import re
 
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 
@@ -10,6 +11,8 @@ from prefect import Task
 
 import drem.utilities.geopandas_tasks as gpdt
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 with Flow("Clean Dublin Postcodes") as flow:
@@ -39,12 +42,22 @@ with Flow("Clean Dublin Postcodes") as flow:
     )
 
 
-class TransformDublinPostcodes(Task):
+class TransformDublinPostcodes(Task, VisualizeMixin):
     """Transform Dublin Postcodes via Prefect Flow.
 
     Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
 
     def run(self, dirpath: Path, filename: str) -> gpd.GeoDataFrame:
         """Run module flow.
@@ -58,7 +71,7 @@ class TransformDublinPostcodes(Task):
         """
         filepath = dirpath / f"{filename}.parquet"
 
-        state = flow.run(fpath=filepath)
+        state = self.flow.run(fpath=filepath)
         return state.result[clean_postcodes].result
 
 
