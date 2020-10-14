@@ -14,7 +14,8 @@
 	"extensions": [
 		"mhutchie.git-graph",
 		"eamodio.gitlens",
-		"ms-python.python"
+		"ms-python.python",
+		"njpwerner.autodocstring"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
