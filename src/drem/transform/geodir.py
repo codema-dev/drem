@@ -94,26 +94,3 @@ surroundings_ordered = surroundings[
 surroundings_ordered.to_file(
     driver="ESRI Shapefile", filename=PROCESSED_DIR / "SurroundingsCEA"
 )
-
-
-# Spatially linking BER dataset to Geodir on SA level
-# ber = pd.read_parquet('BER_Closed.parquet')
-# ber_dub = ber[ber['CountyName2'].str.contains("DUBLIN")]
-# ber_dub = ber_dub.drop_duplicates()
-# ber_extracted = ber_dub[["cso_small_area","CountyName2","Year of construction range","Dwelling type description","Energy Rating"]]
-
-# census = gpd.read_file('Census2011_Small_Areas_generalised20m.shp')
-# census_extracted = census[["SMALL_AREA","geometry"]]
-# census_renamed = census_extracted.rename(columns={"SMALL_AREA": "cso_small_area"})
-
-# ber_sa = pd.merge(ber_extracted, census_renamed, on="cso_small_area", how="inner")
-# ber_sa.sort_values('cso_small_area')
-
-# ber_dwelling = ber_sa.rename({
-#                               'Apartment': ['Mid-floor apartment', 'Top-floor apartment', 'Apartment', 'Maisonette', 'Ground-floor apartment', 'Basement Dwelling'],
-#  ...:                         'Semi-detached house': ['Semi-detached house', 'House'],
-#  ...:                         'Detached house': ['Detached house'],
-#  ...:                         'Terraced house': ['Mid-terrace house', 'End of terrace house'],
-#  ...:                         'Not stated': ['-']
-# })
-
