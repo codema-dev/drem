@@ -140,8 +140,6 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     # Clean data
     # ----------
     ber_clean = transform_ber(dirpath=external_dir, filename=ber_filename)
-    ber_archetypes = create_ber_archetypes(ber_clean)
-
     sa_geometries_clean = transform_sa_geometries(
         dirpath=external_dir, filename=small_area_geometries_filename,
     )
@@ -162,6 +160,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         small_area_boiler_statistics=sa_statistics_clean["boiler_type"],
     )
 
+    ber_archetypes = create_ber_archetypes(ber_clean)
     sa_demand = estimate_sa_demand(
         sa_statistics_clean, ber_archetypes, sa_geometries_clean,
     )
@@ -222,8 +221,33 @@ class ResidentialETL(Task, VisualizeMixin):
 residential_etl = ResidentialETL()
 
 
-if __name__ == "__main__":
+def visualize_subflows() -> None:
+    """Create flow visualizations for each subflow."""
+    transform_ber.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / ber_filename,
+        flow=transform_ber.flow,
+    )
+    transform_dublin_postcodes.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / dublin_postcode_geometries_filename,
+        flow=transform_dublin_postcodes.flow,
+    )
+    transform_sa_statistics.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / small_area_statistics_filename,
+        flow=transform_sa_statistics.flow,
+    )
+    transform_cso_gas.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / cso_gas_filename,
+        flow=transform_cso_gas.flow,
+    )
 
+    create_ber_archetypes.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "estimate" / "ber_archetypes",
+        flow=create_ber_archetypes.flow,
+    )
+
+
+def run_flow() -> None:
+    """Run Residential ETL Flow."""
     state = residential_etl.run()
     residential_etl.save_flow_visualization_to_file(
         savepath=VISUALIZATION_DIR / "etl" / "residential", flow=flow, flow_state=state,

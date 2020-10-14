@@ -1,8 +1,8 @@
+from typing import Any
 from typing import Iterable
 
 import pandas as pd
 
-from icontract import require
 from prefect import Flow
 from prefect import Parameter
 from prefect import Task
@@ -10,6 +10,8 @@ from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -57,15 +59,23 @@ with Flow("Create BER Archetypes") as flow:
     )
 
 
-class CreateBERArchetypes(Task):
+class CreateBERArchetypes(Task, VisualizeMixin):
     """Create BER Archetypes.
 
     Args:
-        Task (prefect.Task): See
-            https://docs.prefect.io/api/latest/core/task.html#task-2
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
 
-    @require(lambda ber: isinstance(ber, pd.DataFrame))
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
+
     def run(self, ber: pd.DataFrame) -> pd.DataFrame:
         """Run Flow.
 
@@ -76,7 +86,7 @@ class CreateBERArchetypes(Task):
             pd.DataFrame: BER archetype averages
         """
         with raise_on_exception():
-            state = flow.run(parameters=dict(clean_ber=ber))
+            state = self.flow.run(parameters=dict(clean_ber=ber))
 
         return state.result[ber_archetypes].result
 

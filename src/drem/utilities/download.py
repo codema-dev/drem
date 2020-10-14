@@ -76,7 +76,7 @@ class Download(Task):
         Args:
             url (Optional[str], optional): Direct URL link to data such as
                 http://www.urltodata.ie/data.csv. Defaults to None.
-            **kwargs (Any): see  https://docs.prefect.io/core/concepts/tasks.html
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
         """
         self.url = url
 

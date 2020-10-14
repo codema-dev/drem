@@ -1,5 +1,6 @@
 from os import listdir
 from pathlib import Path
+from typing import Any
 
 from prefect import Flow
 from prefect import Task
@@ -29,8 +30,17 @@ class GenericFlowRunTask(Task, VisualizeMixin):
 
     Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
-        VisualizeMixin ([type]): Mixin to add flow visualization method
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
 
     def run(self) -> State:
         """Run module flow.
@@ -38,7 +48,7 @@ class GenericFlowRunTask(Task, VisualizeMixin):
         Returns:
             State: see
         """
-        return flow.run()
+        return self.flow.run()
 
 
 generic_task = GenericFlowRunTask()

@@ -1,6 +1,7 @@
 import re
 
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
@@ -11,6 +12,8 @@ from prefect import Task
 from prefect import task
 
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -147,12 +150,22 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     )
 
 
-class TransformCSOGas(Task):
+class TransformCSOGas(Task, VisualizeMixin):
     """Transform CSO Gas via a Prefect flow.
 
     Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
 
     def run(
         self,
@@ -173,7 +186,7 @@ class TransformCSOGas(Task):
             Dict[str, gpd.GeoDataFrame]: Dublin Gas Demand by Sector
         """
         filepath = dirpath / f"{filename}.html"
-        state = flow.run(
+        state = self.flow.run(
             fpath=filepath,
             dublin_pcodes=dublin_postcodes,
             sa_boiler_stats=small_area_boiler_statistics,

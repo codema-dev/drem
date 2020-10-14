@@ -17,6 +17,8 @@ from prefect.utilities.debug import raise_on_exception
 
 import drem.utilities.pandas_tasks as pdt
 
+from drem.utilities.visualize import VisualizeMixin
+
 
 @task
 def _extract_rows_from_glossary(
@@ -323,12 +325,22 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
     )
 
 
-class TransformSaStatistics(Task):
+class TransformSaStatistics(Task, VisualizeMixin):
     """Transform Small Area Statistics.
 
     Args:
         Task (Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
 
     def run(
         self,
@@ -353,7 +365,7 @@ class TransformSaStatistics(Task):
         sa_statistics_filepath = dirpath / f"{sa_statistics_filename}.parquet"
         sa_glossary_filepath = dirpath / f"{sa_glossary_filename}.parquet"
         with raise_on_exception():
-            state = flow.run(
+            state = self.flow.run(
                 parameters=dict(
                     sa_glossary_fpath=sa_glossary_filepath,
                     sa_stats_fpath=sa_statistics_filepath,
