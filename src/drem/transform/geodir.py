@@ -2,9 +2,6 @@ import pandas as pd
 import geopandas as gpd
 from drem.filepaths import RAW_DIR
 from drem.filepaths import PROCESSED_DIR
-import shapely
-import pyproj
-import utm
 
 df1 = pd.read_csv(RAW_DIR / "DublinBuildingsData.csv", encoding="unicode_escape")
 df1_dropped = df1.drop_duplicates()
@@ -80,6 +77,9 @@ df_cea_extracted = df_cea_height[
 df_cea_extracted[["floors_ag", "floors_bg"]] = df_cea_extracted[
     ["floors_ag", "floors_bg"]
 ].astype(int)
+
+# Maybe extract values just for residential?
+# Will need to include building_use_type
 
 df_output = df_cea_extracted.drop_duplicates("Name", keep="last")
 # Zone shapefile
