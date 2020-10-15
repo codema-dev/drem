@@ -29,7 +29,6 @@ loguru = "^0.5.3"
 bs4 = "^0.0.1"
 lxml = "^4.5.2"
 html5lib = "^1.1"
-graphviz = {version = "^0.14.2", optional = true}
 
 
 [tool.poetry.dev-dependencies]
