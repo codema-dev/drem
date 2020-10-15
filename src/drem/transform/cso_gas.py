@@ -16,8 +16,29 @@ import drem.utilities.pandas_tasks as pdt
 from drem.utilities.visualize import VisualizeMixin
 
 
-@task
-def _replace_column_name_with_third_row(df: pd.DataFrame) -> pd.DataFrame:
+standardise_postcode_names = pdt.ReplaceSubstringInColumn(
+    name="Delete all county names starting with a 0 followed by a number",
+)
+standardise_co_dublin_string = pdt.Replace(
+    name="Replace 'Dublin County' with 'Co. Dublin'",
+)
+join_postcodes_to_counties = pdt.Concat(
+    name="Join County-level Data to Postcode-level Data",
+)
+link_postcode_demands_to_boiler_totals = pdt.Merge(
+    name="Link Postcode Demands to Dwelling Boiler Totals",
+)
+link_postcode_demands_to_postcode_geometries = pdt.Merge(
+    name="Link Postcode Demands to Postcode Geometries",
+)
+calc_gas_boiler_total_for_each_postcode = pdt.GroupbySum(
+    name="Calculate the total number of boilers in each Postcode",
+)
+rename_boiler_total_as_gas_hh_total = pdt.Rename(name="Rename 'total' to 'gas_hh_2016'")
+
+
+@task(name="Replace column names with values from the row")
+def _replace_column_names_with_third_row(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.copy()
 
@@ -41,10 +62,10 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     raw_resid_annual_gas_by_pcode = raw_gas_tables[
         table_number_of_resid_annual_gas_by_pcode
     ]
-    resid_annual_gas_by_pcode_col_names_replaced = _replace_column_name_with_third_row(
+    resid_annual_gas_by_pcode_col_names_replaced = _replace_column_names_with_third_row(
         raw_resid_annual_gas_by_pcode,
     )
-    resid_annual_gas_by_pcode_standardised = pdt.replace_substring_in_column(
+    resid_annual_gas_by_pcode_standardised = standardise_postcode_names(
         resid_annual_gas_by_pcode_col_names_replaced,
         target="Dublin Postal District",
         result="postcodes",
@@ -62,17 +83,17 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     raw_resid_annual_gas_by_county = raw_gas_tables[
         table_number_of_resid_annual_gas_by_county
     ]
-    resid_annual_gas_by_county_col_names_replaced = _replace_column_name_with_third_row(
+    resid_annual_gas_by_county_col_names_replaced = _replace_column_names_with_third_row(
         raw_resid_annual_gas_by_county,
     )
-    resid_annual_gas_by_county_standardised = pdt.replace(
+    resid_annual_gas_by_county_standardised = standardise_co_dublin_string(
         resid_annual_gas_by_county_col_names_replaced,
         target="County",
         result="postcodes",
         to_replace="Dublin County",
         value="Co. Dublin",
     )
-    resid_annual_gas_by_county_and_pcode = pdt.concat(
+    resid_annual_gas_by_county_and_pcode = join_postcodes_to_counties(
         objs=[
             resid_annual_gas_by_pcode_standardised,
             resid_annual_gas_by_county_standardised,
@@ -85,13 +106,13 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     gas_boilers_extracted = pdt.get_rows_where_column_contains_substring(
         sa_boiler_stats, target="boiler_type", substring="Natural gas",
     )
-    gas_boilers_by_postcode = pdt.groupby_sum(
+    gas_boilers_by_postcode = calc_gas_boiler_total_for_each_postcode(
         gas_boilers_extracted, by="postcodes", target="total",
     )
-    gas_boilers_renamed = pdt.rename(
+    gas_boilers_renamed = rename_boiler_total_as_gas_hh_total(
         gas_boilers_by_postcode, columns={"total": "gas_hh_2016"},
     )
-    resid_gas_with_boiler_totals = pdt.merge(
+    resid_gas_with_boiler_totals = link_postcode_demands_to_boiler_totals(
         resid_annual_gas_by_county_and_pcode, gas_boilers_renamed, how="left",
     )
 
@@ -101,10 +122,10 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     raw_non_resid_annual_gas_by_pcode = raw_gas_tables[
         table_number_of_non_resid_annual_gas_by_pcode
     ]
-    non_resid_annual_gas_by_pcode_col_names_replaced = _replace_column_name_with_third_row(
+    non_resid_annual_gas_by_pcode_col_names_replaced = _replace_column_names_with_third_row(
         raw_non_resid_annual_gas_by_pcode,
     )
-    non_resid_annual_gas_by_pcode_standardised = pdt.replace_substring_in_column(
+    non_resid_annual_gas_by_pcode_standardised = standardise_postcode_names(
         non_resid_annual_gas_by_pcode_col_names_replaced,
         target="Dublin Postal District",
         result="postcodes",
@@ -122,17 +143,17 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     raw_non_resid_annual_gas_by_county = raw_gas_tables[
         table_number_of_resid_annual_gas_by_county
     ]
-    non_resid_annual_gas_by_county_col_names_replaced = _replace_column_name_with_third_row(
+    non_resid_annual_gas_by_county_col_names_replaced = _replace_column_names_with_third_row(
         raw_non_resid_annual_gas_by_county,
     )
-    non_resid_annual_gas_by_county_standardised = pdt.replace(
+    non_resid_annual_gas_by_county_standardised = standardise_co_dublin_string(
         non_resid_annual_gas_by_county_col_names_replaced,
         target="County",
         result="postcodes",
         to_replace="Dublin County",
         value="Co. Dublin",
     )
-    non_resid_annual_gas_by_county_and_pcode = pdt.concat(
+    non_resid_annual_gas_by_county_and_pcode = join_postcodes_to_counties(
         objs=[
             non_resid_annual_gas_by_pcode_standardised,
             non_resid_annual_gas_by_county_standardised,
@@ -142,10 +163,10 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     # Postcode Geometries
     # -------------------
-    resid_gas_with_postcode_geometries = pdt.merge(
+    resid_gas_with_postcode_geometries = link_postcode_demands_to_postcode_geometries(
         dublin_pcodes, resid_gas_with_boiler_totals, how="left",
     )
-    non_resid_gas_with_postcode_geometries = pdt.merge(
+    non_resid_gas_with_postcode_geometries = link_postcode_demands_to_postcode_geometries(
         dublin_pcodes, non_resid_annual_gas_by_county_and_pcode, how="left",
     )
 

@@ -7,6 +7,7 @@ from typing import Union
 import pandas as pd
 
 from icontract import require
+from prefect import Task
 from prefect import task
 
 
@@ -87,7 +88,29 @@ def rename(df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
     return df.rename(**kwargs)
 
 
-@task
+class Rename(Task):
+    """Create prefect.Task to Alter axes labels.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(self, df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
+
+        Args:
+            df (pd.DataFrame): Any DataFrame
+            **kwargs (Any): Keyword arguments to pass to pandas
+
+        Returns:
+            pd.DataFrame: DataFrame with axes labels altered
+        """
+        return df.rename(**kwargs)
+
+
+@task(name="Read Parquet file")
 def read_parquet(filepath: Path, **kwargs: Any) -> pd.DataFrame:
     """Load a parquet object from the file path, returning a DataFrame.
 
@@ -103,7 +126,7 @@ def read_parquet(filepath: Path, **kwargs: Any) -> pd.DataFrame:
     return pd.read_parquet(filepath, **kwargs)
 
 
-@task
+@task(name="Read HTML File")
 def read_html(filepath: Path, **kwargs: Any) -> List[pd.DataFrame]:
     """Read HTML tables into a list of DataFrame objects.
 
@@ -143,6 +166,36 @@ def replace_substring_in_column(
     return df
 
 
+class ReplaceSubstringInColumn(Task):
+    """Create prefect.Task to Replace Substring in DataFrame Column.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(
+        self, df: pd.DataFrame, target: str, result: str, **kwargs: Any,
+    ) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.str.replace.html
+
+        Args:
+            df (pd.DataFrame): DataFrame
+            target (str): Name of target column
+            result (str): Name of result column
+            **kwargs (Any): Passed to pandas.Series.str.replace
+
+        Returns:
+            pd.DataFrame: A copy of the object with all matching occurrences of pat replaced by repl.
+        """
+        df = df.copy()
+
+        df[result] = df[target].astype(str).str.replace(**kwargs)
+
+        return df
+
+
 @task
 def dropna(df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
     """Remove missing values.
@@ -180,6 +233,33 @@ def merge(left: pd.DataFrame, right: pd.DataFrame, **kwargs: Any) -> pd.DataFram
     return left.merge(right, **kwargs)
 
 
+class Merge(Task):
+    """Create prefect.Task to merge DataFrames with a database-style join.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(
+        self, left: pd.DataFrame, right: pd.DataFrame, **kwargs: Any,
+    ) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.merge.html
+
+        Args:
+            left (pd.DataFrame): Object to be merged.
+            right (pd.DataFrame): Object to merge with.
+            **kwargs (Any): Passed to pandas.DataFrame.merge
+
+        Returns:
+            pd.DataFrame: A DataFrame of the two merged objects.
+        """
+        left = left.copy()
+
+        return left.merge(right, **kwargs)
+
+
 @task
 def get_rows_by_index(df: pd.DataFrame, row_indexes: Iterable[str]) -> pd.DataFrame:
     """Access a group of rows by integer-location based indexing.
@@ -211,6 +291,27 @@ def concat(**kwargs: Any) -> pd.DataFrame:
     return pd.concat(**kwargs)
 
 
+class Concat(Task):
+    """Create prefect.Task to concatenate DataFrames.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(self, **kwargs: Any) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html
+
+        Args:
+            **kwargs (Any): Passed to pandas.concat
+
+        Returns:
+            pd.DataFrame: DataFrame
+        """
+        return pd.concat(**kwargs)
+
+
 @task
 def replace(
     df: pd.DataFrame, target: str, result: str, to_replace: Any, value: Any,
@@ -236,6 +337,37 @@ def replace(
     return df
 
 
+class Replace(Task):
+    """Create prefect.Task to replace values in DataFrame with X.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(
+        self, df: pd.DataFrame, target: str, result: str, to_replace: Any, value: Any,
+    ) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.replace.html
+
+        Args:
+            df (pd.DataFrame): DataFrame
+            target (str): Name of target column
+            result (str): Name of result column
+            to_replace (Any): Values that will be replaced
+            value (Any): Value to replace any values matching to_replace with
+
+        Returns:
+            pd.DataFrame: DataFrame
+        """
+        df = df.copy()
+
+        df[result] = df[target].replace(to_replace, value)
+
+        return df
+
+
 @task
 def groupby_sum(df: pd.DataFrame, by: Iterable[str], target: str) -> pd.DataFrame:
     """Group DataFrame using a mapper or by a Series of columns.
@@ -253,3 +385,28 @@ def groupby_sum(df: pd.DataFrame, by: Iterable[str], target: str) -> pd.DataFram
     df = df.copy()
 
     return df.groupby(by=by, as_index=False)[target].sum()
+
+
+class GroupbySum(Task):
+    """Create prefect.Task to sum a select column for each DataFrame group.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(self, df: pd.DataFrame, by: Iterable[str], target: str) -> pd.DataFrame:
+        """Run Task.
+
+        See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.groupby.html
+
+        Args:
+            df (pd.DataFrame): DataFrame
+            by (Iterable[str]): The names of columns by to be grouped.
+            target (str): The name of the column to be summed.
+
+        Returns:
+            pd.DataFrame: DataFrame
+        """
+        df = df.copy()
+
+        return df.groupby(by=by, as_index=False)[target].sum()
