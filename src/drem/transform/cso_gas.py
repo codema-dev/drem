@@ -35,6 +35,15 @@ calc_gas_boiler_total_for_each_postcode = pdt.GroupbySum(
     name="Calculate the total number of boilers in each Postcode",
 )
 rename_boiler_total_as_gas_hh_total = pdt.Rename(name="Rename 'total' to 'gas_hh_2016'")
+extract_boiler_small_area_gas_totals = pdt.GetRowsWhereColumnContainsSubstring(
+    name="Extract Gas boiler totals from boiler Small Area Statistics",
+)
+extract_boiler_small_area_totals = pdt.GetRowsWhereColumnContainsSubstring(
+    name="Extract boiler totals from boiler Small Area Statistics",
+)
+link_gas_boiler_totals_to_boiler_totals = pdt.Merge(
+    name="Link Gas Boiler Postcode Totals to Boiler Postcode Totals",
+)
 
 
 @task(name="Replace column names with values from the row")
@@ -103,17 +112,30 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     # Residential Postcode Gas Boiler Statistics
     # ------------------------------------------
-    gas_boilers_extracted = pdt.get_rows_where_column_contains_substring(
+
+    gas_boiler_totals_extracted = extract_boiler_small_area_gas_totals(
         sa_boiler_stats, target="boiler_type", substring="Natural gas",
     )
-    gas_boilers_by_postcode = calc_gas_boiler_total_for_each_postcode(
-        gas_boilers_extracted, by="postcodes", target="total",
+    boiler_totals_extracted = extract_boiler_small_area_totals(
+        sa_boiler_stats, target="boiler_type", substring="Total",
     )
-    gas_boilers_renamed = rename_boiler_total_as_gas_hh_total(
-        gas_boilers_by_postcode, columns={"total": "gas_hh_2016"},
+    gas_boiler_totals_by_postcode = calc_gas_boiler_total_for_each_postcode(
+        gas_boiler_totals_extracted, by="postcodes", target="total",
+    )
+    boiler_totals_by_postcode = calc_gas_boiler_total_for_each_postcode(
+        boiler_totals_extracted, by="postcodes", target="total",
+    )
+    gas_boiler_totals_renamed = rename_boiler_total_as_gas_hh_total(
+        gas_boiler_totals_by_postcode, columns={"total": "gas_hh_2016"},
+    )
+    boiler_totals_renamed = rename_boiler_total_as_gas_hh_total(
+        boiler_totals_by_postcode, columns={"total": "hh_2016"},
+    )
+    boiler_totals = link_gas_boiler_totals_to_boiler_totals(
+        gas_boiler_totals_renamed, boiler_totals_renamed, on=["postcodes"],
     )
     resid_gas_with_boiler_totals = link_postcode_demands_to_boiler_totals(
-        resid_annual_gas_by_county_and_pcode, gas_boilers_renamed, how="left",
+        resid_annual_gas_by_county_and_pcode, boiler_totals, how="left", on="postcodes",
     )
 
     # Non-residential Annual Gas Consumption

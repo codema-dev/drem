@@ -72,6 +72,29 @@ def get_rows_where_column_contains_substring(
     return df.copy()[rows].reset_index(drop=True)
 
 
+class GetRowsWhereColumnContainsSubstring(Task):
+    """Create prefect.Task to Get rows where target columns contains substring.
+
+    Args:
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+    """
+
+    def run(self, df: pd.DataFrame, target: str, substring: str) -> pd.DataFrame:
+        """Run Task.
+
+        Args:
+            df (pd.DataFrame): Any single-indexed Pandas DataFrame
+            target (str): Name of target column
+            substring (str): Substring to be queried in target column
+
+        Returns:
+            pd.DataFrame: A copy of df containing only rows where column contains substring
+        """
+        df = df.copy()
+        rows = df[target].str.contains(substring)
+        return df[rows].reset_index(drop=True)
+
+
 @task
 def rename(df: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
     """Alter axes labels.
