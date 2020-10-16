@@ -26,9 +26,8 @@ def excel_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        pd.read_excel(filepath_excel, engine="openpyxl").to_parquet(
-            filepath_parquet, schema="infer",
-        )
+        excel = pd.read_excel(filepath_excel, engine="openpyxl")
+        excel.to_parquet(filepath_parquet)
 
 
 @task
@@ -56,9 +55,8 @@ def csv_to_parquet(
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        pd.read_csv(filepath_csv, **kwargs).to_parquet(
-            filepath_parquet, schema="infer",
-        )
+        csv = pd.read_csv(filepath_csv, **kwargs)
+        csv.to_parquet(filepath_parquet)
 
 
 @task
@@ -86,7 +84,8 @@ def csv_to_dask_parquet(
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        dd.read_csv(filepath_csv, **kwargs).to_parquet(filepath_parquet)
+        csv = dd.read_csv(filepath_csv, **kwargs)
+        csv.to_parquet(filepath_parquet, schema="infer")
 
 
 @task
@@ -117,6 +116,5 @@ def shapefile_to_parquet(
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        gpd.read_file(filepath_shapefile, driver="ESRI Shapefile").to_parquet(
-            filepath_parquet,
-        )
+        shapefile = gpd.read_file(filepath_shapefile, driver="ESRI Shapefile")
+        shapefile.to_parquet(filepath_parquet)
