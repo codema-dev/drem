@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 from typing import Optional
 
+import dask.dataframe as dd
 import geopandas as gpd
 import pandas as pd
 import prefect
@@ -25,7 +26,9 @@ def excel_to_parquet(input_dirpath: Path, output_dirpath: Path, filename: str) -
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        pd.read_excel(filepath_excel, engine="openpyxl").to_parquet(filepath_parquet)
+        pd.read_excel(filepath_excel, engine="openpyxl").to_parquet(
+            filepath_parquet, schema="infer",
+        )
 
 
 @task
@@ -53,7 +56,37 @@ def csv_to_parquet(
     if filepath_parquet.exists():
         logger.info(f"{filepath_parquet} already exists")
     else:
-        pd.read_csv(filepath_csv, **kwargs).to_parquet(filepath_parquet)
+        pd.read_csv(filepath_csv, **kwargs).to_parquet(
+            filepath_parquet, schema="infer",
+        )
+
+
+@task
+def csv_to_dask_parquet(
+    input_dirpath: Path,
+    output_dirpath: Path,
+    filename: str,
+    file_extension: str = "csv",
+    **kwargs: Any,
+) -> None:
+    """Convert csv file to parquet.
+
+    Args:
+        input_dirpath (Path): Path to input directory
+        output_dirpath (Path): Path to output directory
+        filename (str): Name of file
+        file_extension (str): Name of file extension. Defaults to "csv"
+        **kwargs (Any): Passed to pandas.read_csv
+    """
+    logger = prefect.context.get("logger")
+
+    filepath_csv = input_dirpath / f"{filename}.{file_extension}"
+    filepath_parquet = output_dirpath / f"{filename}.parquet"
+
+    if filepath_parquet.exists():
+        logger.info(f"{filepath_parquet} already exists")
+    else:
+        dd.read_csv(filepath_csv, **kwargs).to_parquet(filepath_parquet)
 
 
 @task

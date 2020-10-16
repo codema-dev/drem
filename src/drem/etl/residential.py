@@ -127,7 +127,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         filename=dublin_postcode_geometries_filename,
         path_to_shapefile="dublin-postcode-shapefiles-master/Postcode_dissolve",
     )
-    ber_converted = convert.csv_to_parquet(
+    ber_converted = convert.csv_to_dask_parquet(
         input_dirpath=external_dir / ber_filename,
         output_dirpath=external_dir,
         filename=ber_filename,
@@ -136,6 +136,22 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         encoding="latin-1",
         error_bad_lines=False,
         low_memory=False,
+        dtype={
+            "FanPowerManuDeclaredValue": "float64",
+            "FirstEnerConsumedComment": "object",
+            "FirstWallTypeId": "float64",
+            "HeatExchangerEff": "float64",
+            "SecondEnerConsumedComment": "object",
+            "SecondEnerProdComment": "object",
+            "ThirdEnerProdComment": "object",
+            "NoOfChimneys": "float64",
+            "NoOfFansAndVents": "float64",
+            "NoOfFluelessGasFires": "float64",
+            "NoOfOpenFlues": "float64",
+            "NoOfSidesSheltered": "float64",
+            "PercentageDraughtStripped": "float64",
+            "ThirdEnerConsumedComment": "object",
+        },
     )
 
     # Clean data
