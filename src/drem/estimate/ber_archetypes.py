@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from typing import Iterable
 
@@ -24,7 +25,9 @@ def _get_mean_heat_demand_per_archetype(
 
 with Flow("Create BER Archetypes") as flow:
 
-    clean_ber = Parameter("clean_ber")
+    ber_fpath = Parameter("ber_fpath")
+
+    clean_ber = pdt.read_parquet(ber_fpath)
 
     select_columns_from_raw = pdt.get_columns(
         clean_ber,
@@ -76,19 +79,19 @@ class CreateBERArchetypes(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(self, ber: pd.DataFrame) -> pd.DataFrame:
+    def run(self, input_filepath: Path, output_filepath: Path) -> pd.DataFrame:
         """Run Flow.
 
         Args:
-            ber (pd.DataFrame): Clean BER Data
-
-        Returns:
-            pd.DataFrame: BER archetype averages
+            input_filepath (Path): Path to Clean BER Data
+            output_filepath (Path): Path to BER archetypes
         """
         with raise_on_exception():
-            state = self.flow.run(parameters=dict(clean_ber=ber))
+            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
 
-        return state.result[ber_archetypes].result
+        result = state.result[ber_archetypes].result
+
+        result.to_parquet(output_filepath)
 
 
 create_ber_archetypes = CreateBERArchetypes()

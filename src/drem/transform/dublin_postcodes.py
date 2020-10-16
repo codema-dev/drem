@@ -3,8 +3,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-import geopandas as gpd
-
 from prefect import Flow
 from prefect import Parameter
 from prefect import Task
@@ -59,20 +57,16 @@ class TransformDublinPostcodes(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(self, dirpath: Path, filename: str) -> gpd.GeoDataFrame:
+    def run(self, input_filepath: Path, output_filepath: Path) -> None:
         """Run module flow.
 
         Args:
-            dirpath (Path): Directory where data is stored
-            filename (str): Name of data
-
-        Returns:
-            gpd.GeoDataFrame: Clean Dublin Postcode Geometries
+            input_filepath (Path): Path to input data
+            output_filepath (Path): Path to output data
         """
-        filepath = dirpath / f"{filename}.parquet"
-
-        state = self.flow.run(fpath=filepath)
-        return state.result[clean_postcodes].result
+        state = self.flow.run(fpath=input_filepath)
+        result = state.result[clean_postcodes].result
+        result.to_parquet(output_filepath)
 
 
 transform_dublin_postcodes = TransformDublinPostcodes()

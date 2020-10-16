@@ -9,8 +9,7 @@ from prefect.tasks.secrets import PrefectSecret
 from drem.download.ber import DownloadBER
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
-from drem.filepaths import EXTERNAL_DIR
-from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import DATA_DIR
 from drem.filepaths import VISUALIZATION_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
@@ -62,7 +61,9 @@ load_to_parquet = LoadToParquet(name="Load Data to Parquet file")
 
 with Flow("Extract, Transform & Load DREM Data") as flow:
 
-    external_dir = Parameter("external_dir", default=EXTERNAL_DIR)
+    data_dir = Parameter("data_dir", default=DATA_DIR)
+    external_dir = data_dir / "external"
+    processed_dir = data_dir / "processed"
 
     # Download all data
     # -----------------
@@ -139,47 +140,52 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Clean data
     # ----------
-    ber_clean = transform_ber(dirpath=external_dir, filename=ber_filename)
+    ber_clean = transform_ber(
+        input_filepath=external_dir / f"{ber_filename}.parquet",
+        output_filepath=processed_dir / f"{ber_filename}.parquet",
+    )
     sa_geometries_clean = transform_sa_geometries(
-        dirpath=external_dir, filename=small_area_geometries_filename,
+        input_filepath=external_dir / f"{small_area_geometries_filename}.parquet",
+        output_filepath=processed_dir / f"{small_area_geometries_filename}.parquet",
     )
     dublin_postcodes_clean = transform_dublin_postcodes(
-        dirpath=external_dir, filename=dublin_postcode_geometries_filename,
+        input_filepath=external_dir / f"{dublin_postcode_geometries_filename}.parquet",
+        output_filepath=processed_dir
+        / f"{dublin_postcode_geometries_filename}.parquet",
     )
     sa_statistics_clean = transform_sa_statistics(
-        dirpath=external_dir,
-        sa_statistics_filename=small_area_statistics_filename,
-        sa_glossary_filename=small_area_glossary_filename,
-        dublin_postcodes=dublin_postcodes_clean,
-        dublin_sa_geometries=sa_geometries_clean,
+        input_filepath=external_dir / f"{small_area_statistics_filename}.parquet",
+        sa_glossary_filepath=external_dir / f"{small_area_glossary_filename}.parquet",
+        postcodes_filepath=processed_dir
+        / f"{dublin_postcode_geometries_filename}.parquet",
+        sa_geometries_filepath=processed_dir
+        / f"{small_area_geometries_filename}.parquet",
+        output_filepath_period_built=processed_dir / "small_area_period_built.parquet",
+        output_filepath_boilers=processed_dir / "small_area_boilers.parquet",
     )
     cso_gas_clean = transform_cso_gas(
-        dirpath=external_dir,
-        filename=cso_gas_filename,
-        dublin_postcodes=dublin_postcodes_clean,
-        small_area_boiler_statistics=sa_statistics_clean["boiler_type"],
+        input_filepath=external_dir / f"{cso_gas_filename}.html",
+        postcodes_filepath=processed_dir
+        / f"{dublin_postcode_geometries_filename}.parquet",
+        small_area_boilers_filepath=processed_dir / "small_area_boilers.parquet",
+        output_filepath_residential_gas=processed_dir
+        / "residential_postcode_gas.parquet",
+        output_filepath_non_residential_gas=processed_dir
+        / "non_residential_postcode_gas.parquet",
     )
 
-    ber_archetypes = create_ber_archetypes(ber_clean)
+    ber_archetypes = create_ber_archetypes(
+        input_filepath=processed_dir / f"{ber_filename}.parquet",
+        output_filepath=processed_dir / "ber_archetypes.parquet",
+    )
     sa_demand = estimate_sa_demand(
-        sa_statistics_clean, ber_archetypes, sa_geometries_clean,
+        small_area_period_built_filepath=processed_dir
+        / "small_area_period_built.parquet",
+        ber_archetypes_filepath=processed_dir / "ber_archetypes.parquet",
+        small_area_geometries_filepath=processed_dir
+        / f"{small_area_geometries_filename}.parquet",
+        output_filepath=processed_dir / "small_area_heat_demand_estimate.parquet",
     )
-
-    load_to_parquet(ber_clean, PROCESSED_DIR / "ber.parquet")
-    load_to_parquet(
-        sa_statistics_clean["period_built"], PROCESSED_DIR / "sa_period_built.parquet",
-    )
-    load_to_parquet(
-        sa_statistics_clean["boiler_type"], PROCESSED_DIR / "sa_boiler_type.parquet",
-    )
-    load_to_parquet(
-        cso_gas_clean["Residential"], PROCESSED_DIR / "cso_gas_residential.parquet",
-    )
-    load_to_parquet(
-        cso_gas_clean["Non-Residential"],
-        PROCESSED_DIR / "cso_gas_non_residential.parquet",
-    )
-    load_to_parquet(sa_demand, PROCESSED_DIR / "sa_demand.parquet")
 
     # Define dependencies
     # -------------------
@@ -193,12 +199,24 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     dublin_postcodes_converted.set_upstream(dublin_postcodes_unzipped)
     ber_converted.set_upstream(ber_unzipped)
 
+    ber_clean.set_upstream(ber_converted)
+    dublin_postcodes_clean.set_upstream(dublin_postcodes_converted)
+    sa_geometries_clean.set_upstream(sa_geometries_converted)
+
     sa_statistics_clean.set_upstream(sa_statistics_converted)
     sa_statistics_clean.set_upstream(sa_glossary_converted)
-    sa_geometries_clean.set_upstream(sa_geometries_converted)
-    dublin_postcodes_clean.set_upstream(dublin_postcodes_converted)
-    ber_clean.set_upstream(ber_converted)
+    sa_statistics_clean.set_upstream(sa_geometries_clean)
+    sa_statistics_clean.set_upstream(dublin_postcodes_clean)
+
     cso_gas_clean.set_upstream(cso_gas_downloaded)
+    cso_gas_clean.set_upstream(dublin_postcodes_clean)
+    cso_gas_clean.set_upstream(sa_statistics_clean)
+
+    ber_archetypes.set_upstream(ber_clean)
+
+    sa_demand.set_upstream(sa_statistics_clean)
+    sa_demand.set_upstream(ber_archetypes)
+    sa_demand.set_upstream(sa_geometries_clean)
 
 
 class ResidentialETL(Task, VisualizeMixin):

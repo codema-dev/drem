@@ -15,6 +15,7 @@ from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
+import drem.utilities.geopandas_tasks as gpdt
 import drem.utilities.pandas_tasks as pdt
 
 from drem.utilities.visualize import VisualizeMixin
@@ -208,10 +209,12 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
 
     sa_stats_fpath = Parameter("sa_stats_fpath")
     sa_glossary_fpath = Parameter("sa_glossary_fpath")
-    dublin_sa_geom = Parameter("dublin_sa_geom")
-    dublin_pcodes = Parameter("dublin_pcodes")
+    sa_geometries_fpath = Parameter("sa_geometries_fpath")
+    postcode_geometries_fpath = Parameter("postcode_geometries_fpath")
 
     raw_glossary = pdt.read_parquet(sa_glossary_fpath)
+    sa_geometries = gpdt.read_parquet(sa_geometries_fpath)
+    postcode_geometries = gpdt.read_parquet(postcode_geometries_fpath)
 
     raw_year_built_glossary = _extract_rows_from_glossary(
         raw_glossary,
@@ -268,10 +271,10 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         columns="households_and_persons",
     )
     year_built_with_dublin_sa_geometries = _merge_with_geometries(
-        persons_and_hh_columns, dublin_sa_geom, on=["small_area"],
+        persons_and_hh_columns, sa_geometries, on=["small_area"],
     )
     year_built_with_postcodes = _link_small_areas_to_postcodes(
-        year_built_with_dublin_sa_geometries, dublin_pcodes,
+        year_built_with_dublin_sa_geometries, postcode_geometries,
     )
     clean_year_built = _get_columns(
         year_built_with_postcodes,
@@ -314,10 +317,10 @@ with Flow("Transform Dublin Small Area Statistics") as flow:
         repl="",
     )
     link_boiler_stats_to_sa_geometries = _merge_with_geometries(
-        rename_boiler_stats_small_areas, dublin_sa_geom, on=["small_area"],
+        rename_boiler_stats_small_areas, sa_geometries, on=["small_area"],
     )
     link_boiler_stats_to_postcodes = _link_small_areas_to_postcodes(
-        link_boiler_stats_to_sa_geometries, dublin_pcodes,
+        link_boiler_stats_to_sa_geometries, postcode_geometries,
     )
     clean_boiler_stats = pdt.get_columns(
         link_boiler_stats_to_postcodes,
@@ -344,40 +347,38 @@ class TransformSaStatistics(Task, VisualizeMixin):
 
     def run(
         self,
-        dirpath: Path,
-        sa_statistics_filename: str,
-        sa_glossary_filename: str,
-        dublin_postcodes: gpd.GeoDataFrame,
-        dublin_sa_geometries: gpd.GeoDataFrame,
-    ) -> gpd.GeoDataFrame:
+        input_filepath: Path,
+        sa_glossary_filepath: Path,
+        postcodes_filepath: Path,
+        sa_geometries_filepath: Path,
+        output_filepath_period_built: Path,
+        output_filepath_boilers: Path,
+    ) -> None:
         """Run local flow.
 
         Args:
-            dirpath (Path): Path to directory containing raw data files
-            sa_glossary_filename (str): Name of raw Glossary file
-            sa_statistics_filename (str): Name of raw Statistics file
-            dublin_postcodes (pd.DataFrame): Dublin Postcode Geometries
-            dublin_sa_geometries (pd.DataFrame): Dublin Small Area Geometries
-
-        Returns:
-            gpd.GeoDataFrame: Clean Dublin Small Area Statistics
+            input_filepath (Path): Path to Small Area Statistics Raw Data
+            sa_glossary_filepath (Path): Path to Small Area Statistics Glossary
+            postcodes_filepath (Path): Path to Postcode Geometries Data
+            sa_geometries_filepath (Path): Path to Small Area Geometries Data
+            output_filepath_period_built (Path): Path to Small Area Period Built Stats
+            output_filepath_boilers (Path): Path to Small Area Period Boiler Stats
         """
-        sa_statistics_filepath = dirpath / f"{sa_statistics_filename}.parquet"
-        sa_glossary_filepath = dirpath / f"{sa_glossary_filename}.parquet"
         with raise_on_exception():
             state = self.flow.run(
                 parameters=dict(
+                    sa_stats_fpath=input_filepath,
                     sa_glossary_fpath=sa_glossary_filepath,
-                    sa_stats_fpath=sa_statistics_filepath,
-                    dublin_pcodes=dublin_postcodes,
-                    dublin_sa_geom=dublin_sa_geometries,
+                    postcode_geometries_fpath=postcodes_filepath,
+                    sa_geometries_fpath=sa_geometries_filepath,
                 ),
             )
 
-        return {
-            "period_built": state.result[clean_year_built].result,
-            "boiler_type": state.result[clean_boiler_stats].result,
-        }
+        period_built = state.result[clean_year_built].result
+        boilers = state.result[clean_boiler_stats].result
+
+        period_built.to_parquet(output_filepath_period_built)
+        boilers.to_parquet(output_filepath_boilers)
 
 
 transform_sa_statistics = TransformSaStatistics()
