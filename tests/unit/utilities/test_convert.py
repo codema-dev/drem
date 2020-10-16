@@ -25,6 +25,23 @@ def test_convert_csv_to_parquet(tmp_path: Path) -> None:
     assert expected_file_output.exists()
 
 
+def test_convert_csv_to_dask_parquet(tmp_path: Path) -> None:
+    """Convert csv file to dask parquet.
+
+    Args:
+        tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
+    """
+    filename = "data"
+    pd.DataFrame({"col": [1, 2, 3]}).to_csv(tmp_path / f"{filename}.csv")
+    expected_file_output = tmp_path / "data.parquet"
+
+    convert.csv_to_dask_parquet.run(
+        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+    )
+
+    assert expected_file_output.exists()
+
+
 def test_convert_excel_to_parquet(tmp_path: Path) -> None:
     """Convert excel file to parquet.
 

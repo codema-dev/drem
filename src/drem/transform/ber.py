@@ -10,6 +10,7 @@ from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
+import drem.utilities.dask_dataframe_tasks as ddt
 import drem.utilities.pandas_tasks as pdt
 
 from drem.utilities.visualize import VisualizeMixin
@@ -59,11 +60,14 @@ with Flow("Cleaning the BER Data...") as flow:
 
     ber_fpath = Parameter("ber_fpath")
 
-    raw_ber = pdt.read_parquet(ber_fpath)
+    raw_ber = ddt.read_parquet(ber_fpath)
+
     get_dublin_rows = pdt.get_rows_where_column_contains_substring(
         raw_ber, target="CountyName", substring="Dublin",
     )
-    rename_postcodes = pdt.rename(get_dublin_rows, columns={"CountyName": "postcodes"})
+    raw_dublin_ber = ddt.compute(get_dublin_rows)
+
+    rename_postcodes = pdt.rename(raw_dublin_ber, columns={"CountyName": "postcodes"})
     bin_year_built_into_census_categories = _bin_year_of_construction_as_in_census(
         rename_postcodes, target="Year_of_Construction", result="cso_period_built",
     )
