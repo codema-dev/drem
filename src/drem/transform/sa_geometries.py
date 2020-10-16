@@ -27,21 +27,19 @@ def extract_dublin_local_authorities(geometries: gpd.GeoDataFrame) -> gpd.GeoDat
 
 
 @task(name="Transform Small Area Geometries")
-def transform_sa_geometries(dirpath: Path, filename: str) -> gpd.GeoDataFrame:
+def transform_sa_geometries(input_filepath: Path, output_filepath: Path) -> None:
     """Transform Small Area geometries.
 
     Args:
-        dirpath (Path): Directory where data is stored
-        filename (str): Name of data
-
-    Returns:
-        gpd.GeoDataFrame: Clean Small Area Geometries
+        input_filepath (Path): Path to Raw Small Area Geometries Data
+        output_filepath (Path): Path to Clean Small Area Geometries Data
     """
-    filepath = dirpath / f"{filename}.parquet"
-    return (
-        gpd.read_parquet(filepath)
+    sa_geometries = (
+        gpd.read_parquet(input_filepath)
         .pipe(extract_dublin_local_authorities)
         .to_crs("epsg:4326")
         .loc[:, ["SMALL_AREA", "geometry"]]
         .rename(columns={"SMALL_AREA": "small_area"})
     )
+
+    sa_geometries.to_parquet(output_filepath)

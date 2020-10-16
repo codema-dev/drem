@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-import geopandas as gpd
 import pandas as pd
 
 from prefect import Flow
@@ -11,6 +10,7 @@ from prefect import Parameter
 from prefect import Task
 from prefect import task
 
+import drem.utilities.geopandas_tasks as gpdt
 import drem.utilities.pandas_tasks as pdt
 
 from drem.utilities.visualize import VisualizeMixin
@@ -60,10 +60,12 @@ def _replace_column_names_with_third_row(df: pd.DataFrame) -> pd.DataFrame:
 with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     fpath = Parameter("fpath")
-    dublin_pcodes = Parameter("dublin_pcodes")
-    sa_boiler_stats = Parameter("sa_boiler_stats")
+    postcode_geometries_fpath = Parameter("postcode_geometries_fpath")
+    sa_boilers_fpath = Parameter("sa_boilers_fpath")
 
     raw_gas_tables = pdt.read_html(fpath)
+    postcode_geometries = gpdt.read_parquet(postcode_geometries_fpath)
+    sa_boilers = gpdt.read_parquet(sa_boilers_fpath)
 
     # Residential Postcode Annual Gas Consumption
     # -------------------------------------------
@@ -112,12 +114,11 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
 
     # Residential Postcode Gas Boiler Statistics
     # ------------------------------------------
-
     gas_boiler_totals_extracted = extract_boiler_small_area_gas_totals(
-        sa_boiler_stats, target="boiler_type", substring="Natural gas",
+        sa_boilers, target="boiler_type", substring="Natural gas",
     )
     boiler_totals_extracted = extract_boiler_small_area_totals(
-        sa_boiler_stats, target="boiler_type", substring="Total",
+        sa_boilers, target="boiler_type", substring="Total",
     )
     gas_boiler_totals_by_postcode = calc_gas_boiler_total_for_each_postcode(
         gas_boiler_totals_extracted, by="postcodes", target="total",
@@ -186,10 +187,10 @@ with Flow("Transform CSO Residential Network Gas Data") as flow:
     # Postcode Geometries
     # -------------------
     resid_gas_with_postcode_geometries = link_postcode_demands_to_postcode_geometries(
-        dublin_pcodes, resid_gas_with_boiler_totals, how="left",
+        postcode_geometries, resid_gas_with_boiler_totals, how="left",
     )
     non_resid_gas_with_postcode_geometries = link_postcode_demands_to_postcode_geometries(
-        dublin_pcodes, non_resid_annual_gas_by_county_and_pcode, how="left",
+        postcode_geometries, non_resid_annual_gas_by_county_and_pcode, how="left",
     )
 
 
@@ -212,34 +213,34 @@ class TransformCSOGas(Task, VisualizeMixin):
 
     def run(
         self,
-        dirpath: Path,
-        filename: str,
-        dublin_postcodes: gpd.GeoDataFrame,
-        small_area_boiler_statistics: gpd.GeoDataFrame,
-    ) -> gpd.GeoDataFrame:
+        input_filepath: Path,
+        postcodes_filepath: Path,
+        small_area_boilers_filepath: Path,
+        output_filepath_residential_gas: Path,
+        output_filepath_non_residential_gas: Path,
+    ) -> Path:
         """Run module Prefect flow.
 
         Args:
-            dirpath (Path): Path to directory containing data
-            filename (str): Name of CSO Gas html file
-            dublin_postcodes (gpd.GeoDataFrame): Dublin Postcode Geometries
-            small_area_boiler_statistics (pd.DataFrame): Small Area Boiler Statistics
-
-        Returns:
-            Dict[str, gpd.GeoDataFrame]: Dublin Gas Demand by Sector
+            input_filepath (Path): Path to CSO Gas html file
+            postcodes_filepath (Path): Dublin Postcode Geometries Filepath
+            small_area_boilers_filepath (Path): Path to Small Area Boilers
+            output_filepath_residential_gas (Path): Path to annual residential gas
+                demand
+            output_filepath_non_residential_gas (Path): Path to annual non-residential
+                gas demand
         """
-        filepath = dirpath / f"{filename}.html"
         state = self.flow.run(
-            fpath=filepath,
-            dublin_pcodes=dublin_postcodes,
-            sa_boiler_stats=small_area_boiler_statistics,
+            fpath=input_filepath,
+            postcode_geometries_fpath=postcodes_filepath,
+            sa_boilers_fpath=small_area_boilers_filepath,
         )
-        return {
-            "Residential": state.result[resid_gas_with_postcode_geometries].result,
-            "Non-Residential": state.result[
-                non_resid_gas_with_postcode_geometries
-            ].result,
-        }
+
+        residential = state.result[resid_gas_with_postcode_geometries].result
+        non_residential = state.result[non_resid_gas_with_postcode_geometries].result
+
+        residential.to_parquet(output_filepath_residential_gas)
+        non_residential.to_parquet(output_filepath_non_residential_gas)
 
 
 transform_cso_gas = TransformCSOGas()

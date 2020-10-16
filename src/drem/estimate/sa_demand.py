@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import geopandas as gpd
@@ -8,6 +9,9 @@ from prefect import Parameter
 from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
+
+import drem.utilities.geopandas_tasks as gpdt
+import drem.utilities.pandas_tasks as pdt
 
 
 @task
@@ -46,13 +50,18 @@ def _divide_column(df: pd.DataFrame, target: str, result: str, by: int) -> pd.Da
 
 with Flow("Estimate Dublin Small Area Annual Energy Demands") as flow:
 
-    sa_stats = Parameter("sa_stats")
-    ber_arch = Parameter("ber_arch")
-    sa_geom = Parameter("sa_geom")
+    sa_periods_built_fpath = Parameter("sa_periods_built_fpath")
+    ber_archetype_averages_fpath = Parameter("ber_archetype_averages_fpath")
+    sa_geometries_fpath = Parameter("sa_geometries_fpath")
 
-    period_built_sa_stats = sa_stats["period_built"]
+    sa_periods_built = gpdt.read_parquet(sa_periods_built_fpath)
+    ber_archetype_averages = pdt.read_parquet(ber_archetype_averages_fpath)
+    sa_geometries = gpdt.read_parquet(sa_geometries_fpath)
+
     sa_linked_to_ber_archetypes = _merge(
-        gdf=period_built_sa_stats, df=ber_arch, on=["postcodes", "cso_period_built"],
+        gdf=sa_periods_built,
+        df=ber_archetype_averages,
+        on=["postcodes", "cso_period_built"],
     )
     sa_with_total_heat_demand_column = _multiply_columns(
         sa_linked_to_ber_archetypes,
@@ -72,7 +81,7 @@ with Flow("Estimate Dublin Small Area Annual Energy Demands") as flow:
         result="total_heat_demand_per_sa_gwh",
         by=10 ** 6,
     )
-    sa_demand_with_geometries = _merge(df=sa_demand_gwh, gdf=sa_geom)
+    sa_demand_with_geometries = _merge(df=sa_demand_gwh, gdf=sa_geometries)
 
 
 class EstimateSmallAreaDemand(Task):
@@ -87,30 +96,32 @@ class EstimateSmallAreaDemand(Task):
 
     def run(
         self,
-        sa_statistics: gpd.GeoDataFrame,
-        ber_archetypes: pd.DataFrame,
-        sa_geometries: gpd.GeoDataFrame,
+        small_area_period_built_filepath: Path,
+        ber_archetypes_filepath: Path,
+        small_area_geometries_filepath: Path,
+        output_filepath: Path,
     ) -> gpd.GeoDataFrame:
         """Run EstimateSmallAreaDemand flow.
 
         Args:
-            sa_statistics (gpd.GeoDataFrame): Clean Small Area Statistics
-            ber_archetypes (pd.DataFrame): BER Archetypal Energy Averages
-            sa_geometries (gpd.GeoDataFrame): Small Area Geometries
-
-        Returns:
-            gpd.GeoDataFrame: Small Area Energy Demand
+            small_area_period_built_filepath (Path): Path to Clean Small Area Period
+                Built Data
+            ber_archetypes_filepath (Path): Path to BER Archetypal Energy Averages
+            small_area_geometries_filepath (Path): Path to Clean Small Area Geometries
+            output_filepath (Path): Path to a Small Area Demand Estimate
         """
         with raise_on_exception():
             state = flow.run(
                 parameters=dict(
-                    sa_stats=sa_statistics,
-                    ber_arch=ber_archetypes,
-                    sa_geom=sa_geometries,
+                    sa_periods_built_fpath=small_area_period_built_filepath,
+                    ber_archetype_averages_fpath=ber_archetypes_filepath,
+                    sa_geometries_fpath=small_area_geometries_filepath,
                 ),
             )
 
-        return state.result[sa_demand_with_geometries].result
+        result = state.result[sa_demand_with_geometries].result
+
+        result.to_parquet(output_filepath)
 
 
 estimate_sa_demand = EstimateSmallAreaDemand()

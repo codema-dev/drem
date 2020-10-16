@@ -40,7 +40,6 @@ def etl_flow_state(monkeypatch: MonkeyPatch, tmp_path: Path) -> State:
     )
 
     # Mock out task load as CI doesn't need flow outputs on-disk
-    monkeypatch.setattr(residential.LoadToParquet, "run", mock_task_run)
     monkeypatch.setattr(
         residential.Download, "run", mock_task_run,
     )
@@ -51,9 +50,10 @@ def etl_flow_state(monkeypatch: MonkeyPatch, tmp_path: Path) -> State:
     # Copy test data to temporary directory
     external_dir = tmp_path / "external"
     copytree(FTEST_EXTERNAL_DIR, external_dir)
+    mkdir(tmp_path / "processed")
 
     with raise_on_exception():
-        state = residential.flow.run(external_dir=external_dir)
+        state = residential.flow.run(data_dir=tmp_path)
 
     return state
 

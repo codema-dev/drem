@@ -86,21 +86,18 @@ class TransformBER(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(self, dirpath: Path, filename: str) -> pd.DataFrame:
+    def run(self, input_filepath: Path, output_filepath: Path) -> None:
         """Run flow.
 
         Args:
-            dirpath (Path): Directory where data is stored
-            filename (str): Name of data
-
-        Returns:
-            pd.DataFrame: Clean BER Data
+            input_filepath (Path): Path to input data
+            output_filepath (Path): Path to output data
         """
-        ber_filepath = dirpath / f"{filename}.parquet"
         with raise_on_exception():
-            state = self.flow.run(parameters=dict(ber_fpath=ber_filepath))
+            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
 
-        return state.result[bin_year_built_into_census_categories].result
+        result = state.result[bin_year_built_into_census_categories].result
+        result.to_parquet(output_filepath)
 
 
 transform_ber = TransformBER()
