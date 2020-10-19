@@ -6,7 +6,7 @@ ENV HOME=/usr/local/lib
 # Source: https://hub.docker.com/r/continuumio/miniconda3/dockerfile
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-    wget
+    wget 
 ENV PATH=/opt/conda/bin:$PATH
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
@@ -50,7 +50,7 @@ RUN git clone https://github.com/codema-dev/codema-dev-dotfiles $HOME/codema-dev
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     wget \
-    curk \
+    curl \
     sudo \
     bzip2 \
     ca-certificates \
