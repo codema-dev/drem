@@ -3,6 +3,9 @@
 from os import mkdir
 from pathlib import Path
 from shutil import copytree
+import sys
+from unittest.mock import patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -11,8 +14,28 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
 
-from drem.etl import residential
 from drem.filepaths import FTEST_EXTERNAL_DIR
+
+
+@pytest.fixture
+def mock_data_dir(tmp_path) -> Mock:
+    """Replace DATA_DIR with FTEST_DATA_DIR
+
+    Args:
+        tmp_path(Path): See https://docs.pytest.org/en/stable/tmpdir.html
+    """
+    # Copy test data to temporary directory
+    external_dir = tmp_path / "external"
+    copytree(FTEST_EXTERNAL_DIR, external_dir)
+    mkdir(tmp_path / "processed")
+
+    with patch(
+        "drem.utilities.filepath_tasks.get_data_dir", autospec=True
+    ) as _mock_data_dir, patch.dict("sys.modules"):
+        sys.modules.pop("drem.etl.residential", None)
+        _mock_data_dir.return_value = tmp_path
+
+        yield _mock_data_dir
 
 
 def mock_prefectsecret_run(*args, **kwargs) -> str:
@@ -24,16 +47,18 @@ def mock_task_run(*args, **kwargs) -> None:
 
 
 @pytest.fixture
-def etl_flow_state(monkeypatch: MonkeyPatch, tmp_path: Path) -> State:
+def etl_flow_state(monkeypatch: MonkeyPatch, mock_data_dir: Mock) -> State:
     """Run etl flow with dummy test data.
 
     Args:
         monkeypatch (MonkeyPatch): Pytest fixture to mock out objects s.a. PrefectSecret
-        tmp_path (Path): See https://docs.pytest.org/en/stable/tmpdir.html
+        mock_data_dir (Mock): See https://docs.pytest.org/en/stable/tmpdir.html
 
     Returns:
         [State]: A Prefect State object containing flow run information
     """
+    from drem.etl import residential
+
     # Mock out PrefectSecret as no secrets are required in CI (data already downloaded)
     monkeypatch.setattr(
         residential.PrefectSecret, "run", mock_prefectsecret_run,
@@ -47,13 +72,8 @@ def etl_flow_state(monkeypatch: MonkeyPatch, tmp_path: Path) -> State:
         residential.DownloadBER, "run", mock_task_run,
     )
 
-    # Copy test data to temporary directory
-    external_dir = tmp_path / "external"
-    copytree(FTEST_EXTERNAL_DIR, external_dir)
-    mkdir(tmp_path / "processed")
-
     with raise_on_exception():
-        state = residential.flow.run(data_dir=tmp_path)
+        state = residential.flow.run()
 
     return state
 

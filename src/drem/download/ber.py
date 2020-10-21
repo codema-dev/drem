@@ -1,4 +1,5 @@
 import json
+from os import path
 
 from pathlib import Path
 
@@ -26,7 +27,7 @@ class DownloadBER(Task):
         lambda email_address: validate_email(email_address),
         "Email address is invalid!",
     )
-    def run(self, email_address: str, savedir: Path, filename: str) -> None:
+    def run(self, email_address: str, filepath: str) -> None:
         """Login & Download BER data.
 
         Warning:
@@ -35,17 +36,12 @@ class DownloadBER(Task):
 
         Args:
             email_address (str): Registered Email address with SEAI
-            savedir (Path): Save directory
-            filename (str): File name
+            filepath (str): Path to data
         """
-        savepath = savedir / f"{filename}.zip"
-
-        if savepath.exists():
-
-            self.logger.info(f"{savepath} already exists!")
+        if path.exists(filepath):
+            self.logger.info(f"Skipping download as {filepath} already exists!")
 
         else:
-
             with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
                 ber_form_data = json.load(json_file)
 
@@ -72,4 +68,4 @@ class DownloadBER(Task):
                 ) as response:
 
                     response.raise_for_status()
-                    download_file_from_response(response, savepath)
+                    download_file_from_response(response, filepath)
