@@ -74,7 +74,7 @@ def shapefile_to_parquet(
 
     Args:
         input_filepath (str): Path to input file
-        output_filepath (str): Path to output file 
+        output_filepath (str): Path to output file
     """
     logger = prefect.context.get("logger")
     if path.exists(output_filepath):
@@ -82,4 +82,3 @@ def shapefile_to_parquet(
     else:
         shapefile = gpd.read_file(input_filepath, driver="ESRI Shapefile")
         shapefile.to_parquet(output_filepath)
-
