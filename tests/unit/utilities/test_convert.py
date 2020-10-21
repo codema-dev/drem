@@ -14,15 +14,15 @@ def test_convert_csv_to_parquet(tmp_path: Path) -> None:
     Args:
         tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
     """
-    filename = "data"
-    pd.DataFrame({"col": [1, 2, 3]}).to_csv(tmp_path / f"{filename}.csv")
-    expected_file_output = tmp_path / "data.parquet"
+    input_filepath = tmp_path / "data.csv"
+    output_filepath = tmp_path / "data.parquet"
+    pd.DataFrame({"col": [1, 2, 3]}).to_csv(input_filepath)
 
     convert.csv_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        input_filepath=input_filepath, output_filepath=output_filepath,
     )
 
-    assert expected_file_output.exists()
+    assert output_filepath.exists()
 
 
 def test_convert_csv_to_dask_parquet(tmp_path: Path) -> None:
@@ -31,15 +31,15 @@ def test_convert_csv_to_dask_parquet(tmp_path: Path) -> None:
     Args:
         tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
     """
-    filename = "data"
-    pd.DataFrame({"col": [1, 2, 3]}).to_csv(tmp_path / f"{filename}.csv")
-    expected_file_output = tmp_path / "data.parquet"
+    input_filepath = tmp_path / "data.csv"
+    output_filepath = tmp_path / "data.parquet"
+    pd.DataFrame({"col": [1, 2, 3]}).to_csv(input_filepath)
 
     convert.csv_to_dask_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        input_filepath=input_filepath, output_filepath=output_filepath,
     )
 
-    assert expected_file_output.exists()
+    assert output_filepath.exists()
 
 
 def test_convert_excel_to_parquet(tmp_path: Path) -> None:
@@ -48,17 +48,17 @@ def test_convert_excel_to_parquet(tmp_path: Path) -> None:
     Args:
         tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
     """
-    filename = "data"
+    input_filepath = tmp_path / "data.xlsx"
+    output_filepath = tmp_path / "data.parquet"
     pd.DataFrame({"col": [1, 2, 3]}).to_excel(
-        tmp_path / f"{filename}.xlsx", engine="openpyxl",
+        input_filepath, engine="openpyxl",
     )
-    expected_file_output = tmp_path / "data.xlsx"
 
     convert.excel_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        input_filepath=input_filepath, output_filepath=output_filepath,
     )
 
-    assert expected_file_output.exists()
+    assert output_filepath.exists()
 
 
 def test_convert_shapefile_to_parquet(tmp_path: Path) -> None:
@@ -67,15 +67,14 @@ def test_convert_shapefile_to_parquet(tmp_path: Path) -> None:
     Args:
         tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
     """
-    filename = "data"
-    filepath = tmp_path / filename
+    input_filepath = tmp_path / "data"
+    output_filepath = tmp_path / "data.parquet"
     gpd.GeoDataFrame({"data": [1], "geometry": [Point(0, 0)]}).to_file(
-        filepath, driver="ESRI Shapefile",
+        input_filepath, driver="ESRI Shapefile",
     )
-    expected_file_output = tmp_path / "data.parquet"
 
     convert.shapefile_to_parquet.run(
-        input_dirpath=tmp_path, output_dirpath=tmp_path, filename=filename,
+        input_filepath=input_filepath, output_filepath=output_filepath,
     )
 
-    assert expected_file_output.exists()
+    assert output_filepath.exists()
