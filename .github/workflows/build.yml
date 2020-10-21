@@ -47,9 +47,6 @@ jobs:
     - name: Check Code Quality with black
       run: poetry run black . --check
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
     - name: Test with pytest
       run: poetry run pytest --cov . -n 2 --cov-report=xml
 
