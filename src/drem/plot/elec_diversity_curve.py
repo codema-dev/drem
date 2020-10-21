@@ -62,7 +62,7 @@ def _calculate_relative_peak_demand(
     df: pd.DataFrame, group_on: str, target: str, size: int,
 ) -> int:
 
-    return df.groupby(group_on)[target].agg(lambda arr: arr.sum() / size).max()
+    return df.groupby(group_on)[target].sum().max() / size
 
 
 with Flow("Calculate Relative Peak Demand for Sample Size N") as flow:
