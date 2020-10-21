@@ -330,9 +330,11 @@ def visualize_subflows() -> None:
     )
 
 
-def visualize_flow(flow=flow, state=None) -> None:
+def visualize_flow(flow_to_viz, flow_state=None) -> None:
     residential_etl.save_flow_visualization_to_file(
-        savepath=VISUALIZATION_DIR / "etl" / "residential", flow=flow, flow_state=state,
+        savepath=VISUALIZATION_DIR / "etl" / "residential",
+        flow=flow_to_viz,
+        flow_state=state,
     )
 
 

@@ -32,7 +32,7 @@ def elec_demands_dirpath(tmp_path: Path) -> Path:
     for filename in ("part.0", "part.1"):
 
         savepath = dirpath / f"{filename}.parquet"
-        pd.DataFrame(
+        df = pd.DataFrame(
             {
                 "id": pd.Series([1392, 1000, 1392], dtype="int16"),
                 "demand": pd.Series([0.14, 1, 0.138], dtype="float32"),
@@ -45,7 +45,8 @@ def elec_demands_dirpath(tmp_path: Path) -> Path:
                     dtype="datetime64[ns]",
                 ),
             },
-        ).to_parquet(savepath)
+        )
+        df.to_parquet(savepath)
 
     return dirpath
 
