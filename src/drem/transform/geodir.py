@@ -78,9 +78,6 @@ df_cea_extracted[["floors_ag", "floors_bg"]] = df_cea_extracted[
     ["floors_ag", "floors_bg"]
 ].astype(int)
 
-# Maybe extract values just for residential?
-# Will need to include building_use_type
-
 df_output = df_cea_extracted.drop_duplicates("Name", keep="last")
 # Zone shapefile
 df_output.to_file(driver="ESRI Shapefile", filename=PROCESSED_DIR / "ZoneCEA")

@@ -1,7 +1,6 @@
 import pandas as pd
 import geopandas as gpd
 from drem.filepaths import RAW_DIR
-from geodir.py import df_output
 
 # Spatially linking BER dataset to Geodir on SA level
 ber = pd.read_parquet(RAW_DIR / "BER_Closed.parquet")
@@ -23,14 +22,9 @@ census = gpd.read_file(RAW_DIR / "Census2011_Small_Areas_generalised20m.shp")
 census_extracted = census[["SMALL_AREA", "geometry"]]
 census_renamed = census_extracted.rename(columns={"SMALL_AREA": "cso_small_area"})
 
-ber_sa = pd.merge(ber_renamed, census_renamed, on="cso_small_area", how="inner")
-ber_sa.sort_values("cso_small_area")
+ber_sa = census_renamed.merge(ber_renamed, on="cso_small_area", how="inner")
+ber_sa = ber_sa.sort_values("cso_small_area")
 
-# ber_test = ber_sa[ber_sa["Dublin Postcode"].str.contains("DUBLIN 14")]
-# ber_test2 = ber_test[
-#    ber_test["Dwelling Group"].str.contains("Semi detatched house", na=False)
-# ]
-# ber_test2["Year of construction range"].value_counts()
 
 ber_crs = gpd.GeoDataFrame(ber_sa)
 ber_crs = ber_crs.to_crs(epsg=32629)
@@ -56,9 +50,6 @@ geo_dropped["Dwelling Group"] = geo_dropped["Dwelling type description"].map(
     }
 )
 
-# Assumption in medians here
-# Write a for loop here within "Apartment"
-# Need to assign these
 
 dwelling = ["Apartment", "Semi detatched house", "Detatched house", "Terraced"]
 
