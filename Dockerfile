@@ -69,6 +69,12 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     graphviz
 
+# Install utils so git commands can create a terminal front-end
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    apt-utils \
+    less
+
 # Install vim for command line text editing
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
