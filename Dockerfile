@@ -6,7 +6,7 @@ ENV HOME=/usr/local/lib
 # Source: https://hub.docker.com/r/continuumio/miniconda3/dockerfile
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-    wget 
+    wget
 ENV PATH=/opt/conda/bin:$PATH
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
@@ -68,6 +68,22 @@ RUN apt-get update \
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     graphviz
+
+# Install utils so git commands can create a terminal front-end
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    apt-utils \
+    less
+
+# Install vim for command line text editing
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    vim
+
+# Install nano for easier command line text editing
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    nano
 
 RUN chsh -s $(which zsh)
 
