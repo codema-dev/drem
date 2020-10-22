@@ -1,7 +1,6 @@
 # Dublin Region Energy Masterplan (drem)
 
 ![PyPI - License](https://img.shields.io/pypi/l/drem)
-[![PyPI](https://img.shields.io/pypi/v/drem.svg)](https://pypi.org/project/drem/)
 ![build](https://github.com/codema-dev/drem/workflows/build/badge.svg)
 [![Codecov](https://codecov.io/gh/codema-dev/drem/branch/master/graph/badge.svg)](https://codecov.io/gh/codema-dev/drem)
 [![DeepSource](https://deepsource.io/gh/codema-dev/drem.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/codema-dev/drem/?ref=repository-badge)
@@ -55,7 +54,7 @@ You may also find `drem` useful to __download any data sets used in `drem` using
 
 ## Installation
 
-__Recommended__: Via [`conda`](https://conda.io/en/latest/) 
+__Recommended__: Via [`conda`](https://conda.io/en/latest/) & [`poetry`](https://python-poetry.org/docs/)
 
 ```bash
 git clone https://github.com/codema-dev/drem
@@ -67,6 +66,7 @@ poetry install
 
 > `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager). 
 
+> `drem` uses `poetry` to manage dependencies.  This can be obtained by following the [`poetry` installation guide](https://python-poetry.org/docs/#installation)
 
 ## Basic usage
 
