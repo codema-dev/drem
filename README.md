@@ -59,23 +59,13 @@ __Recommended__: Via [`conda`](https://conda.io/en/latest/)
 
 ```bash
 git clone https://github.com/codema-dev/drem
+cd drem
 conda env create --file=drem-env.yaml
+conda activate drem-env
+poetry install
 ```
 
 > `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager). 
-
-__Not Recommended__: Via [`pip`](https://pip.pypa.io/en/stable/)
-
-```bash
-pip install drem
-```
-
-Or to get the latest version:
-```bash
-pip install git+https://github.com/codema-dev/drem
-```
-
-> If installing via `pip` `drem` requires installation of non-Python dependencies such as `gcc` to run, see [`Installing with pip`](https://geopandas.org/install.html) 
 
 
 ## Basic usage
