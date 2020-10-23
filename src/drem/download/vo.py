@@ -63,9 +63,8 @@ class DownloadValuationOffice(Task):
                     logger.info(error)
 
 
-download_valuation_office = DownloadValuationOffice()
-
 if __name__ == "__main__":
+    download_valuation_office = DownloadValuationOffice()
     download_valuation_office.run(
         dirpath=EXTERNAL_DIR,
         local_authorities=[

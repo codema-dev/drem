@@ -4,8 +4,17 @@ from re import IGNORECASE
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import glob
 
 from prefect import task
+from drem.filepaths import EXTERNAL_DIR
+
+
+def _merge_local_authority_files(dirpath) -> pd.DataFrame:
+
+    files = dirpath.glob("*.csv")
+    dfs = [pd.read_csv(fp) for fp in files]
+    df = pd.concat(dfs)
 
 
 def _fillna_in_columns_where_column_name_contains_substring(
@@ -130,7 +139,7 @@ def _set_coordinate_reference_system_to_lat_long(
 
 @task
 def transform_vo(
-    vo_raw: pd.DataFrame, benchmarks: pd.DataFrame, unmatched_txtfile: Path,
+    vo_dirpath: Path, benchmarks: pd.DataFrame, unmatched_txtfile: Path,
 ) -> gpd.GeoDataFrame:
     """Tidy Valuation Office dataset.
 
@@ -153,7 +162,7 @@ def transform_vo(
         pd.DataFrame: Tidy DataFrame
     """
     return (
-        vo_raw.copy()
+        _merge_local_authority_files(vo_dirpath)
         .rename(columns=str.strip)
         .pipe(
             _fillna_in_columns_where_column_name_contains_substring,
