@@ -1,4 +1,5 @@
 benchmark,typical_fossil_fuel,typical_electricity,illustrative_fossil_fuel,illustrative_electricity
+Airport,,,,
 "Bar, Pub or Licensed Club (TM:46)",350,130,350,130
 Catering: Fast Food Restaurant,480,820,670,890
 Cinema (Table 20.6),203,64,261,81
@@ -22,6 +23,7 @@ Hospitals: Acute & Maternity,422,74,510,108
 Hospitals: Teaching & Specialist,339,86,411,122
 Hotels: Holiday,260,80,400,140
 Hotels: Small,240,80,360,120
+Incinerator,,,,
 Laboratories (Table 20.20),,,,
 Large Non-Food Shop (TM:46),170,70,170,70
 Local Authority buildings: Depots,283,37,311,39
