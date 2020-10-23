@@ -1,9 +1,12 @@
 from collections import defaultdict
+from os import path
 from pathlib import Path
 
 import pandas as pd
 
 from prefect import task
+
+from drem.filepaths import DATA_DIR
 
 
 def _read_text_files_linking_benchmarks_to_vo_to_dataframe(
@@ -38,25 +41,31 @@ def _merge_benchmarks_with_values(
     )
 
 
-@task
-def transform_benchmarks(
-    dirpath_to_benchmarks_links: Path, filepath_to_benchmark_energies: Path,
-) -> pd.DataFrame:
+@task(
+    name="""
+        Convert files linking Commercial Benchmarks to Valuation Office
+        uses files to a Pandas DataFrame
+    """,
+)
+def transform_benchmarks(dirpath: Path) -> pd.DataFrame:
     """Transform Benchmarks into Tidy Data.
 
     Args:
-        dirpath_to_benchmarks_links (Path): Path to text files linking benchmarks to VO
-        uses
-        filepath_to_benchmark_energies (Path): Path to csv file containing benchmark
-        energy / floor area
+        dirpath (Path): Path to benchmarks linked to VO uses
 
     Returns:
         pd.DataFrame: VO uses linked to benchmark energies & categories
     """
     benchmarks_linked_to_vo = _read_text_files_linking_benchmarks_to_vo_to_dataframe(
-        dirpath_to_benchmarks_links,
+        dirpath,
     )
 
-    benchmark_energies = pd.read_csv(filepath_to_benchmark_energies)
+    benchmark_demands_filepath = path.join(dirpath, "benchmark_energy_demands.csv")
+    benchmark_demands = pd.read_csv(benchmark_demands_filepath)
 
-    return _merge_benchmarks_with_values(benchmarks_linked_to_vo, benchmark_energies)
+    return _merge_benchmarks_with_values(benchmarks_linked_to_vo, benchmark_demands)
+
+
+if __name__ == "__main__":
+
+    benchmarks = transform_benchmarks.run(DATA_DIR / "commercial_building_benchmarks")

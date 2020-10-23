@@ -15,7 +15,8 @@
 		"mhutchie.git-graph",
 		"eamodio.gitlens",
 		"ms-python.python",
-		"njpwerner.autodocstring"
+		"njpwerner.autodocstring",
+		"grapecity.gc-excelviewer"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
