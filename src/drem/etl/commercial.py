@@ -27,9 +27,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     vo_raw = pdt.read_parquet(filepath=external_dir / "vo_dublin.parquet")
 
-    benchmarks = transform_benchmarks(
-        benchmarks_dir, benchmarks_dir / "benchmark_energy_demands.csv",
-    )
+    benchmarks = transform_benchmarks(benchmarks_dir)
     vo_clean = transform_vo(vo_raw, benchmarks, benchmarks_dir / "Unmatched.txt")
 
     load_to_parquet(vo_clean, processed_dir / "vo_dublin.parquet")
