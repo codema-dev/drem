@@ -1,9 +1,11 @@
+from os import path
 from pathlib import Path
 from typing import Any
 from typing import Optional
 
 import requests
 
+import prefect
 from prefect import Task
 from tqdm import tqdm
 
@@ -76,24 +78,22 @@ class Download(Task):
         Args:
             url (Optional[str], optional): Direct URL link to data such as
                 http://www.urltodata.ie/data.csv. Defaults to None.
-            **kwargs (Any): see  https://docs.prefect.io/core/concepts/tasks.html
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
         """
         self.url = url
 
         super().__init__(**kwargs)
 
-    def run(self, savedir: Path, filename: str, file_extension: str) -> None:
+    def run(self, filepath: str) -> None:
         """Download data directly from URL to savepath.
 
         Args:
-            savedir (Path): Path to save directory.
-            filename (str): Name of file
-            file_extension (str): File extension (such as 'csv')
+            filepath (str): Path to Data
         """
-        savepath = savedir / f"{filename}.{file_extension}"
-
-        if not savepath.exists():
+        if path.exists(filepath):
+            self.logger.info(f"Skipping download as {filepath} exists!")
+        else:
             with requests.get(url=self.url, stream=True) as response:
 
                 response.raise_for_status()
-                download_file_from_response(response, savepath)
+                download_file_from_response(response, filepath)

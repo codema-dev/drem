@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -9,7 +10,10 @@ from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
+import drem.utilities.dask_dataframe_tasks as ddt
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -56,38 +60,48 @@ with Flow("Cleaning the BER Data...") as flow:
 
     ber_fpath = Parameter("ber_fpath")
 
-    raw_ber = pdt.read_parquet(ber_fpath)
+    raw_ber = ddt.read_parquet(ber_fpath)
+
     get_dublin_rows = pdt.get_rows_where_column_contains_substring(
         raw_ber, target="CountyName", substring="Dublin",
     )
-    rename_postcodes = pdt.rename(get_dublin_rows, columns={"CountyName": "postcodes"})
+    raw_dublin_ber = ddt.compute(get_dublin_rows)
+
+    rename_postcodes = pdt.rename(raw_dublin_ber, columns={"CountyName": "postcodes"})
     bin_year_built_into_census_categories = _bin_year_of_construction_as_in_census(
         rename_postcodes, target="Year_of_Construction", result="cso_period_built",
     )
 
 
-class TransformBER(Task):
+class TransformBER(Task, VisualizeMixin):
     """Clean BER Data in a Prefect flow.
 
     Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
 
-    def run(self, dirpath: Path, filename: str) -> pd.DataFrame:
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
+
+    def run(self, input_filepath: Path, output_filepath: Path) -> None:
         """Run flow.
 
         Args:
-            dirpath (Path): Directory where data is stored
-            filename (str): Name of data
-
-        Returns:
-            pd.DataFrame: Clean BER Data
+            input_filepath (Path): Path to input data
+            output_filepath (Path): Path to output data
         """
-        ber_filepath = dirpath / f"{filename}.parquet"
         with raise_on_exception():
-            state = flow.run(parameters=dict(ber_fpath=ber_filepath))
+            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
 
-        return state.result[bin_year_built_into_census_categories].result
+        result = state.result[bin_year_built_into_census_categories].result
+        result.to_parquet(output_filepath)
 
 
 transform_ber = TransformBER()

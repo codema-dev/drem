@@ -25,7 +25,6 @@ census_renamed = census_extracted.rename(columns={"SMALL_AREA": "cso_small_area"
 ber_sa = census_renamed.merge(ber_renamed, on="cso_small_area", how="inner")
 ber_sa = ber_sa.sort_values("cso_small_area")
 
-
 ber_crs = gpd.GeoDataFrame(ber_sa)
 ber_crs = ber_crs.to_crs(epsg=32629)
 
@@ -50,12 +49,9 @@ geo_dropped["Dwelling Group"] = geo_dropped["Dwelling type description"].map(
     }
 )
 
-
 dwelling = ["Apartment", "Semi detatched house", "Detatched house", "Terraced"]
 
 geo_dwelling = geo_dropped[
     geo_dropped["Dwelling Group"].str.contains("Apartment", na=False)
 ]
 geo_dwelling.groupby(["Dublin Postcode"])[["Year of construction"]].median()
-
-# Match median year of construction to pre-defined range

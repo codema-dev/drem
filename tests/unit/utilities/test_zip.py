@@ -107,10 +107,14 @@ def test_unzip_file_skips_if_unzipped_file_exists(
     """
     unzipped_directory = directory_containing_zipped_folder_with_csv / "directory"
     mkdir(unzipped_directory)
-    with open(unzipped_directory / "data.csv", "w") as file:
+    unzipped_data = unzipped_directory / "data.csv"
+    with open(unzipped_data, "w") as file:
         file.write("1,2,3")
 
-    unzip.run(dirpath=directory_containing_zipped_folder_with_csv, filename="directory")
+    unzip.run(
+        input_filepath=directory_containing_zipped_folder_with_csv / "directory.zip",
+        output_filepath=directory_containing_zipped_folder_with_csv / "directory",
+    )
 
     assert "already" in caplog.text
     assert "unzipped" in caplog.text

@@ -25,7 +25,6 @@ pygeos = "^0.7.1"
 validate_email = "^1.3"
 dask = {extras = ["dataframe"], version = "^2.26.0"}
 seaborn = "^0.11.0"
-graphviz = "^0.14.1"
 loguru = "^0.5.3"
 bs4 = "^0.0.1"
 lxml = "^4.5.2"
@@ -50,8 +49,14 @@ Pygments = "^2.7.1"
 responses = "^0.12.0"
 poetry2conda = "^0.3.0"
 
+
+[tool.poetry.extras]
+viz = ["graphviz"]
+
+
 [tool.poetry2conda]
 name = "drem-env"
+
 
 [tool.poetry2conda.dependencies]
 bs4 = { channel = "pip" }
@@ -62,6 +67,7 @@ prefect = { channel = "pip" }
 pyarrow = { channel = "pip" }
 icontract = { channel = "pip" }
 loguru = { channel = "pip" }
+
 
 [tool.isort]
 line_length = 88

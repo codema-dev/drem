@@ -1,4 +1,5 @@
 import json
+from os import path
 
 from pathlib import Path
 
@@ -8,8 +9,8 @@ from icontract import require
 from prefect import Task
 from validate_email import validate_email
 
-from drem.download.download import download_file_from_response
 from drem.filepaths import REQUESTS_DIR
+from drem.utilities.download import download_file_from_response
 
 
 CWD: Path = Path.cwd()
@@ -26,7 +27,7 @@ class DownloadBER(Task):
         lambda email_address: validate_email(email_address),
         "Email address is invalid!",
     )
-    def run(self, email_address: str, savedir: Path, filename: str) -> None:
+    def run(self, email_address: str, filepath: str) -> None:
         """Login & Download BER data.
 
         Warning:
@@ -35,35 +36,36 @@ class DownloadBER(Task):
 
         Args:
             email_address (str): Registered Email address with SEAI
-            savedir (Path): Save directory
-            filename (str): File name
+            filepath (str): Path to data
         """
-        savepath = savedir / f"{filename}.zip"
+        if path.exists(filepath):
+            self.logger.info(f"Skipping download as {filepath} already exists!")
 
-        with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
-            ber_form_data = json.load(json_file)
+        else:
+            with open(REQUESTS_DIR / "ber_forms.json", "r") as json_file:
+                ber_form_data = json.load(json_file)
 
-        # Register login email address in form
-        ber_form_data["login"][
-            "ctl00$DefaultContent$Register$dfRegister$Name"
-        ] = email_address
+            # Register login email address in form
+            ber_form_data["login"][
+                "ctl00$DefaultContent$Register$dfRegister$Name"
+            ] = email_address
 
-        with requests.Session() as session:
+            with requests.Session() as session:
 
-            # Login to BER Research Tool using email address
-            session.post(
-                url="https://ndber.seai.ie/BERResearchTool/Register/Register.aspx",
-                headers=ber_form_data["headers"],
-                data=ber_form_data["login"],
-            )
+                # Login to BER Research Tool using email address
+                session.post(
+                    url="https://ndber.seai.ie/BERResearchTool/Register/Register.aspx",
+                    headers=ber_form_data["headers"],
+                    data=ber_form_data["login"],
+                )
 
-            # Download Ber data via a post request
-            with session.post(
-                url="https://ndber.seai.ie/BERResearchTool/ber/search.aspx",
-                headers=ber_form_data["headers"],
-                data=ber_form_data["download_all_data"],
-                stream=True,
-            ) as response:
+                # Download Ber data via a post request
+                with session.post(
+                    url="https://ndber.seai.ie/BERResearchTool/ber/search.aspx",
+                    headers=ber_form_data["headers"],
+                    data=ber_form_data["download_all_data"],
+                    stream=True,
+                ) as response:
 
-                response.raise_for_status()
-                download_file_from_response(response, savepath)
+                    response.raise_for_status()
+                    download_file_from_response(response, filepath)

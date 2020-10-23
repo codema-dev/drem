@@ -100,3 +100,6 @@ prefect-config.toml
 # ignore notebooks by default ...
 notebooks/*
 !notebooks/.gitkeep
+
+# ignore windows custom icon
+desktop.ini

@@ -1,3 +1,4 @@
+from os import path
 from os import mkdir
 from pathlib import Path
 from shutil import unpack_archive
@@ -39,20 +40,15 @@ def unzip_folder(filepath: Path) -> None:
 
 
 @task
-@require(lambda dirpath: isinstance(dirpath, Path))
-def unzip(dirpath: Path, filename: str, file_extension: str = "zip") -> None:
+def unzip(input_filepath: str, output_filepath: str) -> None:
     """Unzip directory in Prefect Task.
 
     Args:
-        dirpath (Path): Path to directory
-        filename (str): Name of file
-        file_extension (str): File extension of file to be unzipped. Defaults to 'zip'
+        input_filepath (str): Path to file to be zipped
+        output_filepath (str): Path to unzipped file
     """
-    filepath = dirpath / f"{filename}.{file_extension}"
-    filepath_unzipped = dirpath / filename
-
-    if filepath_unzipped.exists():
-        logger.info(f"{filepath_unzipped} has already been unzipped!")
+    if path.exists(output_filepath):
+        logger.info(f"Skipping as {output_filepath} has already been unzipped!")
     else:
-        mkdir(filepath_unzipped)
-        unpack_archive(filepath, filepath_unzipped)
+        mkdir(output_filepath)
+        unpack_archive(input_filepath, output_filepath)

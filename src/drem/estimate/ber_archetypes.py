@@ -1,8 +1,9 @@
+from pathlib import Path
+from typing import Any
 from typing import Iterable
 
 import pandas as pd
 
-from icontract import require
 from prefect import Flow
 from prefect import Parameter
 from prefect import Task
@@ -10,6 +11,8 @@ from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
 import drem.utilities.pandas_tasks as pdt
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -22,7 +25,9 @@ def _get_mean_heat_demand_per_archetype(
 
 with Flow("Create BER Archetypes") as flow:
 
-    clean_ber = Parameter("clean_ber")
+    ber_fpath = Parameter("ber_fpath")
+
+    clean_ber = pdt.read_parquet(ber_fpath)
 
     select_columns_from_raw = pdt.get_columns(
         clean_ber,
@@ -57,28 +62,36 @@ with Flow("Create BER Archetypes") as flow:
     )
 
 
-class CreateBERArchetypes(Task):
+class CreateBERArchetypes(Task, VisualizeMixin):
     """Create BER Archetypes.
 
     Args:
-        Task (prefect.Task): See
-            https://docs.prefect.io/api/latest/core/task.html#task-2
+        Task (prefect.Task): see  https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
 
-    @require(lambda ber: isinstance(ber, pd.DataFrame))
-    def run(self, ber: pd.DataFrame) -> pd.DataFrame:
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
+
+    def run(self, input_filepath: Path, output_filepath: Path) -> pd.DataFrame:
         """Run Flow.
 
         Args:
-            ber (pd.DataFrame): Clean BER Data
-
-        Returns:
-            pd.DataFrame: BER archetype averages
+            input_filepath (Path): Path to Clean BER Data
+            output_filepath (Path): Path to BER archetypes
         """
         with raise_on_exception():
-            state = flow.run(parameters=dict(clean_ber=ber))
+            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
 
-        return state.result[ber_archetypes].result
+        result = state.result[ber_archetypes].result
+
+        result.to_parquet(output_filepath)
 
 
 create_ber_archetypes = CreateBERArchetypes()
