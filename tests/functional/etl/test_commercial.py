@@ -27,7 +27,13 @@ def etl_flow_state(monkeypatch) -> State:
     Returns:
         [State]: A Prefect State object containing flow run information
     """
+
+    from drem.etl import commercial
+
     # Mock out task load as CI doesn't need flow outputs on-disk
+    monkeypatch.setattr(
+        commercial.DownloadValuationOffice, "run", mock_task_run,
+    )
     monkeypatch.setattr(commercial.LoadToParquet, "run", mock_task_run)
     with raise_on_exception():
         state: State = commercial.flow.run(data_dir=FTEST_DIR)
