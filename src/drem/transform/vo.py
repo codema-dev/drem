@@ -4,7 +4,6 @@ from re import IGNORECASE
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import glob
 
 from prefect import task
 from drem.filepaths import EXTERNAL_DIR
