@@ -53,6 +53,7 @@ def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFram
     return df
 
 
+@task
 def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
     df[on] = (
@@ -62,6 +63,7 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
     return df
 
 
+@task
 def _replace_rows_equal_to_string(
     df: pd.DataFrame, target: str, result: str, to_replace: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -71,6 +73,7 @@ def _replace_rows_equal_to_string(
     return df
 
 
+@task
 def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
     df[column] = df[column].astype(str).str.replace(r"[-,]", "").str.strip()
@@ -78,6 +81,7 @@ def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.Dat
     return df
 
 
+@task
 def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     uses = (
@@ -94,6 +98,7 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return vo
 
 
+@task
 def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -103,6 +108,7 @@ def _merge_benchmarks_into_vo(
     )
 
 
+@task
 def _save_unmatched_vo_uses_to_text_file(
     vo: pd.DataFrame, none_file: Path,
 ) -> pd.DataFrame:
@@ -115,6 +121,7 @@ def _save_unmatched_vo_uses_to_text_file(
     return vo
 
 
+@task
 def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
 
     vo["typical_electricity_demand"] = vo["Area"] * vo["typical_electricity"]
@@ -123,6 +130,7 @@ def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
     return vo
 
 
+@task
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     """Convert DataFrame to GeoDataFrame from ITM Coordinates.
 
@@ -139,6 +147,7 @@ def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(df, geometry=coordinates, crs="epsg:2157")
 
 
+@task
 def _set_coordinate_reference_system_to_lat_long(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -208,5 +217,12 @@ with Flow("Transform Raw VO") as flow:
     )
     vo_stripped = _strip_whitespace(
         vo_merged, target="address_raw", result="address_stripped"
+    )
+    vo_replaced = _replace_rows_equal_to_string(
+        vo_stripped,
+        target="address_stripped",
+        result="Address",
+        to_replace="",
+        replace_with="None",
     )
 
