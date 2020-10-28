@@ -5,17 +5,22 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+from prefect import Flow
 from prefect import task
 from drem.filepaths import EXTERNAL_DIR
 
 
-def _merge_local_authority_files(dirpath) -> pd.DataFrame:
+@task
+def _merge_local_authority_files(filetype, dirpath) -> pd.DataFrame:
 
-    files = dirpath.glob("*.csv")
+    files = dirpath.glob()
     dfs = [pd.read_csv(fp) for fp in files]
     df = pd.concat(dfs)
 
+    return df
 
+
+@task
 def _fillna_in_columns_where_column_name_contains_substring(
     df: pd.DataFrame, substring: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -26,6 +31,7 @@ def _fillna_in_columns_where_column_name_contains_substring(
     return df
 
 
+@task
 def _merge_string_columns_into_one(
     df: pd.DataFrame, target: str, result: str,
 ) -> pd.DataFrame:
@@ -36,6 +42,7 @@ def _merge_string_columns_into_one(
     return df
 
 
+@task
 def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFrame:
 
     df[result] = df[target].astype(str).str.strip()
@@ -43,6 +50,7 @@ def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFram
     return df
 
 
+@task
 def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
     df[on] = (
@@ -52,6 +60,7 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
     return df
 
 
+@task
 def _replace_rows_equal_to_string(
     df: pd.DataFrame, target: str, result: str, to_replace: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -61,6 +70,7 @@ def _replace_rows_equal_to_string(
     return df
 
 
+@task
 def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
     df[column] = df[column].astype(str).str.replace(r"[-,]", "").str.strip()
@@ -68,6 +78,7 @@ def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.Dat
     return df
 
 
+@task
 def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     uses = (
@@ -84,6 +95,7 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return vo
 
 
+@task
 def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -93,6 +105,7 @@ def _merge_benchmarks_into_vo(
     )
 
 
+@task
 def _save_unmatched_vo_uses_to_text_file(
     vo: pd.DataFrame, none_file: Path,
 ) -> pd.DataFrame:
@@ -105,6 +118,7 @@ def _save_unmatched_vo_uses_to_text_file(
     return vo
 
 
+@task
 def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
 
     vo["typical_electricity_demand"] = vo["Area"] * vo["typical_electricity"]
@@ -113,6 +127,7 @@ def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
     return vo
 
 
+@task
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     """Convert DataFrame to GeoDataFrame from ITM Coordinates.
 
@@ -129,6 +144,7 @@ def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(df, geometry=coordinates, crs="epsg:2157")
 
 
+@task
 def _set_coordinate_reference_system_to_lat_long(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -185,3 +201,9 @@ def transform_vo(
         .pipe(_convert_to_geodataframe)
         .pipe(_set_coordinate_reference_system_to_lat_long)
     )
+
+
+with Flow("Tidy VO Dataset") as flow:
+
+    vo_merged = _merge_local_authority_files("*.csv", vo_dirpath)
+
