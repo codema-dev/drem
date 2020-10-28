@@ -12,6 +12,7 @@ from drem.filepaths import PROCESSED_DIR
 
 import drem.utilities.dask_dataframe_tasks as ddt
 import drem.utilities.pandas_tasks as pdt
+from drem.transform.benchmarks import transform_benchmarks
 
 
 @task
@@ -102,6 +103,9 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
+
+    benchmarks_dir = data_dir / "commercial_building_benchmarks"
+    benchmarks = transform_benchmarks(benchmarks_dir)
 
     return vo.merge(
         benchmarks, left_on="use_0", right_on="vo_use", how="left", indicator=True,
@@ -225,4 +229,11 @@ with Flow("Transform Raw VO") as flow:
         to_replace="",
         replace_with="None",
     )
+    vo_extracted = _extract_use_from_vo_uses_column(vo_replaced)
+    vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, benchmarks)
+    vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
+        vo_merged_benchmarks, unmatched_txtfile
+    )
+    vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
+    vo_gdf = _convert_to_geodataframe(vo_applied)
 
