@@ -225,6 +225,24 @@ def transform_vo(
 
 with Flow("Transform Raw VO") as flow:
 
+    """Tidy Valuation Office dataset.
+
+    By:
+    - Merging all downloaded vo files and creating a single df
+    - Clean address names by removing whitespace
+    - Remove 0 floor area buildings
+    - Fill column names containing substring
+    - Merge address columns into a single address column
+    - Extract useful colums
+    - Clean 'Uses' by removing symbols [-,]
+    - Merge combined vo df with benchmarks
+    - Save umnatched benchmarks to txt file
+    - Apply benchmarks to compute electricity and FF demand
+    - Convert into GeoDataFrame so we can perform spatial operations such as plotting
+    - Convert to Latitude | Longitude
+
+    """
+
     data_dir = Parameter("data_dir", default=DATA_DIR)
     external_dir = data_dir / "external"
     benchmarks_dir = data_dir / "commercial_building_benchmarks"
