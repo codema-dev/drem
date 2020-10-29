@@ -69,6 +69,14 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
 
 @task
+def _remove_zero_floor_area_buildings(df: pd.DataFrame) -> pd.DataFrame:
+
+    df = df[df["Area"] > 0]
+
+    return df
+
+
+@task
 def _replace_rows_equal_to_string(
     df: pd.DataFrame, target: str, result: str, to_replace: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -230,8 +238,9 @@ with Flow("Transform Raw VO") as flow:
 
     vo_raw = _merge_local_authority_files(vo_dirpath)
     vo_removed = _remove_whitespace_from_column_strings(vo_raw)
+    vo_area = _remove_zero_floor_area_buildings(vo_removed)
     vo_filled = _fillna_in_columns_where_column_name_contains_substring(
-        vo_raw, substring="Address", replace_with="",
+        vo_area, substring="Address", replace_with="",
     )
     vo_merged = _merge_string_columns_into_one(
         vo_filled, target="Address", result="address_raw"
@@ -251,9 +260,6 @@ with Flow("Transform Raw VO") as flow:
     vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
         vo_merged_benchmarks, benchmarks_dir / "Unmatched.txt"
     )
-
     vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
-    # query A>0
     vo_gdf = _convert_to_geodataframe(vo_applied)
     vo_crs = _set_coordinate_reference_system_to_lat_long(vo_gdf)
-
