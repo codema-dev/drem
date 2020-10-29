@@ -7,8 +7,11 @@ import pandas as pd
 
 from prefect import Flow
 from prefect import task
+from prefect import Parameter
+
 from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import DATA_DIR
 
 import drem.utilities.dask_dataframe_tasks as ddt
 import drem.utilities.pandas_tasks as pdt
@@ -103,9 +106,6 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
-
-    benchmarks_dir = data_dir / "commercial_building_benchmarks"
-    benchmarks = transform_benchmarks(benchmarks_dir)
 
     return vo.merge(
         benchmarks, left_on="use_0", right_on="vo_use", how="left", indicator=True,
@@ -212,7 +212,13 @@ def transform_vo(
 
 with Flow("Transform Raw VO") as flow:
 
-    vo_raw = _merge_local_authority_files(dirpath=EXTERNAL_DIR / "vo")
+    data_dir = Parameter("data_dir", default=DATA_DIR)
+
+    benchmarks_dir = data_dir / "commercial_building_benchmarks"
+    benchmarks = transform_benchmarks(benchmarks_dir)
+    vo_dirpath = external_dir / "vo"
+
+    vo_raw = _merge_local_authority_files(vo_dirpath)
     vo_filled = _fillna_in_columns_where_column_name_contains_substring(
         vo_raw, substring="Address", replace_with="",
     )
