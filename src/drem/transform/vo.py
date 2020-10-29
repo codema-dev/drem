@@ -87,6 +87,14 @@ def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.Dat
 
 
 @task
+def _remove_whitespace_from_column_strings(df: pd.DataFrame) -> pd.DataFrame:
+
+    df.columns = df.columns.str.strip()
+
+    return df
+
+
+@task
 def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     uses = (
@@ -221,6 +229,7 @@ with Flow("Transform Raw VO") as flow:
     vo_dirpath = external_dir / "vo"
 
     vo_raw = _merge_local_authority_files(vo_dirpath)
+    vo_removed = _remove_whitespace_from_column_strings(vo_raw)
     vo_filled = _fillna_in_columns_where_column_name_contains_substring(
         vo_raw, substring="Address", replace_with="",
     )
@@ -244,6 +253,7 @@ with Flow("Transform Raw VO") as flow:
     )
 
     vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
+    # query A>0
     vo_gdf = _convert_to_geodataframe(vo_applied)
     vo_crs = _set_coordinate_reference_system_to_lat_long(vo_gdf)
 
