@@ -261,17 +261,19 @@ class TransformVO(Task, VisualizeMixin):
         data_dir: Path,
         benchmarks_dir: Path,
         external_dir: Path,
-    ) -> None:
+    ) -> gpd.GeoDataFrame:
         """Run flow.
 
         Args:
             input_filepath (Path): Path to input data
-            output_filepath (Path): Path to output data
+
+        Returns:
+            Clean GeoDataFrame
         """
         with raise_on_exception():
             state = self.flow.run(parameters=dict(vo_dirpath=input_filepath))
 
-        result = state.result[vo_crs].result
+        return state.result[vo_crs].result
 
 
 transform_vo = TransformVO()
