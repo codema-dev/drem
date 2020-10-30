@@ -1,18 +1,24 @@
 from pathlib import Path
 from re import IGNORECASE
+from typing import Any
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
 from prefect import Flow
-from prefect import task
 from prefect import Parameter
+from prefect import Task
+from prefect import task
+from prefect.utilities.debug import raise_on_exception
+
 
 from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
 from drem.filepaths import DATA_DIR
 from drem.transform.benchmarks import transform_benchmarks
+
+from drem.utilities.visualize import VisualizeMixin
 
 
 @task
@@ -176,6 +182,10 @@ with Flow("Transform Raw VO") as flow:
 
     """Tidy Valuation Office dataset.
 
+     Args:
+        Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
+
     By:
     - Merging all downloaded vo files and creating a single df
     - Clean address names by removing whitespace
@@ -226,3 +236,38 @@ with Flow("Transform Raw VO") as flow:
     vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
     vo_gdf = _convert_to_geodataframe(vo_applied)
     vo_crs = _set_coordinate_reference_system_to_lat_long(vo_gdf)
+
+
+class TransformVO(Task, VisualizeMixin):
+    """Clean VO Data in a Prefect flow.
+
+    Args:
+        Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
+    """
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
+
+    def run(self, input_filepath: Path, output_filepath: Path) -> None:
+        """Run flow.
+
+        Args:
+            input_filepath (Path): Path to input data
+            output_filepath (Path): Path to output data
+        """
+        with raise_on_exception():
+            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
+
+        result = state.result[vo_crs].result
+        result.to_parquet(output_filepath)
+
+
+transform_vo = TransformVO()
+
