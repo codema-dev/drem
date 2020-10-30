@@ -255,7 +255,13 @@ class TransformVO(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(self, input_filepath: Path, output_filepath: Path) -> None:
+    def run(
+        self,
+        input_filepath: Path,
+        data_dir: Path,
+        benchmarks_dir: Path,
+        external_dir: Path,
+    ) -> None:
         """Run flow.
 
         Args:
@@ -263,10 +269,9 @@ class TransformVO(Task, VisualizeMixin):
             output_filepath (Path): Path to output data
         """
         with raise_on_exception():
-            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
+            state = self.flow.run(parameters=dict(vo_dirpath=input_filepath))
 
         result = state.result[vo_crs].result
-        result.to_parquet(output_filepath)
 
 
 transform_vo = TransformVO()
