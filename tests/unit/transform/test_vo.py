@@ -1,3 +1,4 @@
+from os import mkdir
 from pathlib import Path
 
 import geopandas as gpd
@@ -8,6 +9,7 @@ from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
 from shapely.geometry import Point
 
+from drem.transform.vo import _merge_local_authority_files
 from drem.transform.vo import _apply_benchmarks_to_vo_floor_area
 from drem.transform.vo import _convert_to_geodataframe
 from drem.transform.vo import _extract_use_from_vo_uses_column
@@ -18,6 +20,21 @@ from drem.transform.vo import _remove_null_address_strings
 from drem.transform.vo import _replace_rows_equal_to_string
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 from drem.transform.vo import _strip_whitespace
+
+
+def test_merge_local_authority_files(tmp_path: Path) -> pd.DataFrame:
+    "Merge all extracted vo files and creating a single df"
+
+    """Create a temporary directory of dummy data called 'dummy_path_vo'.
+
+    Args:
+        tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
+
+    Returns:
+        Path: Path to a temporary directory of dummy data called 'dummy_path_vo'.
+    """
+    dirpath = tmp_path / "dummy_path_vo"
+    mkdir(dirpath)
 
 
 def test_fillna_in_columns_where_column_name_contains_substring() -> None:
