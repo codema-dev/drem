@@ -172,57 +172,6 @@ def _set_coordinate_reference_system_to_lat_long(
     return gdf.to_crs("epsg:4326")
 
 
-@task
-def transform_vo(
-    vo_dirpath: Path, benchmarks: pd.DataFrame, unmatched_txtfile: Path,
-) -> gpd.GeoDataFrame:
-    """Tidy Valuation Office dataset.
-
-    By:
-    - Clean address names by removing whitespace
-    - Combine address columns into a single address column
-    - Pull out columns: Address, Floor Area, Lat, Long
-    - Set columns to titlecase
-    - Clean 'Uses' by removing symbols [-,]
-    - Remove 0 floor area buildings
-    - Convert into GeoDataFrame so we can perform spatial operations such as plotting
-    - Convert to Latitude | Longitude
-
-    Args:
-        vo_raw (pd.DataFrame): Raw VO DataFrame
-        benchmarks (pd.DataFrame): Benchmarks linking VO 'use' to a benchmark energy
-        unmatched_txtfile (Path): Path to unmatched vo 'use' categories
-
-    Returns:
-        pd.DataFrame: Tidy DataFrame
-    """
-    return (
-        _merge_local_authority_files(vo_dirpath)
-        .rename(columns=str.strip)
-        .pipe(
-            _fillna_in_columns_where_column_name_contains_substring,
-            substring="Address",
-            replace_with="",
-        )
-        .pipe(_merge_string_columns_into_one, target="Address", result="address_raw")
-        .pipe(_strip_whitespace, target="address_raw", result="address_stripped")
-        .pipe(
-            _replace_rows_equal_to_string,
-            target="address_stripped",
-            result="Address",
-            to_replace="",
-            replace_with="None",
-        )
-        .pipe(_extract_use_from_vo_uses_column)
-        .pipe(_merge_benchmarks_into_vo, benchmarks)
-        .pipe(_save_unmatched_vo_uses_to_text_file, unmatched_txtfile)
-        .pipe(_apply_benchmarks_to_vo_floor_area)
-        .query("Area > 0")
-        .pipe(_convert_to_geodataframe)
-        .pipe(_set_coordinate_reference_system_to_lat_long)
-    )
-
-
 with Flow("Transform Raw VO") as flow:
 
     """Tidy Valuation Office dataset.
