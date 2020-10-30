@@ -8,7 +8,7 @@ import drem.utilities.pandas_tasks as pdt
 from drem.filepaths import DATA_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.benchmarks import transform_benchmarks
-from drem.transform.vo import vo_crs
+from drem.transform.vo import transform_vo
 from drem.download.vo import DownloadValuationOffice
 
 
@@ -39,7 +39,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
 
     benchmarks = transform_benchmarks(benchmarks_dir)
-    vo_clean = vo_crs
+    vo_clean = transform_vo(vo_dirpath, benchmarks, benchmarks_dir / "Unmatched.txt")
 
     load_to_parquet(vo_clean, processed_dir / "vo_dublin.parquet")
 
