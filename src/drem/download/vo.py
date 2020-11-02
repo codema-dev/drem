@@ -1,3 +1,4 @@
+import os
 from os import mkdir
 from os import path
 from typing import List
@@ -26,42 +27,47 @@ class DownloadValuationOffice(Task):
             local_authorities (List[str]): Names of local authorities to be queried
         """
 
-        savedir = path.join(dirpath, "vo")
-        mkdir(savedir)
+        if path.exists(dirpath):
+            logger.info(f"{dirpath} already exists")
 
-        categories = [
-            "OFFICE",
-            "FUEL/DEPOT",
-            "LEISURE",
-            "INDUSTRIAL USES",
-            "HEALTH",
-            "HOSPITALITY",
-            "MINERALS",
-            "MISCELLANEOUS",
-            "RETAIL (SHOPS)",
-            "UTILITY",
-            "RETAIL (WAREHOUSE)",
-            "NO CATEGORY SELECTED",
-            "CENTRAL VALUATION LIST",
-            "CHECK CATEGORY",
-            "NON-LIST",
-            "NON-LIST EXEMPT",
-        ]
+        else:
 
-        for local_authority in local_authorities:
-            for category in categories:
-                category_without_slashes = category.replace("/", " or ")
-                try:
-                    download(
-                        url=f"https://api.valoff.ie/api/Property/GetProperties?Fields=*&LocalAuthority={local_authority}&CategorySelected={category}&Format=csv&Download=true",
-                        filepath=path.join(
-                            savedir,
-                            f"{local_authority} - {category_without_slashes}.csv",
-                        ),
-                    )
+            savedir = path.join(dirpath, "vo")
+            mkdir(savedir)
 
-                except requests.HTTPError as error:
-                    logger.info(error)
+            categories = [
+                "OFFICE",
+                "FUEL/DEPOT",
+                "LEISURE",
+                "INDUSTRIAL USES",
+                "HEALTH",
+                "HOSPITALITY",
+                "MINERALS",
+                "MISCELLANEOUS",
+                "RETAIL (SHOPS)",
+                "UTILITY",
+                "RETAIL (WAREHOUSE)",
+                "NO CATEGORY SELECTED",
+                "CENTRAL VALUATION LIST",
+                "CHECK CATEGORY",
+                "NON-LIST",
+                "NON-LIST EXEMPT",
+            ]
+
+            for local_authority in local_authorities:
+                for category in categories:
+                    category_without_slashes = category.replace("/", " or ")
+                    try:
+                        download(
+                            url=f"https://api.valoff.ie/api/Property/GetProperties?Fields=*&LocalAuthority={local_authority}&CategorySelected={category}&Format=csv&Download=true",
+                            filepath=path.join(
+                                savedir,
+                                f"{local_authority} - {category_without_slashes}.csv",
+                            ),
+                        )
+
+                    except requests.HTTPError as error:
+                        logger.info(error)
 
 
 if __name__ == "__main__":
