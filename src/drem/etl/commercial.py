@@ -39,7 +39,9 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
 
     benchmarks = transform_benchmarks(benchmarks_dir)
-    vo_clean = transform_vo(vo_dirpath, benchmarks, benchmarks_dir / "Unmatched.txt")
+    vo_clean = transform_vo(
+        vo_dirpath, benchmarks, external_dir, benchmarks_dir / "Unmatched.txt"
+    )
 
     load_to_parquet(vo_clean, processed_dir / "vo_dublin.parquet")
 
