@@ -203,11 +203,14 @@ with Flow("Transform Raw VO") as flow:
     """
 
     data_dir = Parameter("data_dir", default=DATA_DIR)
-    external_dir = data_dir / "external"
-    benchmarks_dir = data_dir / "commercial_building_benchmarks"
+    external_dir = Parameter("external_dir", default=EXTERNAL_DIR)
+    benchmarks_dir = Parameter(
+        "commercial_building_benchmarks",
+        default=DATA_DIR / "commercial_building_benchmarks",
+    )
 
     benchmarks = transform_benchmarks(benchmarks_dir)
-    vo_dirpath = external_dir / "vo"
+    vo_dirpath = Parameter("vo_dirpath", default=EXTERNAL_DIR / "vo")
 
     vo_raw = _merge_local_authority_files(vo_dirpath)
     vo_removed = _remove_whitespace_from_column_strings(vo_raw)
@@ -271,7 +274,7 @@ class TransformVO(Task, VisualizeMixin):
             Clean GeoDataFrame
         """
         with raise_on_exception():
-            state = self.flow.run(parameters=dict(vo_dirpath=input_filepath))
+            state = self.flow.run()
 
         return state.result[vo_crs].result
 
