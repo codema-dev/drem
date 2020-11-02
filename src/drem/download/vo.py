@@ -11,6 +11,40 @@ from drem.filepaths import EXTERNAL_DIR
 from drem.utilities.download import download
 
 
+def _download_by_local_authority(savedir, local_authorities):
+    categories = [
+        "OFFICE",
+        "FUEL/DEPOT",
+        "LEISURE",
+        "INDUSTRIAL USES",
+        "HEALTH",
+        "HOSPITALITY",
+        "MINERALS",
+        "MISCELLANEOUS",
+        "RETAIL (SHOPS)",
+        "UTILITY",
+        "RETAIL (WAREHOUSE)",
+        "NO CATEGORY SELECTED",
+        "CENTRAL VALUATION LIST",
+        "CHECK CATEGORY",
+        "NON-LIST",
+        "NON-LIST EXEMPT",
+    ]
+
+    for local_authority in local_authorities:
+        for category in categories:
+            category_without_slashes = category.replace("/", " or ")
+            try:
+                download(
+                    url=f"https://api.valoff.ie/api/Property/GetProperties?Fields=*&LocalAuthority={local_authority}&CategorySelected={category}&Format=csv&Download=true",
+                    filepath=path.join(
+                        savedir, f"{local_authority} - {category_without_slashes}.csv",
+                    ),
+                )
+            except requests.HTTPError as error:
+                logger.info(error)
+
+
 class DownloadValuationOffice(Task):
     """Download Valuation Office Data via Prefect.
 
@@ -26,41 +60,12 @@ class DownloadValuationOffice(Task):
             local_authorities (List[str]): Names of local authorities to be queried
         """
         savedir = path.join(dirpath, "vo")
-        mkdir(savedir)
 
-        categories = [
-            "OFFICE",
-            "FUEL/DEPOT",
-            "LEISURE",
-            "INDUSTRIAL USES",
-            "HEALTH",
-            "HOSPITALITY",
-            "MINERALS",
-            "MISCELLANEOUS",
-            "RETAIL (SHOPS)",
-            "UTILITY",
-            "RETAIL (WAREHOUSE)",
-            "NO CATEGORY SELECTED",
-            "CENTRAL VALUATION LIST",
-            "CHECK CATEGORY",
-            "NON-LIST",
-            "NON-LIST EXEMPT",
-        ]
-
-        for local_authority in local_authorities:
-            for category in categories:
-                category_without_slashes = category.replace("/", " or ")
-                try:
-                    download(
-                        url=f"https://api.valoff.ie/api/Property/GetProperties?Fields=*&LocalAuthority={local_authority}&CategorySelected={category}&Format=csv&Download=true",
-                        filepath=path.join(
-                            savedir,
-                            f"{local_authority} - {category_without_slashes}.csv",
-                        ),
-                    )
-
-                except requests.HTTPError as error:
-                    logger.info(error)
+        if path.exists(savedir):
+            self.logger.info(f"Skipping as {savedir} exists!")
+        else:
+            mkdir(savedir)
+            _download_by_local_authority(savedir, local_authorities)
 
 
 if __name__ == "__main__":

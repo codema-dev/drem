@@ -6,14 +6,14 @@ import numpy as np
 import pandas as pd
 
 from prefect import task
-from drem.filepaths import EXTERNAL_DIR
 
 
 def _merge_local_authority_files(dirpath) -> pd.DataFrame:
 
     files = dirpath.glob("*.csv")
     dfs = [pd.read_csv(fp) for fp in files]
-    df = pd.concat(dfs)
+
+    return pd.concat(dfs)
 
 
 def _fillna_in_columns_where_column_name_contains_substring(
@@ -153,7 +153,7 @@ def transform_vo(
     - Convert to Latitude | Longitude
 
     Args:
-        vo_raw (pd.DataFrame): Raw VO DataFrame
+        vo_dirpath (Path): Raw vo data directory path
         benchmarks (pd.DataFrame): Benchmarks linking VO 'use' to a benchmark energy
         unmatched_txtfile (Path): Path to unmatched vo 'use' categories
 
@@ -184,4 +184,5 @@ def transform_vo(
         .query("Area > 0")
         .pipe(_convert_to_geodataframe)
         .pipe(_set_coordinate_reference_system_to_lat_long)
+        .drop(columns=["_merge"])  # cannot load categorical cols to shapefile
     )
