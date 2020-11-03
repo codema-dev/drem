@@ -64,7 +64,7 @@ conda activate drem-env
 poetry install
 ```
 
-> `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager). 
+> `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
 > `drem` uses `poetry` to manage dependencies.  This can be obtained by following the [`poetry` installation guide](https://python-poetry.org/docs/#installation)
 
@@ -212,59 +212,3 @@ Once the `drem` container has been setup:
 ### [Optional] Develop in Windows Subsystem for Linux 2 (WSL2)
 
 Another work-around is WSL2 if you work in Windows and wish to create your own development environment in Linux.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.
-
-
----
-
-### Using existing libraries
-
-```Python
-import pandas
-```
-
-Now all of the pandas functions and classes can be accessed with a `.` operator:
-
-```Python
-# Create a DataFrame containing the list [1 2 3]
-data = pandas.DataFrame([1 2 3])
-```
-
-Typically use `import pandas as pd` instead as short-hand so:
-
-```Python
-data = pd.DataFrame([1 2 3])
-```
-
-
----
-
-### Why not use Jupyter Notebooks?
-
-Jupyter Notebooks are great for prototyping ideas with single-use code but not so good for writing reusable code.  Scripts are preferable for this purpose as they make the following possible:
-
-- __Refactoring__ = re-implementing code to speed it up or clean it up.
-- __Testing__ = write test scripts to make sure the code does what it says on the tin (trademark: Ronsill??)
-- __Logging__ = store outputs of code as it runs in external files so can see what's going on inside the file
-- __data pipeline__ = specifies the process of data transformation (where it comes from, where it goes, what's done to it) - typically a helper module such as [Luigi](https://luigi.readthedocs.io/en/stable/) is used for this.
-
----
-
-### How to run scripts?
-
-As scripts are run using the command line it is necessary to be familiar with a few commands (surprisingly few are needed)
-
-- `cd` = change directory
-- `cd ..` = go back a directory
-- `ls` = list names of files and folders in directory
-- `pwd` = print current directory
-- `cd <name-of-file-or-folder>` = go to file/folder
-
-See [Command Line Crash Course](https://learnpythonthehardway.org/book/appendixa.html) from Learn Python The Hard Way (the entire pdf is on the Share Drive) for intros/examples of maybe 10 commands that are used all the time.
-
----
-
-### [iPython](https://ipython.readthedocs.io/en/stable/)
-
-The command line tool iPython can be used to run scripts and try out code interactively.
-
-For more information:__ See jakevdp's chapter on iPython at [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/).
