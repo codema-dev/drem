@@ -54,10 +54,6 @@ poetry2conda = "^0.3.0"
 viz = ["graphviz"]
 
 
-[tool.poetry2conda]
-name = "drem-env"
-
-
 [tool.isort]
 line_length = 88
 force_single_line = true
