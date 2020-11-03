@@ -7,12 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+---
+
+
+## [0.4.0] - 2020-11-03
+
+### Added
+
+- Roughly estimate (not in a prefect flow yet...) & map Small Area energy demand for
+    - Residential using SEAI BER archetypes, CSO 2016 Census HH statistics
+    - Commercial using VO Floor areas and CIBSE 2009 / Dublin LA derived benchmarks
+    - Map using CSO 2016 Census Small Areas and Shane McGuinness Postcodes
+
+- Clean cso 2019 postcode network gas consumption (residential & non-residential) and link these demands to postcode households statistics (Census 2016 CSO) and to postcode geometries.  These demands can be used as a 'ground-truth' for district level heating demand.
+
+- Roughly adapt BER hh fabric info, CSO Small Area stats & geodirectory hh stats via scripting for input to CityEnergyAnalyst
+
+- Download VO data via their API LA by LA
+
+- Add generic dask_dataframe_tasks to wrap generic dask dataframe methods for prefect
+
+- Add filepath_tasks so can use functions to find ROOT_DIR which can be easily mocked out for the prefect pipeline dummy flows...
+
+- Add immutable dicts to utilities.filepaths to store filepaths accross files - WIP
+
+- Add flow visualization mixin that can be inherited by transform tasks to easily visualize each task in the form of a flow chart so that non-programmers can follow the transform pipeline at a glance...
+
 ### Changed
+
+- Rename commercial benchmark filenames to remove irrelevant strings (s.a. Table X.X) and move unmatched benchmarks (to VO uses) to the appropriate corresponding benchmark
+
+- Skip download ber if file exists
+
+- Refactor all residential & commercial etl flow tasks to read/write to files instead of passing DataFrames & GeoDataFrames.  Consequently once a flow each step of the pipeline is now checkpointed.  This enables the running of each transform file independent of flow context.  It also enables Excel, Tableau or QGIS users to visualize these intermediate steps provided that the data is checkpointed in a compatible file format.
+
+- Refactor testing of residential etl to mock out DATA_DIR rather than replacing it via prefect flow parameter.  Consequently the prefect flow visualisation for this etl is much cleaner as DATA_DIR is no longer split into 10s of div bubbles.  Also, it is now possible to use prefect's built-in file checkpointing in place of read/write file explicitely in each etl task as this DATA_DIR variable can be passed outside of flow context during the Task instantiation step at the top of the etl file.  It's still possible to run transform tasks independently of flow provided that a default read-from-filepath argument is set for each data file.
 
 - Refactor `drem.transform.dublin_postcodes` into a `prefect` flow & dissolve all Co Dublin postcodes into one multipolygon geometry using `geopandas` dissolve.
 
 - Pull generalisable `pandas` and `geopandas` prefect tasks into `drem.utilities.pandas_tasks` and `drem.utilities.geopandas_tasks` respectively.  Only unit tested if functionality differs from `pandas` or `geopandas` implementation...
 
+### Removed
 
 ---
 
@@ -224,7 +260,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Copy `drem` code from `rdmolony` to `codema-dev` and restart Git History from there...
 
-[Unreleased]: https://github.com/codema-dev/drem/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/codema-dev/drem/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/codema-dev/drem/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/codema-dev/drem/compare/v0.3.1...v0.3.0
 [0.3.0]: https://github.com/codema-dev/drem/compare/v0.3.0...v0.2.0
 [0.2.0]: https://github.com/codema-dev/drem/compare/v0.2.0...v0.1.2
