@@ -157,29 +157,16 @@ For more information see:
 
 ---
 
-## Contributing to `drem`
+## Setup a Local `drem` Development environment
 
-### Glossary of terms
+- Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
 
-- __script__ = a text file containing functions and classes - Python scripts have .py file endings.  These files must be run via the command line (See section below for more details).
 
-- __module__ = an individual python file containing a bunch of functions or classes.
+### Via `conda` only
 
-- __library__ = a collection of modules with helpful functions and classes.
+1. Install the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
----
-
-### Setup a Local Development environment using Visual Studio Code
-
-1. Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
-
-2. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
-
-3. Install the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
-
-4. Launch VSCode in your local `drem` folder
-
-5. Install `drem` via `conda`
+2. Install `drem` via `conda` using the `Anaconda` (or `miniconda`) prompt
 
     ```bash
     conda env create --file=environment.yaml
@@ -189,13 +176,23 @@ For more information see:
 
 ---
 
-### [Optional] Develop in the `drem` `docker` container
+### Via `docker`
 
 The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
 
-To open the `drem` folder within the `drem` `Dockerfile` container follow the instructions at VSCode's [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers) & [reopen the `drem` folder in a container](https://code.visualstudio.com/docs/remote/create-dev-container).
 
-Once VSCode has been reopened in a docker container install `drem` via conda and set your VSCode Python Interpreter to your `conda` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
+1. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
+
+2. Reopen the `drem` folder within the `drem` `Dockerfile` container by following the instructions at:
+    - [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
+    - [Reopen the `drem` folder in a container](https://code.visualstudio.com/docs/remote/create-dev-container)
+
+3. Set your VSCode Python Interpreter to your `conda` virtualenv Python to enable `black`, `flake8`, `mypy`, `pre-commit`...
+    - On the zsh command line enter:
+        ```bash
+        poetry shell
+        which python
+        ```
 
 ---
 
