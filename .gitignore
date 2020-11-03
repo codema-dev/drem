@@ -103,3 +103,6 @@ notebooks/*
 
 # ignore windows custom icon
 desktop.ini
+
+# ignore dephell rst
+README.rst
