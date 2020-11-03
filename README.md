@@ -54,19 +54,18 @@ You may also find `drem` useful to __download any data sets used in `drem` using
 
 ## Installation
 
-__Recommended__: Via [`conda`](https://conda.io/en/latest/) & [`poetry`](https://python-poetry.org/docs/)
+__Recommended__: Via [`conda`](https://conda.io/en/latest/)
 
 ```bash
 git clone https://github.com/codema-dev/drem
 cd drem
-conda env create --file=drem-env.yaml
+conda env create --file=environment.yaml
 conda activate drem-env
-poetry install
+pip install -e .
 ```
 
 > `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
-> `drem` uses `poetry` to manage dependencies.  This can be obtained by following the [`poetry` installation guide](https://python-poetry.org/docs/#installation)
 
 ## Basic usage
 
@@ -176,36 +175,27 @@ For more information see:
 
 2. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
 
-3. Install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+3. Install the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
 4. Launch VSCode in your local `drem` folder
 
-5. Install `pyenv` to set your local Python version to the same version as `drem` (see `.python-version` file)
+5. Install `drem` via `conda`
 
-    - Windows: https://github.com/pyenv-win/pyenv-win
-    - OSX/Linux: https://github.com/pyenv/pyenv#installation
-
-6. Install [`poetry`](https://python-poetry.org/docs/)
-
-    - run `poetry install` on the Command Line to install the `drem` dependencies
-    - run `poetry shell` to activate your local `poetry` virtual environment
+    ```bash
+    conda env create --file=environment.yaml
+    conda activate drem-env
+    pip install -e .
+    ```
 
 ---
 
 ### [Optional] Develop in the `drem` `docker` container
 
-The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed
+The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
 
-To open the `drem` folder within the `drem` `Dockerfile` container follow the instructions at VSCode's [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers).
+To open the `drem` folder within the `drem` `Dockerfile` container follow the instructions at VSCode's [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers) & [reopen the `drem` folder in a container](https://code.visualstudio.com/docs/remote/create-dev-container).
 
-Once the `drem` container has been setup:
-
-- Run `poetry install` on the Command Line to install the `drem` dependencies
-- Run `poetry shell` to activate your local `poetry` virtual environment
-- Set your VSCode Python Interpreter to your `poetry` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
-    - Copy `/usr/local/lib/.cache/pypoetry/virtualenvs/`
-    - Select your `Poetry` virtualenv such as `drem-TFRFQYJy-py3.8`
-    - Choose `/bin/python3`
+Once VSCode has been reopened in a docker container install `drem` via conda and set your VSCode Python Interpreter to your `conda` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
 
 ---
 
