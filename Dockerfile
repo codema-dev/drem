@@ -67,6 +67,7 @@ RUN apt-get update \
 # Install python development headers so can compile all C/C++ libraries
 # Source: https://stackoverflow.com/questions/11094718/error-command-gcc-failed-with-exit-status-1-while-installing-eventlet
 RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
     && python-dev
 
 # Install graphviz for prefect flow visualization
