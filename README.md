@@ -18,7 +18,7 @@ The goal of `drem` is to:
 - Usage of 'Live'/up-to-date data sources
 
 
-## Download, install & run `drem`
+## Setup
 
 - Download `drem` locally by clicking 'Clone or download' (or by running `git clone https://github.com/codema-dev/drem`)
 
@@ -69,7 +69,7 @@ The goal of `drem` is to:
 
 ## 'drem' relies on
 
-Open-source software:
+### Open-source software
 
 - `prefect` to orchestrate all `drem` tasks via a data pipeline
 - `pandas` to transform columnar data
@@ -80,7 +80,7 @@ Open-source software:
 - `git` to track code changes
 
 
-Open-access data (unless specified!):
+### Open-access data (unless specified!)
 
 - Residential buildings:
 
