@@ -96,3 +96,17 @@ build-backend = "poetry.masonry.api"
 [tool.dephell.main]
 from = "pyproject.toml"
 to = "setup.py"
+
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+markers = [
+    "e2e: marks end-to-end tests which take longer to run as exercise multiple functions",
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::FutureWarning",
+    "ignore::PendingDeprecationWarning",
+]
