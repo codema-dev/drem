@@ -34,7 +34,6 @@ def etl_flow_state(monkeypatch) -> State:
     monkeypatch.setattr(
         commercial.DownloadValuationOffice, "run", mock_task_run,
     )
-    monkeypatch.setattr(commercial.LoadToParquet, "run", mock_task_run)
     with raise_on_exception():
         state: State = commercial.flow.run(data_dir=FTEST_DIR)
 

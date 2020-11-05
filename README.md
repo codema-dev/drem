@@ -54,19 +54,18 @@ You may also find `drem` useful to __download any data sets used in `drem` using
 
 ## Installation
 
-__Recommended__: Via [`conda`](https://conda.io/en/latest/) & [`poetry`](https://python-poetry.org/docs/)
+__Recommended__: Via [`conda`](https://conda.io/en/latest/)
 
 ```bash
 git clone https://github.com/codema-dev/drem
 cd drem
-conda env create --file=drem-env.yaml
+conda env create --file=environment.yaml
 conda activate drem-env
-poetry install
+pip install -e .
 ```
 
-> `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager). 
+> `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
-> `drem` uses `poetry` to manage dependencies.  This can be obtained by following the [`poetry` installation guide](https://python-poetry.org/docs/#installation)
 
 ## Basic usage
 
@@ -158,113 +157,45 @@ For more information see:
 
 ---
 
-## Contributing to `drem`
+## Setup a Local `drem` Development environment
 
-### Glossary of terms
+- Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
 
-- __script__ = a text file containing functions and classes - Python scripts have .py file endings.  These files must be run via the command line (See section below for more details).
 
-- __module__ = an individual python file containing a bunch of functions or classes.
+### Via `conda` only
 
-- __library__ = a collection of modules with helpful functions and classes.
+1. Install the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
 
----
+2. Install `drem` via `conda` using the `Anaconda` (or `miniconda`) prompt
 
-### Setup a Local Development environment using Visual Studio Code
-
-1. Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
-
-2. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
-
-3. Install the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-
-4. Launch VSCode in your local `drem` folder
-
-5. Install `pyenv` to set your local Python version to the same version as `drem` (see `.python-version` file)
-
-    - Windows: https://github.com/pyenv-win/pyenv-win
-    - OSX/Linux: https://github.com/pyenv/pyenv#installation
-
-6. Install [`poetry`](https://python-poetry.org/docs/)
-
-    - run `poetry install` on the Command Line to install the `drem` dependencies
-    - run `poetry shell` to activate your local `poetry` virtual environment
+    ```bash
+    conda env create --file=environment.yaml
+    conda activate drem-env
+    pip install -e .
+    ```
 
 ---
 
-### [Optional] Develop in the `drem` `docker` container
+### Via `docker`
 
-The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed
+The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
 
-To open the `drem` folder within the `drem` `Dockerfile` container follow the instructions at VSCode's [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers).
 
-Once the `drem` container has been setup:
+1. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
 
-- Run `poetry install` on the Command Line to install the `drem` dependencies
-- Run `poetry shell` to activate your local `poetry` virtual environment
-- Set your VSCode Python Interpreter to your `poetry` virtualenv Python (to enable `black`, `flake8`, `mypy`, `pre-commit`...):
-    - Copy `/usr/local/lib/.cache/pypoetry/virtualenvs/`
-    - Select your `Poetry` virtualenv such as `drem-TFRFQYJy-py3.8`
-    - Choose `/bin/python3`
+2. Reopen the `drem` folder within the `drem` `Dockerfile` container by following the instructions at:
+    - [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
+    - [Reopen the `drem` folder in a container](https://code.visualstudio.com/docs/remote/create-dev-container)
+
+3. Set your VSCode Python Interpreter to your `conda` virtualenv Python to enable `black`, `flake8`, `mypy`, `pre-commit`...
+    - On the zsh command line enter:
+        ```bash
+        poetry shell
+        which python
+        ```
 
 ---
 
 ### [Optional] Develop in Windows Subsystem for Linux 2 (WSL2)
 
 Another work-around is WSL2 if you work in Windows and wish to create your own development environment in Linux.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.
-
-
----
-
-### Using existing libraries
-
-```Python
-import pandas
-```
-
-Now all of the pandas functions and classes can be accessed with a `.` operator:
-
-```Python
-# Create a DataFrame containing the list [1 2 3]
-data = pandas.DataFrame([1 2 3])
-```
-
-Typically use `import pandas as pd` instead as short-hand so:
-
-```Python
-data = pd.DataFrame([1 2 3])
-```
-
-
----
-
-### Why not use Jupyter Notebooks?
-
-Jupyter Notebooks are great for prototyping ideas with single-use code but not so good for writing reusable code.  Scripts are preferable for this purpose as they make the following possible:
-
-- __Refactoring__ = re-implementing code to speed it up or clean it up.
-- __Testing__ = write test scripts to make sure the code does what it says on the tin (trademark: Ronsill??)
-- __Logging__ = store outputs of code as it runs in external files so can see what's going on inside the file
-- __data pipeline__ = specifies the process of data transformation (where it comes from, where it goes, what's done to it) - typically a helper module such as [Luigi](https://luigi.readthedocs.io/en/stable/) is used for this.
-
----
-
-### How to run scripts?
-
-As scripts are run using the command line it is necessary to be familiar with a few commands (surprisingly few are needed)
-
-- `cd` = change directory
-- `cd ..` = go back a directory
-- `ls` = list names of files and folders in directory
-- `pwd` = print current directory
-- `cd <name-of-file-or-folder>` = go to file/folder
-
-See [Command Line Crash Course](https://learnpythonthehardway.org/book/appendixa.html) from Learn Python The Hard Way (the entire pdf is on the Share Drive) for intros/examples of maybe 10 commands that are used all the time.
-
----
-
-### [iPython](https://ipython.readthedocs.io/en/stable/)
-
-The command line tool iPython can be used to run scripts and try out code interactively.
-
-For more information:__ See jakevdp's chapter on iPython at [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/).

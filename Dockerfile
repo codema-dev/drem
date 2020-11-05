@@ -59,10 +59,16 @@ ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
 RUN chmod +x /usr/bin/tini
 
-# Install gcc to compile C-libraries (such as numpy)
+# Install gcc to compile C/C++ libraries (such as numpy)
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     gcc
+
+# Install python development headers so can compile all C/C++ libraries
+# Source: https://stackoverflow.com/questions/11094718/error-command-gcc-failed-with-exit-status-1-while-installing-eventlet
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    python3-dev
 
 # Install graphviz for prefect flow visualization
 RUN apt-get update \

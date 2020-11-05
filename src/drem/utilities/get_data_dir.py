@@ -8,7 +8,7 @@ def get_data_dir() -> str:
         str: Filepath to the drem data directory
     """
     cwd = Path(__file__)
-    base_dir = cwd.resolve().parents[2]
+    base_dir = cwd.resolve().parents[3]
     data_dir = base_dir / "data"
 
     return str(data_dir)

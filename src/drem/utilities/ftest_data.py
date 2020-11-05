@@ -118,6 +118,28 @@ def _sample_berpublicsearch(
         rmtree(output_filepath.parent)
 
 
+def _sample_valuation_office(
+    input_dirpath: Path, output_dirpath: Path, sample_size: int,
+) -> None:
+
+    if output_dirpath.exists():
+        rmtree(output_dirpath)
+
+    mkdir(output_dirpath)
+
+    for filepath in input_dirpath.glob("*.csv"):
+
+        data = pd.read_csv(filepath)
+        number_of_samples = len(data)
+
+        if sample_size > number_of_samples:
+            sample = data.sample(number_of_samples)
+        else:
+            sample = data.sample(sample_size)
+
+        sample.to_csv(output_dirpath / filepath.name)
+
+
 def create_ftest_data(input_dirpath: Path, output_dirpath: Path) -> None:
     """Create sample data for functional testing.
 
@@ -146,4 +168,7 @@ def create_ftest_data(input_dirpath: Path, output_dirpath: Path) -> None:
         output_dirpath,
         sample_size=200,
         path_to_txt="BERPublicsearch.txt",
+    )
+    _sample_valuation_office(
+        input_dirpath / "vo", output_dirpath / "external" / "vo", sample_size=20,
     )

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drem"
-version = "0.3.1"
+version = "0.4.0"
 description = "https://www.codema.ie/projects/local-projects/dublin-region-energy-master-plan"
 authors = ["Rowan Molony <rowan.molony@codema.ie>"]
 license = "MIT"
@@ -55,21 +55,6 @@ flake8 = "^3.8.4"
 viz = ["graphviz"]
 
 
-[tool.poetry2conda]
-name = "drem-env"
-
-
-[tool.poetry2conda.dependencies]
-bs4 = { channel = "pip" }
-graphviz = { channel = "pip" }
-validate_email = { channel = "pip" }
-pygeos = { channel = "pip" }
-prefect = { channel = "pip" }
-pyarrow = { channel = "pip" }
-icontract = { channel = "pip" }
-loguru = { channel = "pip" }
-
-
 [tool.isort]
 line_length = 88
 force_single_line = true
@@ -107,3 +92,22 @@ exclude = '''
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+
+[tool.dephell.main]
+from = "pyproject.toml"
+to = "setup.py"
+
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+markers = [
+    "e2e: marks end-to-end tests which take longer to run as exercise multiple functions",
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::FutureWarning",
+    "ignore::PendingDeprecationWarning",
+]
