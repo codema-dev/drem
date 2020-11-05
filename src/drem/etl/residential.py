@@ -1,20 +1,16 @@
-from os import path
-from pathlib import Path
 import warnings
 
+from os import path
+from typing import Optional
+
 from prefect import Flow
-from prefect import Parameter
 from prefect import Task
-from prefect import task
 from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
 from drem.download.ber import DownloadBER
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
-from drem.filepaths import DATA_DIR
-from drem.filepaths import EXTERNAL_DIR
-from drem.filepaths import PROCESSED_DIR
 from drem.filepaths import VISUALIZATION_DIR
 from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
@@ -24,10 +20,11 @@ from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
 from drem.utilities import convert
 from drem.utilities.download import Download
+from drem.utilities.filepath_tasks import get_filepath
+from drem.utilities.get_data_dir import get_data_dir
 from drem.utilities.visualize import VisualizeMixin
 from drem.utilities.zip import unzip
-from drem.utilities.filepath_tasks import get_filepath
-from drem.utilities.filepath_tasks import get_data_dir
+
 
 small_area_statistics_filename = "small_area_statistics_2016"
 small_area_glossary_filename = "small_area_glossary_2016"
@@ -91,7 +88,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         filepath=get_filepath(external_dir, ber_filename, ".zip"),
     )
     cso_gas_downloaded = download_cso_gas(
-        filepath=get_filepath(external_dir, cso_gas_filename, ".html")
+        filepath=get_filepath(external_dir, cso_gas_filename, ".html"),
     )
 
     # Unzip all zipped data folders
@@ -330,16 +327,15 @@ def visualize_subflows() -> None:
     )
 
 
-def visualize_flow(flow_to_viz, flow_state=None) -> None:
+def visualize_flow(flow_to_viz: Flow, flow_state: Optional[State] = None) -> None:
+    """Visualize ETL flow.
+
+    Args:
+        flow_to_viz (Flow): Flow to be visualized
+        flow_state (State, optional): Flow State result. Defaults to None.
+    """
     residential_etl.save_flow_visualization_to_file(
         savepath=VISUALIZATION_DIR / "etl" / "residential",
         flow=flow_to_viz,
         flow_state=flow_state,
     )
-
-
-def run_flow() -> State:
-    """Run Residential ETL Flow."""
-    state = residential_etl.run()
-
-    return state
