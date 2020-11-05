@@ -68,7 +68,7 @@ RUN apt-get update \
 # Source: https://stackoverflow.com/questions/11094718/error-command-gcc-failed-with-exit-status-1-while-installing-eventlet
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-    && python-dev
+    python3-dev
 
 # Install graphviz for prefect flow visualization
 RUN apt-get update \
