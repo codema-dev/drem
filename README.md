@@ -67,7 +67,7 @@ The goal of `drem` is to:
 
 ---
 
-## 'drem' relies on
+## `drem` relies on
 
 ### Open-source software
 
