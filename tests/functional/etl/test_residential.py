@@ -1,11 +1,12 @@
 # flake8: noqa
 
+import sys
+
 from os import mkdir
 from pathlib import Path
 from shutil import copytree
-import sys
-from unittest.mock import patch
 from unittest.mock import Mock
+from unittest.mock import patch
 
 import pytest
 
@@ -30,7 +31,7 @@ def mock_data_dir(tmp_path) -> Mock:
     mkdir(tmp_path / "processed")
 
     with patch(
-        "drem.utilities.filepath_tasks.get_data_dir", autospec=True
+        "drem.utilities.get_data_dir.get_data_dir", autospec=True,
     ) as _mock_data_dir, patch.dict("sys.modules"):
         sys.modules.pop("drem.etl.residential", None)
         _mock_data_dir.return_value = tmp_path
