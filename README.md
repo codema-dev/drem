@@ -18,7 +18,7 @@ The goal of `drem` is to:
 - Usage of 'Live'/up-to-date data sources
 
 
-## Setup
+## Download, install & run `drem`
 
 - Download `drem` locally by clicking 'Clone or download' (or by running `git clone https://github.com/codema-dev/drem`)
 
@@ -49,14 +49,18 @@ The goal of `drem` is to:
         - Enter your email address
         - Run all cells by selecting Cell > Run (or by manually running each cell via the Run button or by clicking each cell followed by Shft + Enter)
 
-> (Optional) Set your VSCode Python Interpreter to your `poetry` `virtualenv` Python to enable `black`, `flake8`, `mypy`, `pre-commit`...
-    - On the zsh command line enter:
-        ```bash
-        poetry shell
-        which python
-        ```
 
-> The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
+### (Optional) Setup the `codema-dev` development environment
+
+> All commands mentioned below should be entered on the zsh Command Line unless otherwise specified!
+
+- Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
+    - Run `poetry shell` (to enter`virtualenv`) followed by `which python` (to get the filepath to `virtualenv` Python)
+    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath 
+
+- Change your local `VSCode` settings to `codema-dev` by creating a local `.vscode` folder and copying & pasting [this settings.json](https://github.com/codema-dev/codema-dev-dotfiles/tree/master/.vscode)
+
+- Install local dev dependencies via `poetry install`
 
 > For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
 
@@ -65,7 +69,7 @@ The goal of `drem` is to:
 
 ## 'drem' relies on
 
-Software:
+Open-source software:
 
 - `prefect` to orchestrate all `drem` tasks via a data pipeline
 - `pandas` to transform columnar data
@@ -76,7 +80,7 @@ Software:
 - `git` to track code changes
 
 
-Data:
+Open-access data (unless specified!):
 
 - Residential buildings:
 
