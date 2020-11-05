@@ -17,39 +17,6 @@ The goal of `drem` is to:
 - Reproducibility
 - Usage of 'Live'/up-to-date data sources
 
-Software:
-
-- `prefect` to orchestrate all `drem` tasks via a data pipeline
-- `pandas` to transform columnar data
-- `geopandas` to transform columnar geospatial data
-- `requests` to download data
-- `pypostal` to standardise and parse address string columns
-- `docker` to create a reproducible build environment that runs on Windows, OSX and Linux
-- `git` to track code changes
-
-
-Data:
-
-- Residential buildings:
-
-    - SEAI's 2016 Census Small Area [Statistics](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv), [Geometries](https://data.gov.ie/dataset/small-areas-ungeneralised-osi-national-statistical-boundaries-2015) & [Glossary](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx).
-
-    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx): dwelling fabric information.
-
-    - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) (created by Shane McGuinness of Trinity College Dublin).
-
-    - [CRU Smart Meter Trials 2009-10](https://www.ucd.ie/issda/data/commissionforenergyregulationcer/): 15-minute resolution demands & participant surveys _... available upon request_.
-
-- Commercial:
-
-    - [Valuation Office data](https://www.valoff.ie/en/open-data/api/): commercial building floor areas etc.
-
-    - [CIBSE Energy Benchmarks](https://www.cibse.org/Knowledge/knowledge-items/detail?id=a0q20000008I7evAAC)
-
-    - [SEAI Dublin Measurement & Verification data](https://www.seai.ie/): annual gas/electricity demands for Public sector buildings _... available upon request_.
-
-> See [energy-modelling-ireland/energy-data-sources](https://github.com/energy-modelling-ireland/energy-data-sources) for more Irish-specific energy sources.
-
 
 ## Setup
 
@@ -92,6 +59,44 @@ Data:
 > The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
 
 > For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
+
+
+---
+
+## 'drem' relies on
+
+Software:
+
+- `prefect` to orchestrate all `drem` tasks via a data pipeline
+- `pandas` to transform columnar data
+- `geopandas` to transform columnar geospatial data
+- `requests` to download data
+- `pypostal` to standardise and parse address string columns
+- `docker` to create a reproducible build environment that runs on Windows, OSX and Linux
+- `git` to track code changes
+
+
+Data:
+
+- Residential buildings:
+
+    - SEAI's 2016 Census Small Area [Statistics](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv), [Geometries](https://data.gov.ie/dataset/small-areas-ungeneralised-osi-national-statistical-boundaries-2015) & [Glossary](https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx).
+
+    - SEAI's [BER Public Search](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx): dwelling fabric information.
+
+    - [Dublin Postcodes Geometries](https://github.com/rdmolony/dublin-postcode-shapefiles) (created by Shane McGuinness of Trinity College Dublin).
+
+    - [CRU Smart Meter Trials 2009-10](https://www.ucd.ie/issda/data/commissionforenergyregulationcer/): 15-minute resolution demands & participant surveys _... available upon request_.
+
+- Commercial:
+
+    - [Valuation Office data](https://www.valoff.ie/en/open-data/api/): commercial building floor areas etc.
+
+    - [CIBSE Energy Benchmarks](https://www.cibse.org/Knowledge/knowledge-items/detail?id=a0q20000008I7evAAC)
+
+    - [SEAI Dublin Measurement & Verification data](https://www.seai.ie/): annual gas/electricity demands for Public sector buildings _... available upon request_.
+
+> See [energy-modelling-ireland/energy-data-sources](https://github.com/energy-modelling-ireland/energy-data-sources) for more Irish-specific energy sources.
 
 
 ---
