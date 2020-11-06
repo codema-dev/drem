@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import path
 from re import IGNORECASE
 from typing import Any
 
@@ -19,12 +20,15 @@ from drem.filepaths import DATA_DIR
 from drem.transform.benchmarks import transform_benchmarks
 
 from drem.utilities.visualize import VisualizeMixin
+from drem.utilities.filepaths import EXTERNAL
+from drem.utilities.breakpoint import flow_breakpoint
 
 
 @task
-def _merge_local_authority_files(dirpath) -> pd.DataFrame:
+def _merge_local_authority_files(dirpath: Path) -> pd.DataFrame:
 
-    files = dirpath.glob("*.csv")
+    dirpath_path = Path(dirpath)
+    files = dirpath_path.glob("*.csv")
     df = [pd.read_csv(fp) for fp in files]
 
     return pd.concat(df)
@@ -73,7 +77,7 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 @task
 def _remove_zero_floor_area_buildings(df: pd.DataFrame) -> pd.DataFrame:
 
-    return df[df["Area"] > 0]
+    return df.copy().loc[df["Area"] > 0]
 
 
 @task
@@ -186,15 +190,9 @@ with Flow("Transform Raw VO") as flow:
 
     """
 
-    data_dir = Parameter("data_dir", default=DATA_DIR)
-    external_dir = Parameter("external_dir", default=EXTERNAL_DIR)
-    benchmarks_dir = Parameter(
-        "commercial_building_benchmarks",
-        default=DATA_DIR / "commercial_building_benchmarks",
-    )
-
+    benchmarks_dir = EXTERNAL["commercial_benchmarks"]
     benchmarks = transform_benchmarks(benchmarks_dir)
-    vo_dirpath = Parameter("vo_dirpath", default=EXTERNAL_DIR / "vo")
+    vo_dirpath = EXTERNAL["vo"]
 
     vo_raw = _merge_local_authority_files(vo_dirpath)
     vo_removed = _remove_whitespace_from_column_strings(vo_raw)
@@ -217,8 +215,9 @@ with Flow("Transform Raw VO") as flow:
     )
     vo_extracted = _extract_use_from_vo_uses_column(vo_replaced)
     vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, benchmarks)
+    unmatched_file = path.join(benchmarks_dir, "Unmatched.txt")
     vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
-        vo_merged_benchmarks, benchmarks_dir / "Unmatched.txt"
+        vo_merged_benchmarks, unmatched_file
     )
     vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
     vo_gdf = _convert_to_geodataframe(vo_applied)

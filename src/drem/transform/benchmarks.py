@@ -7,6 +7,7 @@ import pandas as pd
 from prefect import task
 
 from drem.filepaths import DATA_DIR
+from drem.utilities.filepaths import EXTERNAL
 
 
 def _read_text_files_linking_benchmarks_to_vo_to_dataframe(
@@ -14,7 +15,8 @@ def _read_text_files_linking_benchmarks_to_vo_to_dataframe(
 ) -> pd.DataFrame:
 
     links = defaultdict(list)
-    for filepath in dirpath.glob("*.txt"):
+    dirpath_path = Path(dirpath)
+    for filepath in dirpath_path.glob("*.txt"):
         with open(filepath, "r") as file:
             for line in file.read().splitlines():
                 links[filepath.stem].append(line)
