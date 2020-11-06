@@ -29,6 +29,8 @@ loguru = "^0.5.3"
 bs4 = "^0.0.1"
 lxml = "^4.5.2"
 html5lib = "^1.1"
+jupyter = "^1.0.0"
+notebook = "^6.1.4"
 
 
 [tool.poetry.dev-dependencies]

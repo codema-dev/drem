@@ -8,20 +8,79 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
-The goal of `drem` is to automate:
+The goal of `drem` is to:
 
-- Downloading of data from various sources
-- Transforming this raw data into a usable format for the creation of a bottom-up energy model for Dublin
+- Download Dublin energy-related data (from SEAI, the CSO etc.)
+- Transform this data into a bottom-up energy demand model for Dublin
 
-... to enable:
+`drem` uses open-source software and open-access data to enable:
 - Reproducibility
 - Usage of 'Live'/up-to-date data sources
 
-> This process is also known as [__Extract, Transform, Load__](https://en.wikipedia.org/wiki/Extract,_transform,_load) or etl.  Under the hood `drem` uses `prefect` to [chain Python functions in a `prefect` flow into a data pipeline](https://docs.prefect.io/core/tutorial/02-etl-flow.html).
 
-You may also find `drem` useful to __download any data sets used in `drem` using simple Python commands__ rather than manually downloading them yourself from source (see [Basic Usage](#basic-usage)).
+## Setup
 
-`drem` currently uses the following data sets:
+- Download `drem` locally by clicking 'Clone or download' (or by running `git clone https://github.com/codema-dev/drem`)
+
+- To install `drem`:
+
+    - Install [docker](https://docs.docker.com/docker-for-windows/install/)
+
+    - Install [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
+
+    - Open the drem folder in Visual Studio Code
+
+    - Install the “Remote - Containers” extension in VSCode from the Extensions: Marketplace (or directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
+
+    - Reopen the drem folder in a container by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+
+- To run `drem` (and consequently download & transform all `drem` related data):
+    - Launch `Jupyter Notebook`:
+        - Enter `jnbook` on the Command Line
+            ```bash
+            > /drem on master
+            jnbook
+            ```
+        - Copy and paste the resulting URL to your browser (or Ctrl + Click)
+
+            > It should look like http://127.0.0.1:8888/?token=aa69433d1370ab87a15436c27cd3f6948f77539a6bbeb6ee
+
+    - Open `run-drem.ipynb` and ...
+        - Enter your email address
+        - Run all cells by selecting Cell > Run (or by manually running each cell via the Run button or by clicking each cell followed by Shft + Enter)
+
+
+### (Optional) Setup the `codema-dev` development environment
+
+> All commands mentioned below should be entered on the zsh Command Line unless otherwise specified!
+
+- Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
+    - Run `poetry shell` (to enter`virtualenv`) followed by `which python` (to get the filepath to `virtualenv` Python)
+    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath 
+
+- Change your local `VSCode` settings to `codema-dev` by creating a local `.vscode` folder and copying & pasting [this settings.json](https://github.com/codema-dev/codema-dev-dotfiles/tree/master/.vscode)
+
+- Install local dev dependencies via `poetry install`
+
+> For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
+
+
+---
+
+## `drem` relies on
+
+### Open-source software
+
+- `prefect` to orchestrate all `drem` tasks via a data pipeline
+- `pandas` to transform columnar data
+- `geopandas` to transform columnar geospatial data
+- `requests` to download data
+- `pypostal` to standardise and parse address string columns
+- `docker` to create a reproducible build environment that runs on Windows, OSX and Linux
+- `git` to track code changes
+
+
+### Open-access data (unless specified!)
 
 - Residential buildings:
 
@@ -42,70 +101,6 @@ You may also find `drem` useful to __download any data sets used in `drem` using
     - [SEAI Dublin Measurement & Verification data](https://www.seai.ie/): annual gas/electricity demands for Public sector buildings _... available upon request_.
 
 > See [energy-modelling-ireland/energy-data-sources](https://github.com/energy-modelling-ireland/energy-data-sources) for more Irish-specific energy sources.
-
-`drem` uses:
-- `prefect` to orchestrate the data pipeline using Python functions.
-- `pandas` to clean columnar data
-- `geopandas` to clean columnar geospatial data and geocode.
-- `requests` to extract and download data via HTTP requests
-- `pypostal` to standardise and parse address string columns
-
-
-
-## Installation
-
-__Recommended__: Via [`conda`](https://conda.io/en/latest/)
-
-```bash
-git clone https://github.com/codema-dev/drem
-cd drem
-conda env create --file=environment.yaml
-conda activate drem-env
-pip install -e .
-```
-
-> `drem` depends upon `GeoPandas` for geospatial analysis which depends on several low-level libraries which can be a challenge to install. It overcomes this barrier by using the [`conda`](https://conda.io/en/latest/) package manager.  This can be obtained by installing the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science), or through [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
-
-
-## Basic usage
-
-To view & run all currently implemented functions run the following in [`iPython`](https://ipython.readthedocs.io/en/stable/): or in a [Jupyter Notebook](https://jupyter.org/)
-
-```python
-from pathlib import Path
-from drem.etl import residential
-residential.<TAB>   # to see available functions & classes
-drem.download_ber?  # ? to get help with usage of individual functions
-drem.download_ber.run(
-        email_address="your-email-address", # WARNING: must register your email first at https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
-        savedir=Path.cwd(), # set your current-working-directory as your save directory
-        filename="ber",
-)
-```
-
----
-
-## Advanced Usage
-
-To run the `drem` residential etl flow:
-
-- Download this repository to your local hard-drive by clicking the green `Code` button and selecting `Download ZIP` or via `git clone https://github.com/codema-dev/drem`
-
-- [Register your email address with SEAI](https://ndber.seai.ie/BERResearchTool/Register/Register.aspx)
-
-- Save your SEAI-registered email address as an environmental variable to register it as a local [`prefect` secret](https://docs.prefect.io/core/concepts/secrets.html#overview) in bash/zsh
-
-    > To run `drem` on `Windows` you'll have to manually install all non-Python dependencies yourself such as Visual Studio C++ build tools (see [here](https://mingw-w64.org/doku.php) or [here](https://github.com/felixrieseberg/windows-build-tools)), GDAL (see [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/)) etc. or alternatively you could [Setup a Local Docker Development environment using Visual Studio Code](#setup-a-local-development-environment-using-visual-studio-code).
-
-    ```bash
-    export PREFECT__CONTEXT__SECRETS__email_address=your-email-address@some-domain.ie
-    ```
-- Run the flow in a python shell
-    ```python
-    from drem.etl.residential import flow
-
-    state = flow.run()
-    ```
 
 
 ---
@@ -154,48 +149,3 @@ For more information see:
 - externals
     - [libpostal](https://github.com/openvenues/libpostal) enables fuzzy address matching
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
-
----
-
-## Setup a Local `drem` Development environment
-
-- Download the `drem` repository locally by clicking 'Clone or download' or by running `git clone https://github.com/codema-dev/drem`
-
-
-### Via `conda` only
-
-1. Install the [Anaconda Distribution](https://www.anaconda.com/products/individual) (a free Python distribution for data science) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal distribution only containing Python and the [`conda`](https://conda.io/en/latest/) package manager).
-
-2. Install `drem` via `conda` using the `Anaconda` (or `miniconda`) prompt
-
-    ```bash
-    conda env create --file=environment.yaml
-    conda activate drem-env
-    pip install -e .
-    ```
-
----
-
-### Via `docker`
-
-The `drem` `Dockerfile` fully encapsulates all `drem` project dependencies (libraries, Operating System etc.) in a `docker` container.  Thanks to this encapsulation software developed in a docker container should run in the same manner on any computer with `docker` installed.
-
-
-1. Download [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
-
-2. Reopen the `drem` folder within the `drem` `Dockerfile` container by following the instructions at:
-    - [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
-    - [Reopen the `drem` folder in a container](https://code.visualstudio.com/docs/remote/create-dev-container)
-
-3. Set your VSCode Python Interpreter to your `conda` virtualenv Python to enable `black`, `flake8`, `mypy`, `pre-commit`...
-    - On the zsh command line enter:
-        ```bash
-        poetry shell
-        which python
-        ```
-
----
-
-### [Optional] Develop in Windows Subsystem for Linux 2 (WSL2)
-
-Another work-around is WSL2 if you work in Windows and wish to create your own development environment in Linux.  See [Install Windows Subsystem for Linux (WSL) in VSCode](https://code.visualstudio.com/docs/remote/wsl) for more information.

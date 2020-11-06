@@ -23,7 +23,8 @@
 		8888
 	],
 	"workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/drem,consistency=delegated",
-	"workspaceFolder": "/drem"
+	"workspaceFolder": "/drem",
+	"postCreateCommand": "chmod +x build.sh && zsh build.sh"
 	// Uncomment the next line to run commands after the container is created - for example installing curl.
 	// "postCreateCommand": "apt-get update && apt-get install -y curl",
 	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
