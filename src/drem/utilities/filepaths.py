@@ -47,6 +47,8 @@ EXTERNAL = MappingProxyType(
             EXTERNAL_DIR, "BERPublicsearch/BERPublicsearch.txt",
         ),
         "BERPublicsearch_parquet": path.join(EXTERNAL_DIR, "BERPublicsearch.parquet"),
+        "vo": path.join(EXTERNAL_DIR, "vo"),
+        "commercial_benchmarks": path.join(DATA_DIR, "commercial_building_benchmarks"),
     },
 )
 

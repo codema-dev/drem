@@ -1,21 +1,40 @@
 from pathlib import Path
+from os import path
 from re import IGNORECASE
+from typing import Any
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+from prefect import Flow
+from prefect import Parameter
+from prefect import Task
 from prefect import task
+from prefect.utilities.debug import raise_on_exception
 
 
-def _merge_local_authority_files(dirpath) -> pd.DataFrame:
+from drem.filepaths import EXTERNAL_DIR
+from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import DATA_DIR
+from drem.transform.benchmarks import transform_benchmarks
 
-    files = dirpath.glob("*.csv")
-    dfs = [pd.read_csv(fp) for fp in files]
+from drem.utilities.visualize import VisualizeMixin
+from drem.utilities.filepaths import EXTERNAL
+from drem.utilities.breakpoint import flow_breakpoint
 
-    return pd.concat(dfs)
+
+@task
+def _merge_local_authority_files(dirpath: Path) -> pd.DataFrame:
+
+    dirpath_path = Path(dirpath)
+    files = dirpath_path.glob("*.csv")
+    df = [pd.read_csv(fp) for fp in files]
+
+    return pd.concat(df)
 
 
+@task
 def _fillna_in_columns_where_column_name_contains_substring(
     df: pd.DataFrame, substring: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -26,6 +45,7 @@ def _fillna_in_columns_where_column_name_contains_substring(
     return df
 
 
+@task
 def _merge_string_columns_into_one(
     df: pd.DataFrame, target: str, result: str,
 ) -> pd.DataFrame:
@@ -36,6 +56,7 @@ def _merge_string_columns_into_one(
     return df
 
 
+@task
 def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFrame:
 
     df[result] = df[target].astype(str).str.strip()
@@ -43,6 +64,7 @@ def _strip_whitespace(df: pd.DataFrame, target: str, result: str) -> pd.DataFram
     return df
 
 
+@task
 def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
     df[on] = (
@@ -52,6 +74,13 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
     return df
 
 
+@task
+def _remove_zero_floor_area_buildings(df: pd.DataFrame) -> pd.DataFrame:
+
+    return df.copy().loc[df["Area"] > 0]
+
+
+@task
 def _replace_rows_equal_to_string(
     df: pd.DataFrame, target: str, result: str, to_replace: str, replace_with: str,
 ) -> pd.DataFrame:
@@ -61,6 +90,7 @@ def _replace_rows_equal_to_string(
     return df
 
 
+@task
 def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.DataFrame:
 
     df[column] = df[column].astype(str).str.replace(r"[-,]", "").str.strip()
@@ -68,6 +98,15 @@ def _remove_symbols_from_column_strings(df: pd.DataFrame, column: str) -> pd.Dat
     return df
 
 
+@task
+def _remove_whitespace_from_column_strings(df: pd.DataFrame) -> pd.DataFrame:
+
+    df.columns = df.columns.str.strip()
+
+    return df
+
+
+@task
 def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     uses = (
@@ -84,6 +123,7 @@ def _extract_use_from_vo_uses_column(vo: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return vo
 
 
+@task
 def _merge_benchmarks_into_vo(
     vo: pd.DataFrame, benchmarks: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -93,6 +133,7 @@ def _merge_benchmarks_into_vo(
     )
 
 
+@task
 def _save_unmatched_vo_uses_to_text_file(
     vo: pd.DataFrame, none_file: Path,
 ) -> pd.DataFrame:
@@ -105,6 +146,7 @@ def _save_unmatched_vo_uses_to_text_file(
     return vo
 
 
+@task
 def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
 
     vo["typical_electricity_demand"] = vo["Area"] * vo["typical_electricity"]
@@ -113,6 +155,7 @@ def _apply_benchmarks_to_vo_floor_area(vo: pd.DataFrame) -> pd.DataFrame:
     return vo
 
 
+@task
 def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     """Convert DataFrame to GeoDataFrame from ITM Coordinates.
 
@@ -129,6 +172,7 @@ def _convert_to_geodataframe(df: pd.DataFrame) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(df, geometry=coordinates, crs="epsg:2157")
 
 
+@task
 def _set_coordinate_reference_system_to_lat_long(
     gdf: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
@@ -136,53 +180,70 @@ def _set_coordinate_reference_system_to_lat_long(
     return gdf.to_crs("epsg:4326")
 
 
-@task
-def transform_vo(
-    vo_dirpath: Path, benchmarks: pd.DataFrame, unmatched_txtfile: Path,
-) -> gpd.GeoDataFrame:
-    """Tidy Valuation Office dataset.
+with Flow("Transform Raw VO") as flow:
 
-    By:
-    - Clean address names by removing whitespace
-    - Combine address columns into a single address column
-    - Pull out columns: Address, Floor Area, Lat, Long
-    - Set columns to titlecase
-    - Clean 'Uses' by removing symbols [-,]
-    - Remove 0 floor area buildings
-    - Convert into GeoDataFrame so we can perform spatial operations such as plotting
-    - Convert to Latitude | Longitude
+    benchmarks_dir = EXTERNAL["commercial_benchmarks"]
+    bmarks = transform_benchmarks(benchmarks_dir)
+    vo_dirpath = EXTERNAL["vo"]
+
+    vo_raw = _merge_local_authority_files(vo_dirpath)
+    vo_removed = _remove_whitespace_from_column_strings(vo_raw)
+    vo_area = _remove_zero_floor_area_buildings(vo_removed)
+    vo_filled = _fillna_in_columns_where_column_name_contains_substring(
+        vo_area, substring="Address", replace_with="",
+    )
+    vo_merged = _merge_string_columns_into_one(
+        vo_filled, target="Address", result="address_raw"
+    )
+    vo_stripped = _strip_whitespace(
+        vo_merged, target="address_raw", result="address_stripped"
+    )
+    vo_replaced = _replace_rows_equal_to_string(
+        vo_stripped,
+        target="address_stripped",
+        result="Address",
+        to_replace="",
+        replace_with="None",
+    )
+    vo_extracted = _extract_use_from_vo_uses_column(vo_replaced)
+    vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, bmarks)
+    unmatched_file = path.join(benchmarks_dir, "Unmatched.txt")
+    vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
+        vo_merged_benchmarks, unmatched_file
+    )
+    vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
+    vo_gdf = _convert_to_geodataframe(vo_applied)
+    vo_crs = _set_coordinate_reference_system_to_lat_long(vo_gdf)
+
+
+class TransformVO(Task, VisualizeMixin):
+    """Clean VO Data in a Prefect flow.
 
     Args:
-        vo_dirpath (Path): Raw vo data directory path
-        benchmarks (pd.DataFrame): Benchmarks linking VO 'use' to a benchmark energy
-        unmatched_txtfile (Path): Path to unmatched vo 'use' categories
-
-    Returns:
-        pd.DataFrame: Tidy DataFrame
+        Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
+        VisualizeMixin (object): Mixin to add flow visualization method
     """
-    return (
-        _merge_local_authority_files(vo_dirpath)
-        .rename(columns=str.strip)
-        .pipe(
-            _fillna_in_columns_where_column_name_contains_substring,
-            substring="Address",
-            replace_with="",
-        )
-        .pipe(_merge_string_columns_into_one, target="Address", result="address_raw")
-        .pipe(_strip_whitespace, target="address_raw", result="address_stripped")
-        .pipe(
-            _replace_rows_equal_to_string,
-            target="address_stripped",
-            result="Address",
-            to_replace="",
-            replace_with="None",
-        )
-        .pipe(_extract_use_from_vo_uses_column)
-        .pipe(_merge_benchmarks_into_vo, benchmarks)
-        .pipe(_save_unmatched_vo_uses_to_text_file, unmatched_txtfile)
-        .pipe(_apply_benchmarks_to_vo_floor_area)
-        .query("Area > 0")
-        .pipe(_convert_to_geodataframe)
-        .pipe(_set_coordinate_reference_system_to_lat_long)
-        .drop(columns=["_merge"])  # cannot load categorical cols to shapefile
-    )
+
+    def __init__(self, **kwargs: Any):
+        """Initialise Task.
+
+        Args:
+            **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
+        """
+        self.flow = flow
+        super().__init__(**kwargs)
+
+    def run(self) -> gpd.GeoDataFrame:
+        """Run flow.
+
+        Args:
+            input_filepath (Path): Path to input data
+
+        Returns:
+            Clean GeoDataFrame
+        """
+        with raise_on_exception():
+            self.flow.run()
+
+
+transform_vo = TransformVO()

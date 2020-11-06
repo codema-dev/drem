@@ -1,3 +1,4 @@
+import os
 from os import mkdir
 from os import path
 from typing import List
@@ -62,7 +63,8 @@ class DownloadValuationOffice(Task):
         savedir = path.join(dirpath, "vo")
 
         if path.exists(savedir):
-            self.logger.info(f"Skipping as {savedir} exists!")
+            logger.info(f"{savedir} already exists")
+
         else:
             mkdir(savedir)
             _download_by_local_authority(savedir, local_authorities)
