@@ -182,14 +182,6 @@ def _set_coordinate_reference_system_to_lat_long(
 
 with Flow("Transform Raw VO") as flow:
 
-    """Tidy Valuation Office dataset.
-
-     Args:
-        Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
-        VisualizeMixin (object): Mixin to add flow visualization method
-
-    """
-
     benchmarks_dir = EXTERNAL["commercial_benchmarks"]
     benchmarks = transform_benchmarks(benchmarks_dir)
     vo_dirpath = EXTERNAL["vo"]
@@ -241,13 +233,7 @@ class TransformVO(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(
-        self,
-        input_filepath: Path,
-        data_dir: Path,
-        benchmarks_dir: Path,
-        external_dir: Path,
-    ) -> gpd.GeoDataFrame:
+    def run(self) -> gpd.GeoDataFrame:
         """Run flow.
 
         Args:
@@ -258,8 +244,6 @@ class TransformVO(Task, VisualizeMixin):
         """
         with raise_on_exception():
             state = self.flow.run()
-
-        return state.result[vo_crs].result
 
 
 transform_vo = TransformVO()

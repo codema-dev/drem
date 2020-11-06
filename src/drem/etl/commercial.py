@@ -34,11 +34,6 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
 
     benchmarks = transform_benchmarks(benchmarks_dir)
-    vo_clean = transform_vo(
-        input_filepath=vo_dirpath,
-        data_dir=data_dir,
-        benchmarks_dir=benchmarks_dir,
-        external_dir=external_dir,
-    )
+    vo_clean = transform_vo()
 
     vo_clean.set_upstream(valuation_office_downloaded)
