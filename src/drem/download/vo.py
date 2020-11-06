@@ -60,7 +60,6 @@ class DownloadValuationOffice(Task):
             dirpath (str): Path to directory where data will be saved
             local_authorities (List[str]): Names of local authorities to be queried
         """
-
         savedir = path.join(dirpath, "vo")
 
         if path.exists(savedir):
