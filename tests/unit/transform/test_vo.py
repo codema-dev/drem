@@ -21,22 +21,6 @@ from drem.transform.vo import _replace_rows_equal_to_string
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 from drem.transform.vo import _strip_whitespace
 
-
-def test_merge_local_authority_files(tmp_path: Path) -> pd.DataFrame:
-    "Merge all extracted vo files and creating a single df"
-
-    """Create a temporary directory of dummy data called 'dummy_path_vo'.
-
-    Args:
-        tmp_path (Path): see https://docs.pytest.org/en/stable/tmpdir.html
-
-    Returns:
-        Path: Path to a temporary directory of dummy data called 'dummy_path_vo'.
-    """
-    dirpath = tmp_path / "dummy_path_vo"
-    mkdir(dirpath)
-
-
 def test_fillna_in_columns_where_column_name_contains_substring() -> None:
     """Fillna in columns where column name matches substring with replacement string."""
     columns = pd.DataFrame(

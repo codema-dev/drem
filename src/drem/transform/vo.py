@@ -73,9 +73,7 @@ def _remove_null_address_strings(df: pd.DataFrame, on: str) -> pd.DataFrame:
 @task
 def _remove_zero_floor_area_buildings(df: pd.DataFrame) -> pd.DataFrame:
 
-    df = df[df["Area"] > 0]
-
-    return df
+    return df[df["Area"] > 0]
 
 
 @task
@@ -185,20 +183,6 @@ with Flow("Transform Raw VO") as flow:
      Args:
         Task (prefect.Task): see https://docs.prefect.io/core/concepts/tasks.html
         VisualizeMixin (object): Mixin to add flow visualization method
-
-    By:
-    - Merging all downloaded vo files and creating a single df
-    - Clean address names by removing whitespace
-    - Remove 0 floor area buildings
-    - Fill column names containing substring
-    - Merge address columns into a single address column
-    - Extract useful colums
-    - Clean 'Uses' by removing symbols [-,]
-    - Merge combined vo df with benchmarks
-    - Save umnatched benchmarks to txt file
-    - Apply benchmarks to compute electricity and FF demand
-    - Convert into GeoDataFrame so we can perform spatial operations such as plotting
-    - Convert to Latitude | Longitude
 
     """
 
