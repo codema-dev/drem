@@ -22,14 +22,15 @@ The goal of `drem` is to:
 
 - To install `drem`:
 
-    > __Important__: you must accept all permissions-related requests made by `VSCode` and docker (to unblock your firewall and grant access to your C-Drive)
+    > __Estimated time__: 10 minutes
 
+    > __Warning__: you must accept all permissions-related requests made by `VSCode` and docker (to unblock your firewall and grant access to your C-Drive)
 
     - Install [`docker`](https://docs.docker.com/docker-for-windows/install/)
-
+        
         > `drem` needs `Docker Desktop` to be running.  You should see a small docker whale in your toolbar after installation!
-
-        ![Install `docker`](images/docker-whale.PNG)
+        
+        ![Install `docker`](images/docker-whale.png)
 
     - Install [Microsoft Visual Studio Code (`VSCode`)](https://code.visualstudio.com/)
 
