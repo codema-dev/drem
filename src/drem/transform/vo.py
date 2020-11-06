@@ -247,4 +247,3 @@ class TransformVO(Task, VisualizeMixin):
 
 
 transform_vo = TransformVO()
-

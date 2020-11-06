@@ -68,6 +68,8 @@ class DownloadValuationOffice(Task):
         else:
 
             mkdir(savedir)
+
+
 _download_by_local_authority(savedir, local_authorities)
 
 
