@@ -183,7 +183,7 @@ def _set_coordinate_reference_system_to_lat_long(
 with Flow("Transform Raw VO") as flow:
 
     benchmarks_dir = EXTERNAL["commercial_benchmarks"]
-    benchmarks = transform_benchmarks(benchmarks_dir)
+    bmarks = transform_benchmarks(benchmarks_dir)
     vo_dirpath = EXTERNAL["vo"]
 
     vo_raw = _merge_local_authority_files(vo_dirpath)
@@ -206,7 +206,7 @@ with Flow("Transform Raw VO") as flow:
         replace_with="None",
     )
     vo_extracted = _extract_use_from_vo_uses_column(vo_replaced)
-    vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, benchmarks)
+    vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, bmarks)
     unmatched_file = path.join(benchmarks_dir, "Unmatched.txt")
     vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
         vo_merged_benchmarks, unmatched_file
@@ -243,7 +243,7 @@ class TransformVO(Task, VisualizeMixin):
             Clean GeoDataFrame
         """
         with raise_on_exception():
-            state = self.flow.run()
+            self.flow.run()
 
 
 transform_vo = TransformVO()

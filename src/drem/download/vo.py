@@ -66,11 +66,8 @@ class DownloadValuationOffice(Task):
             logger.info(f"{savedir} already exists")
 
         else:
-
             mkdir(savedir)
-
-
-_download_by_local_authority(savedir, local_authorities)
+            _download_by_local_authority(savedir, local_authorities)
 
 
 if __name__ == "__main__":
