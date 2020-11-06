@@ -61,12 +61,13 @@ class DownloadValuationOffice(Task):
             local_authorities (List[str]): Names of local authorities to be queried
         """
 
-        if path.exists(dirpath):
-            logger.info(f"{dirpath} already exists")
+        savedir = path.join(dirpath, "vo")
+
+        if path.exists(savedir):
+            logger.info(f"{savedir} already exists")
 
         else:
 
-            savedir = path.join(dirpath, "vo")
             mkdir(savedir)
 
             categories = [
