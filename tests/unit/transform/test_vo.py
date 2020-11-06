@@ -21,6 +21,7 @@ from drem.transform.vo import _replace_rows_equal_to_string
 from drem.transform.vo import _save_unmatched_vo_uses_to_text_file
 from drem.transform.vo import _strip_whitespace
 
+
 def test_fillna_in_columns_where_column_name_contains_substring() -> None:
     """Fillna in columns where column name matches substring with replacement string."""
     columns = pd.DataFrame(
@@ -38,7 +39,7 @@ def test_fillna_in_columns_where_column_name_contains_substring() -> None:
         },
     )
 
-    output = _fillna_in_columns_where_column_name_contains_substring(
+    output = _fillna_in_columns_where_column_name_contains_substring.run(
         columns, substring="Address", replace_with="",
     )
 
@@ -59,7 +60,7 @@ def test_merge_address_columns_into_one() -> None:
         },
     )
 
-    output: pd.DataFrame = _merge_string_columns_into_one(
+    output: pd.DataFrame = _merge_string_columns_into_one.run(
         addresses, target="Address", result="Address",
     )
     assert_frame_equal(output, expected_output)
@@ -75,7 +76,9 @@ def test_strip_whitespace() -> None:
         },
     )
 
-    output = _strip_whitespace(addresses, target="Address", result="Address_stripped")
+    output = _strip_whitespace.run(
+        addresses, target="Address", result="Address_stripped"
+    )
 
     assert_frame_equal(output, expected_output)
 
@@ -101,7 +104,7 @@ def test_remove_null_address_strings() -> None:
         },
     )
 
-    output: pd.DataFrame = _remove_null_address_strings(addresses, "Address")
+    output: pd.DataFrame = _remove_null_address_strings.run(addresses, "Address")
 
     assert_frame_equal(output, expected_output)
 
@@ -116,7 +119,7 @@ def test_replace_rows_equal_to_string() -> None:
         },
     )
 
-    output: pd.DataFrame = _replace_rows_equal_to_string(
+    output: pd.DataFrame = _replace_rows_equal_to_string.run(
         addresses,
         target="Address",
         result="Address_replaced",
@@ -138,7 +141,7 @@ def test_extract_use_from_vo_uses_column() -> None:
         },
     )
 
-    output: pd.DataFrame = _extract_use_from_vo_uses_column(vo)
+    output: pd.DataFrame = _extract_use_from_vo_uses_column.run(vo)
 
     assert_frame_equal(output, expected_output)
 
@@ -178,7 +181,7 @@ def test_merge_benchmarks_into_vo() -> None:
         pd.CategoricalDtype(categories=["left_only", "right_only", "both"]),
     )
 
-    output: pd.DataFrame = _merge_benchmarks_into_vo(vo, benchmark)
+    output: pd.DataFrame = _merge_benchmarks_into_vo.run(vo, benchmark)
 
     assert_frame_equal(output, expected_output)
 
@@ -197,7 +200,7 @@ def test_save_unmatched_vo_uses_to_text_file(tmp_path: Path) -> None:
     )
     none_file = tmp_path / "Unmatched.txt"
 
-    _save_unmatched_vo_uses_to_text_file(unmatched_vo_uses, none_file)
+    _save_unmatched_vo_uses_to_text_file.run(unmatched_vo_uses, none_file)
 
     with open(none_file, "r") as file:
         none_file_contents = file.read().splitlines()
@@ -221,7 +224,7 @@ def test_apply_benchmark_to_vo_floor_area() -> None:
         },
     )
 
-    output = _apply_benchmarks_to_vo_floor_area(vo)
+    output = _apply_benchmarks_to_vo_floor_area.run(vo)
 
     assert_frame_equal(output, expected_output)
 
@@ -236,5 +239,5 @@ def test_convert_to_geodataframe() -> None:
         coordinates, geometry=[Point(717205.47, 733589.23)], crs="epsg:2157",
     )
 
-    output: gpd.GeoDataFrame = _convert_to_geodataframe(coordinates)
+    output: gpd.GeoDataFrame = _convert_to_geodataframe.run(coordinates)
     assert_geodataframe_equal(output, expected_output)
