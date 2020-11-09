@@ -20,35 +20,64 @@ The goal of `drem` is to:
 
 ## Setup
 
-- Download `drem` locally by clicking 'Clone or download' (or by running `git clone https://github.com/codema-dev/drem`)
-
 - To install `drem`:
 
-    - Install [docker](https://docs.docker.com/docker-for-windows/install/)
+    > __Estimated time__: 10 minutes
 
-    - Install [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
+    > __Warning__: you must accept all permissions-related requests made by `VSCode` and docker (to unblock your firewall and grant access to your C-Drive)
 
-    - Open the drem folder in Visual Studio Code
+    - Install [`docker`](https://docs.docker.com/docker-for-windows/install/)
+        
+        > `drem` needs `Docker Desktop` to be running.  You should see a small docker whale in your toolbar after installation!
+        
+        ![Install `docker`](images/docker-whale.png)
 
-    - Install the “Remote - Containers” extension in VSCode from the Extensions: Marketplace (or directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
+    - Install [Microsoft Visual Studio Code (`VSCode`)](https://code.visualstudio.com/)
 
-    - Reopen the drem folder in a container by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+    - Clone `drem`:
+        - Open `VSCode`
+        - Select 'Source Control' on the side-bar
+        - Select 'Clone Repository' and search `codema-dev/drem`
+
+        ![Download `drem`](images/download-drem.PNG)
+
+    - Open the cloned drem folder in `VSCode` in the popup menu (or by selecting File > Open Folder)
+
+    - Select 'Extensions' on the side-bar and install the “Remote - Containers” extension (or install directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
+
+        ![Containers Extension](images/containers-extension.PNG)
+
+    - Reopen the `drem` folder in a container by selecting 'Reopen in Container' in the popup menu or by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+
+
 
 - To run `drem` (and consequently download & transform all `drem` related data):
+
     - Launch `Jupyter Notebook`:
-        - Enter `jnbook` on the Command Line
-            ```bash
-            > /drem on master
-            jnbook
-            ```
+
+        - Enter `jnbook` in the `VSCode` Terminal
+
+            ![Launch Jupyter Notebook](images/launch-notebook.PNG)
+
         - Copy and paste the resulting URL to your browser (or Ctrl + Click)
 
             > It should look like http://127.0.0.1:8888/?token=aa69433d1370ab87a15436c27cd3f6948f77539a6bbeb6ee
 
     - Open `run-drem.ipynb` and ...
-        - Enter your email address
-        - Run all cells by selecting Cell > Run (or by manually running each cell via the Run button or by clicking each cell followed by Shft + Enter)
 
+        - Register your email address with SEAI at  https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
+        - Fill in your email address in the notebook
+        - Run all cells by selecting Cell > Run (or by manually running each cell via the Run button or by clicking each cell followed by Shft + Enter)W
+
+            ![Run `drem`](images/run-drem.PNG)
+
+- To update your local `drem` with the latest code:
+
+    - Select 'Source Control' in the side-bar
+    - Select the 3 dots in the top right hand corner of the popup
+    - Select 'Pull' to merge in the latest changes
+
+        ![Merge in latest changes](images/git-pull.png)
 
 ### (Optional) Setup the `codema-dev` development environment
 
@@ -56,7 +85,7 @@ The goal of `drem` is to:
 
 - Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
     - Run `poetry shell` (to enter`virtualenv`) followed by `which python` (to get the filepath to `virtualenv` Python)
-    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath 
+    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath
 
 - Change your local `VSCode` settings to `codema-dev` by creating a local `.vscode` folder and copying & pasting [this settings.json](https://github.com/codema-dev/codema-dev-dotfiles/tree/master/.vscode)
 
