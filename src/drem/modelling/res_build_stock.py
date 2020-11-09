@@ -51,6 +51,6 @@ return ber_closed.groupby('CSO_ED_ID')['Dwelling type description'].value_counts
 
 
 
-with Flow as flow:
+with Flow("Create synthetic residential building stock") as flow:
 
 
