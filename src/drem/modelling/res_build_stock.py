@@ -17,17 +17,18 @@ from prefect import Parameter
 from prefect import task
 
 from drem.filepaths import RAW_DIR
+from drem.filepaths import EXTERNAL_DIR
 
 @task 
 def _read_csv(input_filepath: Path) -> pd.DataFrame
 
-    return pd.read_csv(input_filepath, encoding="unicode_escape").drop_duplicates()
+    return pd.read_csv:(input_filepath, encoding="unicode_escape").drop_duplicates()
 
 
 @task
 def _assign_building_type(df: pd.DataFrame, on:str) -> pd.DataFrame
 
-    return df[on].map(
+    return df[on].map:(
         {
             "Mid floor apt.": "Apartment",
             "Top-floor apt.": "Apartment",
@@ -43,9 +44,9 @@ def _assign_building_type(df: pd.DataFrame, on:str) -> pd.DataFrame
         }
     )
 
-
 @task
-def _group_by_cso_small_area()
+def _group_buildings_by_sa(df: pd.DataFrame, on:str) -> pd.DataFrame
+
 
 
 
