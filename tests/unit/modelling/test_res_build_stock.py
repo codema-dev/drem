@@ -20,3 +20,9 @@ def test_group_buildings_by_sa() -> None:
             "semi_d_percentage": [33.33, 33.33, 33.33],
         }
     )
+
+    output: pd.DataFrame = _group_buildings_by_sa.run(
+        df_input, target="Dwelling type description", result="cso_period_built",
+    )
+
+    assert_frame_equal(output, expected_output)

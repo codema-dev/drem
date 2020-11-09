@@ -45,8 +45,9 @@ def _assign_building_type(df: pd.DataFrame, on:str) -> pd.DataFrame
     )
 
 @task
-def _group_buildings_by_sa(df: pd.DataFrame, on:str) -> pd.DataFrame
+def _group_buildings_by_sa(df: pd.DataFrame,cso:str, dwelling:str, renamed:str) -> pd.DataFrame
 
+return ber_closed.groupby('CSO_ED_ID')['Dwelling type description'].value_counts(normalize=True).rename("Dwelling Percentage")
 
 
 
