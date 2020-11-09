@@ -1,9 +1,9 @@
 """
 
 This script will create a synthetic residential building stock to divide
-each SA into several building types. These ratios will then be applied to
-outputs from EnergyPlus to generate a first-pass estimate for residential
-energy demand in Dublin
+each SA into several building types, using the Split-Apply-Combine pandas
+transform. These ratios will then be applied to outputs from EnergyPlus
+to generate a first-pass estimate for residential energy demand in Dublin
 
 """
 
@@ -19,16 +19,17 @@ from prefect import task
 from drem.filepaths import RAW_DIR
 from drem.filepaths import EXTERNAL_DIR
 
-@task 
-def _read_csv(input_filepath: Path) -> pd.DataFrame
 
-    return pd.read_csv:(input_filepath, encoding="unicode_escape").drop_duplicates()
+@task
+def _read_csv(input_filepath: str) -> pd.DataFrame:
+
+    return pd.read_csv(input_filepath, encoding="unicode_escape").drop_duplicates()
 
 
 @task
-def _assign_building_type(df: pd.DataFrame, on:str) -> pd.DataFrame
+def _assign_building_type(df: pd.DataFrame, on: str) -> pd.DataFrame:
 
-    return df[on].map:(
+    return df[on].map(
         {
             "Mid floor apt.": "Apartment",
             "Top-floor apt.": "Apartment",
@@ -44,13 +45,24 @@ def _assign_building_type(df: pd.DataFrame, on:str) -> pd.DataFrame
         }
     )
 
+
 @task
-def _group_buildings_by_sa(df: pd.DataFrame,cso:str, dwelling:str, renamed:str) -> pd.DataFrame
+def _group_buildings_by_sa(
+    df: pd.DataFrame, cso: str, dwelling: str, renamed: str
+) -> pd.DataFrame:
 
-return ber_closed.groupby('CSO_ED_ID')['Dwelling type description'].value_counts(normalize=True).rename("Dwelling Percentage")
+    return df.groupby(cso)[dwelling].value_counts(normalize=True).rename(renamed)
 
+@task
+def _merge_
+
+     
 
 
 with Flow("Create synthetic residential building stock") as flow:
 
-
+    ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
+    ber_assigned = _assign_building_type(ber, "Dwelling type description")
+    ber_grouped = _group_buildings_by_sa(
+        ber_assigned, "CSO_ED_ID", "Dwelling type description", "Dwelling Percentage"
+    )
