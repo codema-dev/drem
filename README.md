@@ -27,13 +27,14 @@ The goal of `drem` is to:
     - Install [`docker`](https://docs.docker.com/docker-for-windows/install/)
 
         > `drem` needs `Docker Desktop` to be running.  You should see a small docker whale in your toolbar after installation!
+        
         ![Install `docker`](images/docker-whale.png)
 
     - Install [Microsoft Visual Studio Code (`VSCode`)](https://code.visualstudio.com/)
 
     - Download `drem` as a ZIP (by selecting the green `Code` button at the top of the `drem` github page) and unzip it
 
-        ![Download `drem`](images/download-drem.png)
+        ![Download `drem`](images/download-drem.PNG)
 
     - Open the `drem` folder in `VSCode` by selecting File > Open Folder
 
@@ -49,6 +50,7 @@ The goal of `drem` is to:
     - Launch `Jupyter Notebook`:
 
         - Enter `jnbook` in the `VSCode` Terminal
+            
             ![Launch Jupyter Notebook](images/launch-notebook.PNG)
 
         - Copy and paste the resulting URL to your browser (or Ctrl + Click)
