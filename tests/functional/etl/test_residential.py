@@ -15,6 +15,7 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
 
+from drem.filepaths import DTYPES_DIR
 from drem.filepaths import FTEST_EXTERNAL_DIR
 
 
@@ -26,8 +27,9 @@ def mock_data_dir(tmp_path) -> Mock:
         tmp_path(Path): See https://docs.pytest.org/en/stable/tmpdir.html
     """
     # Copy test data to temporary directory
-    external_dir = tmp_path / "external"
-    copytree(FTEST_EXTERNAL_DIR, external_dir)
+    copytree(FTEST_EXTERNAL_DIR, tmp_path / "external")
+    copytree(DTYPES_DIR, tmp_path / "dtypes")
+    mkdir(tmp_path / "interim")
     mkdir(tmp_path / "processed")
 
     with patch(
