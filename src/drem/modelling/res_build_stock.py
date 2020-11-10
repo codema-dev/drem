@@ -66,7 +66,7 @@ with Flow("Create synthetic residential building stock") as flow:
             "None": "Not stated",
         },
     )
-    ber_grouped = _group_buildings_by_sa(ber_assigned, by="CSO_ED_ID")
+    ber_grouped = _group_buildings_by_sa(ber_assigned, by="cso_small_area")
     ber_counted = _count_dwellings_by_sa(
         ber_grouped, on="Dwelling type description", renamed="Dwelling Percentage",
     )
