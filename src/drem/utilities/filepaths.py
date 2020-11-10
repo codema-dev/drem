@@ -1,12 +1,33 @@
 from os import path
+from pathlib import Path
 from types import MappingProxyType
 
 from drem.utilities.get_data_dir import get_data_dir
 
 
+BASE_DIR = Path(__file__).parents[3]
 DATA_DIR = get_data_dir()
+
+
+INTERIM_DIR = path.join(DATA_DIR, "interim")
 EXTERNAL_DIR = path.join(DATA_DIR, "external")
 PROCESSED_DIR = path.join(DATA_DIR, "processed")
+RAW_DIR = path.join(DATA_DIR, "raw")
+ROUGHWORK_DIR = path.join(DATA_DIR, "roughwork")
+
+
+COMMERCIAL_BENCHMARKS_DIR = str(BASE_DIR / "data" / "commercial_building_benchmarks")
+DTYPES_DIR = str(BASE_DIR / "data" / "dtypes")
+REQUESTS_DIR = str(BASE_DIR / "data" / "requests")
+
+
+FTEST_EXTERNAL_DIR = str(BASE_DIR / "tests" / "functional" / "data" / "external")
+
+
+DTYPES = MappingProxyType(
+    {"BERPublicsearch_json": path.join(DTYPES_DIR, "BERPublicsearch.json")},
+)
+
 
 EXTERNAL = MappingProxyType(
     {
@@ -46,10 +67,14 @@ EXTERNAL = MappingProxyType(
         "BERPublicsearch_txt": path.join(
             EXTERNAL_DIR, "BERPublicsearch/BERPublicsearch.txt",
         ),
-        "BERPublicsearch_parquet": path.join(EXTERNAL_DIR, "BERPublicsearch.parquet"),
         "vo": path.join(EXTERNAL_DIR, "vo"),
         "commercial_benchmarks": path.join(DATA_DIR, "commercial_building_benchmarks"),
     },
+)
+
+
+INTERIM = MappingProxyType(
+    {"BERPublicsearch_parquet": path.join(INTERIM_DIR, "BERPublicsearch.parquet")},
 )
 
 

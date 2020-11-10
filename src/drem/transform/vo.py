@@ -1,5 +1,4 @@
 from pathlib import Path
-from os import path
 from re import IGNORECASE
 from typing import Any
 
@@ -13,15 +12,11 @@ from prefect import Task
 from prefect import task
 from prefect.utilities.debug import raise_on_exception
 
+import drem.utilities.geopandas_tasks as gpdt
+import drem.utilities.pandas_tasks as pdt
 
-from drem.filepaths import EXTERNAL_DIR
-from drem.filepaths import PROCESSED_DIR
-from drem.filepaths import DATA_DIR
 from drem.transform.benchmarks import transform_benchmarks
-
 from drem.utilities.visualize import VisualizeMixin
-from drem.utilities.filepaths import EXTERNAL
-from drem.utilities.breakpoint import flow_breakpoint
 
 
 @task
@@ -182,21 +177,24 @@ def _set_coordinate_reference_system_to_lat_long(
 
 with Flow("Transform Raw VO") as flow:
 
-    benchmarks_dir = EXTERNAL["commercial_benchmarks"]
-    bmarks = transform_benchmarks(benchmarks_dir)
-    vo_dirpath = EXTERNAL["vo"]
+    vo_raw_dirpath = Parameter("vo_raw_dirpath")
+    vo_clean_fpath = Parameter("vo_clean_fpath")
+    bmarks_dirpath = Parameter("bmarks_dirpath")
+    unmatched_fpath = Parameter("unmatched_fpath")
 
-    vo_raw = _merge_local_authority_files(vo_dirpath)
+    bmarks = transform_benchmarks(bmarks_dirpath)
+    vo_raw = _merge_local_authority_files(vo_raw_dirpath)
+
     vo_removed = _remove_whitespace_from_column_strings(vo_raw)
     vo_area = _remove_zero_floor_area_buildings(vo_removed)
     vo_filled = _fillna_in_columns_where_column_name_contains_substring(
         vo_area, substring="Address", replace_with="",
     )
     vo_merged = _merge_string_columns_into_one(
-        vo_filled, target="Address", result="address_raw"
+        vo_filled, target="Address", result="address_raw",
     )
     vo_stripped = _strip_whitespace(
-        vo_merged, target="address_raw", result="address_stripped"
+        vo_merged, target="address_raw", result="address_stripped",
     )
     vo_replaced = _replace_rows_equal_to_string(
         vo_stripped,
@@ -207,13 +205,28 @@ with Flow("Transform Raw VO") as flow:
     )
     vo_extracted = _extract_use_from_vo_uses_column(vo_replaced)
     vo_merged_benchmarks = _merge_benchmarks_into_vo(vo_extracted, bmarks)
-    unmatched_file = path.join(benchmarks_dir, "Unmatched.txt")
+
     vo_save_unmatched = _save_unmatched_vo_uses_to_text_file(
-        vo_merged_benchmarks, unmatched_file
+        vo_merged_benchmarks, unmatched_fpath,
     )
     vo_applied = _apply_benchmarks_to_vo_floor_area(vo_save_unmatched)
     vo_gdf = _convert_to_geodataframe(vo_applied)
     vo_crs = _set_coordinate_reference_system_to_lat_long(vo_gdf)
+    vo_columns_selected = pdt.get_columns(
+        vo_crs,
+        [
+            "Address",
+            "Uses",
+            "benchmark",
+            "typical_fossil_fuel",
+            "typical_electricity",
+            "typical_fossil_fuel_demand",
+            "typical_electricity_demand",
+            "geometry",
+        ],
+    )
+
+    gpdt.to_parquet(vo_columns_selected, vo_clean_fpath)
 
 
 class TransformVO(Task, VisualizeMixin):
@@ -233,17 +246,29 @@ class TransformVO(Task, VisualizeMixin):
         self.flow = flow
         super().__init__(**kwargs)
 
-    def run(self) -> gpd.GeoDataFrame:
+    def run(
+        self,
+        input_dirpath: str,
+        output_filepath: str,
+        benchmarks_dirpath: str,
+        unmatched_filepath: str,
+    ) -> gpd.GeoDataFrame:
         """Run flow.
 
         Args:
-            input_filepath (Path): Path to input data
-
-        Returns:
-            Clean GeoDataFrame
+            input_dirpath (str): Path to raw valuation office data
+            output_filepath (str): Path to clean valuation office data
+            benchmarks_dirpath (str): Path to benchmarks
+            unmatched_filepath (str): Path to file containing vo uses for which no
+                benchmarks could be found
         """
         with raise_on_exception():
-            self.flow.run()
+            self.flow.run(
+                vo_raw_dirpath=input_dirpath,
+                vo_clean_fpath=output_filepath,
+                bmarks_dirpath=benchmarks_dirpath,
+                unmatched_fpath=unmatched_filepath,
+            )
 
 
 transform_vo = TransformVO()
