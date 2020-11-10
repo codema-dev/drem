@@ -15,7 +15,6 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
 
-from drem.etl import commercial
 from drem.utilities import filepaths
 
 
