@@ -20,21 +20,27 @@ from prefect import task
 
 from drem.filepaths import RAW_DIR
 from drem.filepaths import EXTERNAL_DIR
+from drem.filepaths import PROCESSED_DIR
+
 
 @task
-def _read_sa_parquet(input_filepath:str) -> pd.DataFrame:
+def _read_sa_parquet(input_filepath: str) -> pd.DataFrame:
 
-    return pd.read_parquet(input_filepath)
+    return pd.read_parquet(input_filepath).drop_duplicates()
+
 
 @task
 def _read_csv(input_filepath: str) -> pd.DataFrame:
 
     return pd.read_csv(input_filepath, encoding="unicode_escape").drop_duplicates()
 
-@task
-def _merge_ber_sa(sa: pd.DataFrame, ber: pd.DataFrame, **kwargs: Any) -> pd.DataFrame:
 
-    return pd.merge(sa, ber, **kwargs: Any)
+@task
+def _merge_ber_sa(
+    sa: pd.DataFrame, ber: pd.DataFrame, left_on: str, right_on: str, **kwargs
+) -> pd.DataFrame:
+
+    return sa.merge(ber, left_on=left_on, right_on=right_on, **kwargs)
 
 
 @task
@@ -59,9 +65,14 @@ with Flow("Create synthetic residential building stock") as flow:
 
     dublin_sa = _read_sa_parquet(PROCESSED_DIR / "small_area_geometries_2016.parquet")
     ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
-    ber_dublin = _merge_ber_sa(sa=dublin_sa,
+    ber_dublin = _merge_ber_sa(
+        sa=dublin_sa,
         ber=ber,
-        on=["small_area", "cso_small_area"],)
+        left_on="small_area",
+        right_on="cso_small_area",
+        how="inner",
+        indicator=True,
+    )
     geo = _read_csv(RAW_DIR / "DublinBuildingsData.csv")
     ber_assigned = _assign_building_type(
         ber_dublin,
@@ -81,7 +92,6 @@ with Flow("Create synthetic residential building stock") as flow:
         },
     )
     ber_grouped = _group_buildings_by_sa(ber_assigned, by="cso_small_area")
-    geo_grouped = _group_buildings_by_sa(beo, by="BUILDING_USE")
     ber_counted = _count_dwellings_by_sa(
         ber_grouped, on="Dwelling type description", renamed="Dwelling Percentage",
     )
