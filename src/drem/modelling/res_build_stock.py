@@ -29,10 +29,32 @@ def _read_csv(input_filepath: str) -> pd.DataFrame:
 
 
 @task
-def _assign_building_type(df: pd.DataFrame, on: str) -> pd.DataFrame:
+def _assign_building_type(
+    df: pd.DataFrame, on: str, new_col: str, equiv: list
+) -> pd.DataFrame:
 
-    return df[on].map(
-        {
+    df[new_col] = df[on].map(equiv)
+    df = df[new_col]
+
+    return df
+
+
+@task
+def _group_buildings_by_sa(
+    df: pd.DataFrame, by: str, dwelling: str, renamed: str
+) -> pd.DataFrame:
+
+    return df.groupby(by)[dwelling].value_counts(normalize=True).rename(renamed)
+
+
+with Flow("Create synthetic residential building stock") as flow:
+
+    ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
+    ber_assigned = _assign_building_type(
+        ber,
+        on="Dwelling type description",
+        new_col="Dwelling group",
+        equiv={
             "Mid floor apt.": "Apartment",
             "Top-floor apt.": "Apartment",
             "Apt.": "Apartment",
@@ -44,22 +66,11 @@ def _assign_building_type(df: pd.DataFrame, on: str) -> pd.DataFrame:
             "Mid terrc house": "Terraced house",
             "End terrc house": "Terraced house",
             "None": "Not stated",
-        }
+        },
     )
-
-
-@task
-def _group_buildings_by_sa(
-    df: pd.DataFrame, on: str, dwelling: str, renamed: str
-) -> pd.DataFrame:
-
-    return df.groupby(on)[dwelling].value_counts(normalize=True).rename(renamed)
-
-
-with Flow("Create synthetic residential building stock") as flow:
-
-    ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
-    ber_assigned = _assign_building_type(ber, "Dwelling type description")
     ber_grouped = _group_buildings_by_sa(
         ber_assigned,
-        on=["CSO_ED_ID"],
+        by="CSO_ED_ID",
+        dwelling=["Dwelling group"],
+        renamed="Dwelling Percentage",
+    )
