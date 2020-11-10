@@ -15,28 +15,29 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.utilities.debug import raise_on_exception
 
-from drem.filepaths import FTEST_EXTERNAL_DIR
+from drem.utilities import filepaths
 
 
 @pytest.fixture
-def mock_data_dir(tmp_path) -> Mock:
+def mock_get_data_dir(tmp_path) -> Mock:
     """Replace DATA_DIR with FTEST_DATA_DIR
 
     Args:
         tmp_path(Path): See https://docs.pytest.org/en/stable/tmpdir.html
     """
     # Copy test data to temporary directory
-    external_dir = tmp_path / "external"
-    copytree(FTEST_EXTERNAL_DIR, external_dir)
+    copytree(filepaths.DTYPES_DIR, tmp_path / "dtypes")
+    copytree(filepaths.FTEST_EXTERNAL_DIR, tmp_path / "external")
     mkdir(tmp_path / "processed")
+    mkdir(tmp_path / "interim")
 
     with patch(
-        "drem.utilities.get_data_dir.get_data_dir", autospec=True,
-    ) as _mock_data_dir, patch.dict("sys.modules"):
+        "drem.etl.residential.get_data_dir", autospec=True,
+    ) as _mock_get_data_dir, patch.dict("sys.modules"):
         sys.modules.pop("drem.etl.residential", None)
-        _mock_data_dir.return_value = tmp_path
+        _mock_get_data_dir.return_value = tmp_path
 
-        yield _mock_data_dir
+        yield _mock_get_data_dir
 
 
 def mock_prefectsecret_run(*args, **kwargs) -> str:
@@ -48,12 +49,12 @@ def mock_task_run(*args, **kwargs) -> None:
 
 
 @pytest.fixture
-def etl_flow_state(monkeypatch: MonkeyPatch, mock_data_dir: Mock) -> State:
+def etl_flow_state(monkeypatch: MonkeyPatch, mock_get_data_dir: Mock) -> State:
     """Run etl flow with dummy test data.
 
     Args:
         monkeypatch (MonkeyPatch): Pytest fixture to mock out objects s.a. PrefectSecret
-        mock_data_dir (Mock): See https://docs.pytest.org/en/stable/tmpdir.html
+        mock_get_data_dir (Mock): See https://docs.pytest.org/en/stable/tmpdir.html
 
     Returns:
         [State]: A Prefect State object containing flow run information
@@ -72,6 +73,9 @@ def etl_flow_state(monkeypatch: MonkeyPatch, mock_data_dir: Mock) -> State:
     monkeypatch.setattr(
         residential.DownloadBER, "run", mock_task_run,
     )
+
+    # Check flow is using dummy data dir
+    assert residential.get_data_dir() == mock_get_data_dir()
 
     with raise_on_exception():
         state = residential.flow.run()
