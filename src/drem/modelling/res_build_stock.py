@@ -42,6 +42,10 @@ def _merge_ber_sa(
 
     return sa.merge(ber, left_on=left_on, right_on=right_on, **kwargs)
 
+@task
+def _extract_res(df: pd.DataFrame, on:str, value:str)
+
+    return df.loc[df[on] == value]
 
 @task
 def _assign_building_type(df: pd.DataFrame, on: str, equiv: list) -> pd.DataFrame:
@@ -74,6 +78,7 @@ with Flow("Create synthetic residential building stock") as flow:
         indicator=True,
     )
     geo = _read_csv(RAW_DIR / "DublinBuildingsData.csv")
+    geo = _extract_res(geo, on="BUILDING_USE", value="R")
     ber_assigned = _assign_building_type(
         ber_dublin,
         on="Dwelling type description",
