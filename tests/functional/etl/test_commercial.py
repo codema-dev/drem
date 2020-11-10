@@ -35,7 +35,7 @@ def mock_get_data_dir(tmp_path) -> Mock:
     mkdir(tmp_path / "interim")
 
     with patch(
-        "drem.etl.commercial.get_data_dir", autospec=True,
+        "drem.utilities.get_data_dir.get_data_dir", autospec=True,
     ) as _mock_get_data_dir, patch.dict("sys.modules"):
         sys.modules.pop("drem.etl.commercial", None)
         _mock_get_data_dir.return_value = tmp_path
