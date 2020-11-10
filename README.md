@@ -20,50 +20,54 @@ The goal of `drem` is to:
 
 ## Setup
 
-- Download `drem` locally by clicking 'Clone or download' (or by running `git clone https://github.com/codema-dev/drem`)
-
 - To install `drem`:
 
-    - Install [docker](https://docs.docker.com/docker-for-windows/install/)
+    > __Warning__: you must accept all permissions-related requests made by `VSCode` and docker (to unblock your firewall and grant access to your C-Drive)
 
-    - Install [Microsoft Visual Studio Code (VSCode)](https://code.visualstudio.com/)
+    - Install [`docker`](https://docs.docker.com/docker-for-windows/install/)
 
-    - Open the drem folder in Visual Studio Code
+        > `drem` needs `Docker Desktop` to be running.  You should see a small docker whale in your toolbar after installation!
+        
+        ![Install `docker`](images/docker-whale.png)
 
-    - Install the “Remote - Containers” extension in VSCode from the Extensions: Marketplace (or directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
+    - Install [Microsoft Visual Studio Code (`VSCode`)](https://code.visualstudio.com/)
 
-    - Reopen the drem folder in a container by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+    - Download `drem` as a ZIP (by selecting the green `Code` button at the top of the `drem` github page) and unzip it
+
+        ![Download `drem`](images/download-drem.PNG)
+
+    - Open the `drem` folder in `VSCode` by selecting File > Open Folder
+
+    - Select 'Extensions' on the side-bar and install the “Remote - Containers” extension (or install directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
+
+        ![Containers Extension](images/containers-extension.PNG)
+
+    - Reopen the `drem` folder in a container by selecting 'Reopen in Container' in the popup menu or by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+
 
 - To run `drem` (and consequently download & transform all `drem` related data):
-    - Launch `Jupyter Notebook`:
-        - Enter `jnbook` on the Command Line
-            ```bash
-            > /drem on master
-            jnbook
-            ```
-        - Copy and paste the resulting URL to your browser (or Ctrl + Click)
 
+    - Launch `Jupyter Notebook`:
+
+        - Enter `jnbook` in the `VSCode` Terminal
+            
+            ![Launch Jupyter Notebook](images/launch-notebook.PNG)
+
+        - Copy and paste the resulting URL to your browser (or Ctrl + Click)
             > It should look like http://127.0.0.1:8888/?token=aa69433d1370ab87a15436c27cd3f6948f77539a6bbeb6ee
 
     - Open `run-drem.ipynb` and ...
-        - Enter your email address
+
+        - Register your email address with SEAI at  https://ndber.seai.ie/BERResearchTool/Register/Register.aspx
+        - Fill in your email address in the notebook
         - Run all cells by selecting Cell > Run (or by manually running each cell via the Run button or by clicking each cell followed by Shft + Enter)
 
+            ![Run `drem`](images/run-drem.PNG)
 
-### (Optional) Setup the `codema-dev` development environment
+- To update your local `drem` code:
 
-> All commands mentioned below should be entered on the zsh Command Line unless otherwise specified!
-
-- Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
-    - Run `poetry shell` (to enter`virtualenv`) followed by `which python` (to get the filepath to `virtualenv` Python)
-    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath 
-
-- Change your local `VSCode` settings to `codema-dev` by creating a local `.vscode` folder and copying & pasting [this settings.json](https://github.com/codema-dev/codema-dev-dotfiles/tree/master/.vscode)
-
-- Install local dev dependencies via `poetry install`
-
-> For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
-
+    - Re-download `drem` as a ZIP
+    - (Optional) Copy & paste the files in drem/data/external across from the old version to the new version to skip redownloading of files
 
 ---
 
@@ -149,3 +153,38 @@ For more information see:
 - externals
     - [libpostal](https://github.com/openvenues/libpostal) enables fuzzy address matching
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
+
+
+### (Optional) Setup the `codema-dev` development environment
+
+> If you've never contributed to an open-source project before checkout (or are new to `git`) [first-contributions](https://github.com/firstcontributions/first-contributions).  They even have a [`VSCode`-specific section](https://github.com/firstcontributions/first-contributions/blob/master/gui-tool-tutorials/github-windows-vs-code-tutorial.md)
+
+- Clone `drem` instead of downloading a zip file as `git` lets you update `drem` without having to manually redownload it:
+    - via `git clone https://github.com/codema-dev/drem`
+
+    - or via `VSCode`:
+        - Select 'Source Control' on the side-bar
+        - Select 'Clone Repository' and search `codema-dev/drem`
+        ![Clone `drem`](images/clone-drem.PNG)
+
+- Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
+    - Run `poetry shell` (to enter`virtualenv`) followed by `which python` (to get the filepath to `virtualenv` Python)
+    - Set your Python Interpretor by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P), searching “Python: Select Interpreter” and copying & pasting the resulting filepath
+
+- Change your local `VSCode` settings to `codema-dev` by creating a local `.vscode` folder and copying & pasting [this settings.json](https://github.com/codema-dev/codema-dev-dotfiles/tree/master/.vscode)
+
+- Install local dev dependencies via `poetry install`
+
+- To update your local `drem` with the latest code:
+
+    > If you change any file `git pull` may result in merge conflicts, see[first-contributions](https://github.com/firstcontributions/first-contributions/blob/master/additional-material/git_workflow_scenarios/resolving-merge-conflicts.md) or [the `VSCode` docs](https://code.visualstudio.com/Docs/editor/versioncontrol)
+
+    - via `git pull https://github.com/codema-dev/drem`
+
+    - or via `VSCode`
+        - Select 'Source Control' in the side-bar
+        - Select the 3 dots in the top right hand corner of the popup
+        - Select 'Pull' to merge in the latest changes
+        ![Merge in latest changes](images/git-pull.png)
+
+> For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
