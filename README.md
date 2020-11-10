@@ -27,7 +27,9 @@ The goal of `drem` is to:
     - Install [`docker`](https://docs.docker.com/docker-for-windows/install/)
 
         > `drem` needs `Docker Desktop` to be running.  You should see a small docker whale in your toolbar after installation!
-        
+
+        > If you have trouble installing `docker` please see [FAQ](#FAQ)
+
         ![Install `docker`](images/docker-whale.png)
 
     - Install [Microsoft Visual Studio Code (`VSCode`)](https://code.visualstudio.com/)
@@ -36,13 +38,15 @@ The goal of `drem` is to:
 
         ![Download `drem`](images/download-drem.PNG)
 
-    - Open the `drem` folder in `VSCode` by selecting File > Open Folder
+        > If you are familiar with `git` see [Setup development environment](#setup-development-environment)
+
+    - Open the `drem` folder in `VSCode` by selecting 'File > Open Folder'
 
     - Select 'Extensions' on the side-bar and install the “Remote - Containers” extension (or install directly from [here](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers))
 
         ![Containers Extension](images/containers-extension.PNG)
 
-    - Reopen the `drem` folder in a container by selecting 'Reopen in Container' in the popup menu or by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching “Remote-Containers: Reopen in Container”
+    - Reopen the `drem` folder in a container by selecting 'Reopen in Container' in the popup menu or by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching 'Remote-Containers: Reopen in Container'
 
 
 - To run `drem` (and consequently download & transform all `drem` related data):
@@ -50,7 +54,7 @@ The goal of `drem` is to:
     - Launch `Jupyter Notebook`:
 
         - Enter `jnbook` in the `VSCode` Terminal
-            
+
             ![Launch Jupyter Notebook](images/launch-notebook.PNG)
 
         - Copy and paste the resulting URL to your browser (or Ctrl + Click)
@@ -155,7 +159,10 @@ For more information see:
     - [nominatim-docker](https://github.com/mediagis/nominatim-docker) enables creation of local Nominatim server for geocoding at scale via OpenStreetMaps
 
 
-### (Optional) Setup the `codema-dev` development environment
+---
+
+
+## Setup development environment
 
 > If you've never contributed to an open-source project before checkout (or are new to `git`) [first-contributions](https://github.com/firstcontributions/first-contributions).  They even have a [`VSCode`-specific section](https://github.com/firstcontributions/first-contributions/blob/master/gui-tool-tutorials/github-windows-vs-code-tutorial.md)
 
@@ -165,6 +172,7 @@ For more information see:
     - or via `VSCode`:
         - Select 'Source Control' on the side-bar
         - Select 'Clone Repository' and search `codema-dev/drem`
+
         ![Clone `drem`](images/clone-drem.PNG)
 
 - Set your local `VSCode` Python Interpretor to your local `poetry` `virtualenv` Python
@@ -185,6 +193,39 @@ For more information see:
         - Select 'Source Control' in the side-bar
         - Select the 3 dots in the top right hand corner of the popup
         - Select 'Pull' to merge in the latest changes
+
         ![Merge in latest changes](images/git-pull.png)
 
 > For more information see [Developing inside a Container guide](https://code.visualstudio.com/docs/remote/containers)
+
+
+---
+
+
+## FAQ
+
+- Install WSL2 for `Docker Desktop` on Windows:
+
+    As of 10/11/2020 `Docker Desktop` raises the following pop-up on Windows:
+
+    ![WSL2 not installed](images/wsl2-not-installed.PNG)
+
+    - Following the pop-up instructions:
+
+        - Launch Powershell as an Administrator search your files for 'Powershell' and either select or right-click 'Run as Administrator':
+
+            ![Launch Powershell as Administrator](images/launch-powershell-as-admin.png)
+
+        - Copy & paste the suggested command `Enable-WindowsOptionalFeature -Online -FeatureName $("VirtualMachinePlatform", "Microsoft-Windows-Subsystem-Linux")` and ENTER
+
+            ![Run Powershell command](images/install-wsl2.PNG)
+
+    - Restart `docker`
+
+        ![Restart `docker`](images/restart-docker.png)
+
+    - 'Docker Desktop' should raise the following pop-up, follow link to complete installation
+
+        ![WSL2 install incomplete](images/wsl2-install-incomplete.PNG)
+
+    - The 'Docker Desktop' whale should indicate that 'Docker Desktop' is running next time you launch it :smiley:
