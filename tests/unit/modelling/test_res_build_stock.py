@@ -16,8 +16,8 @@ def test_group_buildings_by_sa() -> None:
         {
             "SMALL_AREA": [1, 1, 1],
             "dwelling_type": ["apartment", "apartment", "semi-d"],
-            "apartments_percentage": [66.66, 66.66, 66.66],
-            "semi_d_percentage": [33.33, 33.33, 33.33],
+            "apartments_percentage": [0.66, 0.66, 0.66],
+            "semi_d_percentage": [0.33, 0.33, 0.33],
         }
     )
 
