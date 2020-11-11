@@ -2,7 +2,7 @@ import pandas as pd
 
 from pandas.testing import assert_frame_equal
 
-from drem.modelling.res_build_stock import _group_buildings_by_sa
+from drem.modelling.res_build_stock import _count_dwellings_by_sa
 
 
 def test_group_buildings_by_sa() -> None:
@@ -21,8 +21,10 @@ def test_group_buildings_by_sa() -> None:
         }
     )
 
-    output: pd.DataFrame = _group_buildings_by_sa.run(
-        df_input, target="Dwelling type description", result="cso_period_built",
+    breakpoint()
+
+    output: pd.DataFrame = _count_dwellings_by_sa.run(
+        df_input, on="dwelling_type", renamed="cso_period_built",
     )
 
     assert_frame_equal(output, expected_output)
