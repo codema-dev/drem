@@ -64,7 +64,7 @@ def _group_buildings_by_sa(df: pd.DataFrame, by: str) -> pd.DataFrame:
 @task
 def _count_dwellings_by_sa(df: pd.DataFrame, on: str, renamed: str) -> pd.DataFrame:
 
-    return df[on].value_counts(normalize=True).rename(renamed)
+    return pd.DataFrame(df[on].value_counts(normalize=True).rename(renamed))
 
 
 with Flow("Create synthetic residential building stock") as flow:
