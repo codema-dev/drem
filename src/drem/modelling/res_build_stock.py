@@ -1,6 +1,6 @@
 """
-
 This script will create a synthetic residential building stock.
+
 Our methodology is to divide each SA into several building types,
 using the Split-Apply-Combine pandas transform. These ratios will
 then be applied to outputs from EnergyPlus to generate a first-pass
