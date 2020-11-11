@@ -8,35 +8,45 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
+from drem import convert
 from drem.download.ber import DownloadBER
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import VISUALIZATION_DIR
-from drem.load.parquet import LoadToParquet
 from drem.transform.ber import transform_ber
 from drem.transform.cso_gas import transform_cso_gas
 from drem.transform.dublin_postcodes import transform_dublin_postcodes
 from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
-from drem.utilities import convert
+from drem.utilities import convert as convert_util
 from drem.utilities.download import Download
-from drem.utilities.filepath_tasks import get_filepath
 from drem.utilities.get_data_dir import get_data_dir
 from drem.utilities.visualize import VisualizeMixin
-from drem.utilities.zip import unzip
+from drem.utilities.zip import unzip as unzip_util
 
-
-small_area_statistics_filename = "small_area_statistics_2016"
-small_area_glossary_filename = "small_area_glossary_2016"
-small_area_geometries_filename = "small_area_geometries_2016"
-dublin_postcode_geometries_filename = "dublin_postcodes"
-ber_filename = "BERPublicsearch"
-cso_gas_filename = "cso_gas_2019"
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
+data_dir = get_data_dir()
+
+dtypes_dir = path.join(data_dir, "dtypes")
+external_dir = path.join(data_dir, "external")
+interim_dir = path.join(data_dir, "interim")
+processed_dir = path.join(data_dir, "processed")
+
+ber_filename = "BERPublicsearch"
+cso_gas_filename = "cso_gas_2019"
+dublin_postcode_geometries_filename = "dublin_postcodes"
+small_area_statistics_filename = "small_area_statistics_2016"
+small_area_glossary_filename = "small_area_glossary_2016"
+small_area_geometries_filename = "small_area_geometries_2016"
+
+# Get Prefect secrets
+# -------------------
 email_address = PrefectSecret("email_address")
 
+# Setup Download Tasks
+# --------------------
 download_sa_statistics = Download(
     name="Download Small Area Statistics",
     url="https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv",
@@ -59,194 +69,161 @@ download_cso_gas = Download(
     url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",
 )
 
-load_to_parquet = LoadToParquet(name="Load Data to Parquet file")
+# Setup convert tasks
+# -------------------
+convert_berpublicsearch_to_parquet = convert.BerPublicSearchToDaskParquet(
+    name="Convert BERPublicsearch from txt to dask parquet",
+)
 
-data_dir = get_data_dir()
-external_dir = path.join(data_dir, "external")
-processed_dir = path.join(data_dir, "processed")
 
 with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Download all data
     # -----------------
     sa_statistics_downloaded = download_sa_statistics(
-        filepath=get_filepath(external_dir, small_area_statistics_filename, ".csv"),
+        filepath=path.join(external_dir, f"{small_area_statistics_filename}.zip"),
     )
     sa_glossary_downloaded = download_sa_glossary(
-        filepath=get_filepath(external_dir, small_area_glossary_filename, ".xlsx"),
+        filepath=path.join(external_dir, f"{small_area_glossary_filename}.zip"),
     )
     sa_geometries_downloaded = download_sa_geometries(
-        filepath=get_filepath(external_dir, small_area_geometries_filename, ".zip"),
+        filepath=path.join(external_dir, f"{small_area_geometries_filename}.zip"),
     )
     dublin_postcodes_downloaded = download_dublin_postcode_geometries(
-        filepath=get_filepath(
-            external_dir, dublin_postcode_geometries_filename, ".zip",
-        ),
+        filepath=path.join(external_dir, f"{dublin_postcode_geometries_filename}.zip"),
     )
     ber_downloaded = download_ber(
         email_address=email_address,
-        filepath=get_filepath(external_dir, ber_filename, ".zip"),
+        filepath=path.join(external_dir, f"{ber_filename}.zip"),
     )
     cso_gas_downloaded = download_cso_gas(
-        filepath=get_filepath(external_dir, cso_gas_filename, ".html"),
+        filepath=path.join(external_dir, f"{cso_gas_filename}.zip"),
     )
 
     # Unzip all zipped data folders
     # -----------------------------
-    sa_geometries_unzipped = unzip(
-        input_filepath=get_filepath(
-            external_dir, small_area_geometries_filename, ".zip",
-        ),
-        output_filepath=get_filepath(external_dir, small_area_geometries_filename, ""),
+    sa_geometries_unzipped = unzip_util(
+        input_filepath=path.join(external_dir, f"{small_area_geometries_filename}.zip"),
+        output_filepath=path.join(external_dir, f"{small_area_geometries_filename}"),
     )
-    dublin_postcodes_unzipped = unzip(
-        input_filepath=get_filepath(
-            external_dir, dublin_postcode_geometries_filename, ".zip",
+    dublin_postcodes_unzipped = unzip_util(
+        input_filepath=path.join(
+            external_dir, f"{dublin_postcode_geometries_filename}.zip",
         ),
-        output_filepath=get_filepath(
-            external_dir, dublin_postcode_geometries_filename, "",
+        output_filepath=path.join(
+            external_dir, f"{dublin_postcode_geometries_filename}",
         ),
     )
-    ber_unzipped = unzip(
-        input_filepath=get_filepath(external_dir, ber_filename, ".zip"),
-        output_filepath=get_filepath(external_dir, ber_filename, ""),
+    ber_unzipped = unzip_util(
+        input_filepath=path.join(external_dir, f"{ber_filename}.zip"),
+        output_filepath=path.join(external_dir, f"{ber_filename}"),
     )
 
     # Convert all data to parquet for faster io
     # -----------------------------------------
-    sa_statistics_converted = convert.csv_to_parquet(
-        input_filepath=get_filepath(
-            external_dir, small_area_statistics_filename, ".csv",
-        ),
-        output_filepath=get_filepath(
-            external_dir, small_area_statistics_filename, ".parquet",
+    sa_statistics_converted = convert_util.csv_to_parquet(
+        input_filepath=path.join(external_dir, f"{small_area_statistics_filename}.csv"),
+        output_filepath=path.join(
+            interim_dir, f"{small_area_statistics_filename}.parquet",
         ),
     )
-    sa_glossary_converted = convert.excel_to_parquet(
-        input_filepath=get_filepath(
-            external_dir, small_area_glossary_filename, ".xlsx",
-        ),
-        output_filepath=get_filepath(
-            external_dir, small_area_glossary_filename, ".parquet",
+    sa_glossary_converted = convert_util.excel_to_parquet(
+        input_filepath=path.join(external_dir, f"{small_area_glossary_filename}.xlsx"),
+        output_filepath=path.join(
+            interim_dir, f"{small_area_glossary_filename}.parquet",
         ),
     )
-    sa_geometries_converted = convert.shapefile_to_parquet(
-        input_filepath=get_filepath(external_dir, small_area_geometries_filename, ""),
-        output_filepath=get_filepath(
-            external_dir, small_area_geometries_filename, ".parquet",
+    sa_geometries_converted = convert_util.shapefile_to_parquet(
+        input_filepath=path.join(external_dir, f"{small_area_geometries_filename}"),
+        output_filepath=path.join(
+            interim_dir, f"{small_area_geometries_filename}.parquet",
         ),
     )
-    dublin_postcodes_converted = convert.shapefile_to_parquet(
-        input_filepath=get_filepath(
+    dublin_postcodes_converted = convert_util.shapefile_to_parquet(
+        input_filepath=path.join(
             external_dir,
-            dublin_postcode_geometries_filename,
-            "/dublin-postcode-shapefiles-master/Postcode_dissolve",
+            f"{dublin_postcode_geometries_filename}/dublin-postcode-shapefiles-master/Postcode_dissolve",
         ),
-        output_filepath=get_filepath(
-            external_dir, dublin_postcode_geometries_filename, ".parquet",
+        output_filepath=path.join(
+            interim_dir, f"{dublin_postcode_geometries_filename}.parquet",
         ),
     )
-    ber_converted = convert.csv_to_dask_parquet(
-        input_filepath=get_filepath(
-            external_dir, f"{ber_filename}/{ber_filename}", ".txt",
-        ),
-        output_filepath=get_filepath(external_dir, ber_filename, ".parquet"),
-        sep="\t",
-        encoding="latin-1",
-        error_bad_lines=False,
-        low_memory=False,
-        dtype={
-            "FanPowerManuDeclaredValue": "float64",
-            "FirstEnerConsumedComment": "object",
-            "FirstWallTypeId": "float64",
-            "HeatExchangerEff": "float64",
-            "SecondEnerConsumedComment": "object",
-            "SecondEnerProdComment": "object",
-            "ThirdEnerProdComment": "object",
-            "NoOfChimneys": "float64",
-            "NoOfFansAndVents": "float64",
-            "NoOfFluelessGasFires": "float64",
-            "NoOfOpenFlues": "float64",
-            "NoOfSidesSheltered": "float64",
-            "PercentageDraughtStripped": "float64",
-            "ThirdEnerConsumedComment": "object",
-        },
+    ber_converted = convert_berpublicsearch_to_parquet(
+        input_filepath=path.join(external_dir, ber_filename, f"{ber_filename}.txt"),
+        output_filepath=path.join(interim_dir, f"{ber_filename}.parquet"),
+        dtypes_filepath=path.join(dtypes_dir, f"{ber_filename}.json"),
     )
 
     # Clean data
     # ----------
     ber_clean = transform_ber(
-        input_filepath=get_filepath(external_dir, ber_filename, ".parquet"),
-        output_filepath=get_filepath(processed_dir, ber_filename, ".parquet"),
+        input_filepath=path.join(interim_dir, f"{ber_filename}.parquet"),
+        output_filepath=path.join(processed_dir, f"{ber_filename}.parquet"),
     )
     sa_geometries_clean = transform_sa_geometries(
-        input_filepath=get_filepath(
-            external_dir, small_area_geometries_filename, ".parquet",
+        input_filepath=path.join(
+            interim_dir, f"{small_area_geometries_filename}.parquet",
         ),
-        output_filepath=get_filepath(
-            processed_dir, small_area_geometries_filename, ".parquet",
+        output_filepath=path.join(
+            processed_dir, f"{small_area_geometries_filename}.parquet",
         ),
     )
     dublin_postcodes_clean = transform_dublin_postcodes(
-        input_filepath=get_filepath(
-            external_dir, dublin_postcode_geometries_filename, ".parquet",
+        input_filepath=path.join(
+            interim_dir, f"{dublin_postcode_geometries_filename}.parquet",
         ),
-        output_filepath=get_filepath(
-            processed_dir, dublin_postcode_geometries_filename, ".parquet",
+        output_filepath=path.join(
+            processed_dir, f"{dublin_postcode_geometries_filename}.parquet",
         ),
     )
     sa_statistics_clean = transform_sa_statistics(
-        input_filepath=get_filepath(
-            external_dir, small_area_statistics_filename, ".parquet",
+        input_filepath=path.join(
+            interim_dir, f"{small_area_statistics_filename}.parquet",
         ),
-        sa_glossary_filepath=get_filepath(
-            external_dir, small_area_glossary_filename, ".parquet",
+        sa_glossary_filepath=path.join(
+            interim_dir, f"{small_area_glossary_filename}.parquet",
         ),
-        postcodes_filepath=get_filepath(
-            processed_dir, dublin_postcode_geometries_filename, ".parquet",
+        postcodes_filepath=path.join(
+            processed_dir, f"{dublin_postcode_geometries_filename}.parquet",
         ),
-        sa_geometries_filepath=get_filepath(
-            processed_dir, small_area_geometries_filename, ".parquet",
+        sa_geometries_filepath=path.join(
+            processed_dir, f"{small_area_geometries_filename}.parquet",
         ),
-        output_filepath_period_built=get_filepath(
-            processed_dir, "small_area_period_built", ".parquet",
+        output_filepath_period_built=path.join(
+            processed_dir, "small_area_period_built.parquet",
         ),
-        output_filepath_boilers=get_filepath(
-            processed_dir, "small_area_boilers", ".parquet",
-        ),
+        output_filepath_boilers=path.join(processed_dir, "small_area_boilers.parquet"),
     )
     cso_gas_clean = transform_cso_gas(
-        input_filepath=get_filepath(external_dir, cso_gas_filename, ".html"),
-        postcodes_filepath=get_filepath(
-            processed_dir, dublin_postcode_geometries_filename, ".parquet",
+        input_filepath=path.join(external_dir, f"{cso_gas_filename}.html"),
+        postcodes_filepath=path.join(
+            processed_dir, f"{dublin_postcode_geometries_filename}.parquet",
         ),
-        small_area_boilers_filepath=get_filepath(
-            processed_dir, "small_area_boilers", ".parquet",
+        small_area_boilers_filepath=path.join(
+            processed_dir, "small_area_boilers.parquet",
         ),
-        output_filepath_residential_gas=get_filepath(
-            processed_dir, "residential_postcode_gas", ".parquet",
+        output_filepath_residential_gas=path.join(
+            processed_dir, "residential_postcode_gas.parquet",
         ),
-        output_filepath_non_residential_gas=get_filepath(
-            processed_dir, "non_residential_postcode_gas", ".parquet",
+        output_filepath_non_residential_gas=path.join(
+            processed_dir, "non_residential_postcode_gas.parquet",
         ),
     )
 
     ber_archetypes = create_ber_archetypes(
-        input_filepath=get_filepath(processed_dir, ber_filename, ".parquet"),
-        output_filepath=get_filepath(processed_dir, "ber_archetypes", ".parquet"),
+        input_filepath=path.join(processed_dir, f"{ber_filename}.parquet"),
+        output_filepath=path.join(processed_dir, "ber_archetypes.parquet"),
     )
     sa_demand = estimate_sa_demand(
-        small_area_period_built_filepath=get_filepath(
-            processed_dir, "small_area_period_built", ".parquet",
+        small_area_period_built_filepath=path.join(
+            processed_dir, "small_area_period_built.parquet",
         ),
-        ber_archetypes_filepath=get_filepath(
-            processed_dir, "ber_archetypes", ".parquet",
+        ber_archetypes_filepath=path.join(processed_dir, "ber_archetypes.parquet"),
+        small_area_geometries_filepath=path.join(
+            processed_dir, f"{small_area_geometries_filename}.parquet",
         ),
-        small_area_geometries_filepath=get_filepath(
-            processed_dir, small_area_geometries_filename, ".parquet",
-        ),
-        output_filepath=get_filepath(
-            processed_dir, "small_area_heat_demand_estimate", ".parquet",
+        output_filepath=path.join(
+            processed_dir, "small_area_heat_demand_estimate.parquet",
         ),
     )
 
@@ -339,3 +316,8 @@ def visualize_flow(flow_to_viz: Flow, flow_state: Optional[State] = None) -> Non
         flow=flow_to_viz,
         flow_state=flow_state,
     )
+
+
+if __name__ == "__main__":
+
+    state = flow.run()
