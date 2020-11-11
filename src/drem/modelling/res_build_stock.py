@@ -1,26 +1,19 @@
 """
 
-This script will create a synthetic residential building stock to divide
-each SA into several building types, using the Split-Apply-Combine pandas
-transform. These ratios will then be applied to outputs from EnergyPlus
-to generate a first-pass estimate for residential energy demand in Dublin
+This script will create a synthetic residential building stock.
+Our methodology is to divide each SA into several building types,
+using the Split-Apply-Combine pandas transform. These ratios will
+then be applied to outputs from EnergyPlus to generate a first-pass
+estimate for residential energy demand in Dublin.
 
 """
-
 import pandas as pd
-import geopandas as gpd
-
-from typing import Dict
-from typing import List
-from pathlib import Path
 
 from prefect import Flow
-from prefect import Parameter
 from prefect import task
 
-from drem.filepaths import RAW_DIR
-from drem.filepaths import EXTERNAL_DIR
 from drem.filepaths import PROCESSED_DIR
+from drem.filepaths import RAW_DIR
 
 
 @task
@@ -37,10 +30,10 @@ def _read_csv(input_filepath: str) -> pd.DataFrame:
 
 @task
 def _merge_ber_sa(
-    sa: pd.DataFrame, ber: pd.DataFrame, left_on: str, right_on: str, **kwargs
+    left: pd.DataFrame, right: pd.DataFrame, left_on: str, right_on: str, **kwargs,
 ) -> pd.DataFrame:
 
-    return sa.merge(ber, left_on=left_on, right_on=right_on, **kwargs)
+    return left.merge(right, left_on=left_on, right_on=right_on, **kwargs)
 
 
 @task
@@ -57,7 +50,7 @@ def _assign_building_type(df: pd.DataFrame, on: str, equiv: list) -> pd.DataFram
 
 @task
 def _count_buildings_by_sa(
-    df: pd.DataFrame, by: str, on: str, renamed: str
+    df: pd.DataFrame, by: str, on: str, renamed: str,
 ) -> pd.DataFrame:
 
     return df.groupby(by)[on].value_counts(normalize=True).rename(renamed).reset_index()
@@ -68,8 +61,8 @@ with Flow("Create synthetic residential building stock") as flow:
     dublin_sa = _read_sa_parquet(PROCESSED_DIR / "small_area_geometries_2016.parquet")
     ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
     ber_dublin = _merge_ber_sa(
-        sa=dublin_sa,
-        ber=ber,
+        left=dublin_sa,
+        right=ber,
         left_on="small_area",
         right_on="cso_small_area",
         how="inner",
