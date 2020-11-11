@@ -15,8 +15,12 @@ def test_group_buildings_by_sa() -> None:
         }
     )
 
-    expected_output = pd.DataFrame({'dwelling_type': ["apartment", "semi-d"], 'dwelling_percentage': [0.666667, 0.333333
-    ...: ]}).reset_index(drop=True)
+    expected_output = pd.DataFrame(
+        {
+            "dwelling_type": ["apartment", "semi-d"],
+            "dwelling_percentage": [0.666667, 0.333333],
+        }
+    ).reset_index(drop=True)
 
     output: pd.DataFrame = _count_dwellings_by_sa.run(
         df_input, on="dwelling_type", renamed="dwelling_percentage",
