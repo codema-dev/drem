@@ -56,15 +56,11 @@ def _assign_building_type(df: pd.DataFrame, on: str, equiv: list) -> pd.DataFram
 
 
 @task
-def _group_buildings_by_sa(df: pd.DataFrame, by: str) -> pd.DataFrame:
+def _count_buildings_by_sa(
+    df: pd.DataFrame, by: str, on: str, renamed: str
+) -> pd.DataFrame:
 
-    return df.groupby(by)
-
-
-@task
-def _count_dwellings_by_sa(df: pd.DataFrame, on: str, renamed: str) -> pd.DataFrame:
-
-    return pd.DataFrame(df[on].value_counts(normalize=True).rename(renamed))
+    return df.groupby(by)[on].value_counts(normalize=True).rename(renamed).reset_index()
 
 
 with Flow("Create synthetic residential building stock") as flow:
@@ -98,7 +94,9 @@ with Flow("Create synthetic residential building stock") as flow:
             "None": "Not stated",
         },
     )
-    ber_grouped = _group_buildings_by_sa(ber_assigned, by="cso_small_area")
-    ber_counted = _count_dwellings_by_sa(
-        ber_grouped, on="Dwelling type description", renamed="Dwelling Percentage",
+    ber_grouped = _count_buildings_by_sa(
+        ber_assigned,
+        by="cso_small_area",
+        on="Dwelling type description",
+        renamed="Dwelling Percentage",
     )

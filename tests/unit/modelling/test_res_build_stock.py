@@ -11,19 +11,20 @@ def test_group_buildings_by_sa() -> None:
     df_input = pd.DataFrame(
         {
             "cso_small_area": [1, 1, 1],
-            "dwelling_type": ["apartment", "apartment", "semi-d"],
+            "Dwelling type description": ["apartment", "apartment", "semi-d"],
         }
     )
 
     expected_output = pd.DataFrame(
         {
-            "dwelling_type": ["apartment", "semi-d"],
-            "dwelling_percentage": [0.666667, 0.333333],
+            "cso_small_area": [1, 1, 1]
+            "Dwelling type description: ["apartment", "semi-d"],
+            "Dwelling Percentage": [0.666667, 0.333333],
         }
     ).reset_index(drop=True)
 
-    output: pd.DataFrame = _count_dwellings_by_sa.run(
-        df_input, on="dwelling_type", renamed="dwelling_percentage",
+    output: pd.DataFrame = _count_buildings_by_sa.run(
+        df_input, on="Dwelling type description", renamed="Dwelling Percentage",
     )
 
     assert_frame_equal(output, expected_output)
