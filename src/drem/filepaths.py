@@ -14,6 +14,7 @@ EXTERNAL_DIR = DATA_DIR / "external"
 REQUESTS_DIR = DATA_DIR / "requests"
 ROUGHWORK_DIR = DATA_DIR / "roughwork"
 COMMERCIAL_BENCHMARKS_DIR = DATA_DIR / "commercial_building_benchmarks"
+DTYPES_DIR = DATA_DIR / "dtypes"
 
 FTEST_DIR = TEST_DIR / "functional" / "data"
 FTEST_EXTERNAL_DIR = TEST_DIR / "functional" / "data" / "external"

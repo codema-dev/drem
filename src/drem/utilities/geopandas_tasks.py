@@ -39,6 +39,25 @@ def read_parquet(filepath: Path, **kwargs: Any) -> gpd.GeoDataFrame:
 
 
 @task
+def to_parquet(
+    gdf: gpd.GeoDataFrame, filepath: Path, **kwargs: Any,
+) -> gpd.GeoDataFrame:
+    """Load a Parquet object from the file path, returning a GeoDataFrame.
+
+    See https://geopandas.org/reference/geopandas.read_parquet.html
+
+    Args:
+        gdf (gpd.GeoDataFrame): GeoDataFrame
+        filepath (Path): Path to file
+        **kwargs (Any): Passed to geopandas.read_parquet
+
+    Returns:
+        gpd.GeoDataFrame: GeoDataFrame
+    """
+    return gdf.to_parquet(filepath, **kwargs)
+
+
+@task
 def read_file(filepath: Path, **kwargs: Any) -> gpd.GeoDataFrame:
     """Return a GeoDataFrame from a file or URL.
 

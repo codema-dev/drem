@@ -8,6 +8,7 @@ from prefect import Task
 from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
+from drem import convert
 from drem.download.ber import DownloadBER
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
@@ -18,12 +19,12 @@ from drem.transform.cso_gas import transform_cso_gas
 from drem.transform.dublin_postcodes import transform_dublin_postcodes
 from drem.transform.sa_geometries import transform_sa_geometries
 from drem.transform.sa_statistics import transform_sa_statistics
-from drem.utilities import convert
+from drem.utilities import convert as convert_util
 from drem.utilities.download import Download
 from drem.utilities.filepath_tasks import get_filepath
 from drem.utilities.get_data_dir import get_data_dir
 from drem.utilities.visualize import VisualizeMixin
-from drem.utilities.zip import unzip
+from drem.utilities.zip import unzip as unzip_util
 
 
 small_area_statistics_filename = "small_area_statistics_2016"
@@ -59,11 +60,19 @@ download_cso_gas = Download(
     url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",
 )
 
+
+convert_berpublicsearch_to_parquet = convert.BerPublicSearchToDaskParquet(
+    name="Convert BERPublicsearch from txt to dask parquet",
+)
+
+
 load_to_parquet = LoadToParquet(name="Load Data to Parquet file")
 
 data_dir = get_data_dir()
 external_dir = path.join(data_dir, "external")
+interim_dir = path.join(data_dir, "interim")
 processed_dir = path.join(data_dir, "processed")
+dtypes_dir = path.join(data_dir, "dtypes")
 
 with Flow("Extract, Transform & Load DREM Data") as flow:
 
@@ -93,13 +102,13 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Unzip all zipped data folders
     # -----------------------------
-    sa_geometries_unzipped = unzip(
+    sa_geometries_unzipped = unzip_util(
         input_filepath=get_filepath(
             external_dir, small_area_geometries_filename, ".zip",
         ),
         output_filepath=get_filepath(external_dir, small_area_geometries_filename, ""),
     )
-    dublin_postcodes_unzipped = unzip(
+    dublin_postcodes_unzipped = unzip_util(
         input_filepath=get_filepath(
             external_dir, dublin_postcode_geometries_filename, ".zip",
         ),
@@ -107,14 +116,14 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
             external_dir, dublin_postcode_geometries_filename, "",
         ),
     )
-    ber_unzipped = unzip(
+    ber_unzipped = unzip_util(
         input_filepath=get_filepath(external_dir, ber_filename, ".zip"),
         output_filepath=get_filepath(external_dir, ber_filename, ""),
     )
 
     # Convert all data to parquet for faster io
     # -----------------------------------------
-    sa_statistics_converted = convert.csv_to_parquet(
+    sa_statistics_converted = convert_util.csv_to_parquet(
         input_filepath=get_filepath(
             external_dir, small_area_statistics_filename, ".csv",
         ),
@@ -122,7 +131,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
             external_dir, small_area_statistics_filename, ".parquet",
         ),
     )
-    sa_glossary_converted = convert.excel_to_parquet(
+    sa_glossary_converted = convert_util.excel_to_parquet(
         input_filepath=get_filepath(
             external_dir, small_area_glossary_filename, ".xlsx",
         ),
@@ -130,13 +139,13 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
             external_dir, small_area_glossary_filename, ".parquet",
         ),
     )
-    sa_geometries_converted = convert.shapefile_to_parquet(
+    sa_geometries_converted = convert_util.shapefile_to_parquet(
         input_filepath=get_filepath(external_dir, small_area_geometries_filename, ""),
         output_filepath=get_filepath(
             external_dir, small_area_geometries_filename, ".parquet",
         ),
     )
-    dublin_postcodes_converted = convert.shapefile_to_parquet(
+    dublin_postcodes_converted = convert_util.shapefile_to_parquet(
         input_filepath=get_filepath(
             external_dir,
             dublin_postcode_geometries_filename,
@@ -146,37 +155,18 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
             external_dir, dublin_postcode_geometries_filename, ".parquet",
         ),
     )
-    ber_converted = convert.csv_to_dask_parquet(
-        input_filepath=get_filepath(
-            external_dir, f"{ber_filename}/{ber_filename}", ".txt",
+    ber_converted = convert_berpublicsearch_to_parquet(
+        input_filepath=path.join(
+            external_dir, "BERPublicsearch", f"{ber_filename}.txt",
         ),
-        output_filepath=get_filepath(external_dir, ber_filename, ".parquet"),
-        sep="\t",
-        encoding="latin-1",
-        error_bad_lines=False,
-        low_memory=False,
-        dtype={
-            "FanPowerManuDeclaredValue": "float64",
-            "FirstEnerConsumedComment": "object",
-            "FirstWallTypeId": "float64",
-            "HeatExchangerEff": "float64",
-            "SecondEnerConsumedComment": "object",
-            "SecondEnerProdComment": "object",
-            "ThirdEnerProdComment": "object",
-            "NoOfChimneys": "float64",
-            "NoOfFansAndVents": "float64",
-            "NoOfFluelessGasFires": "float64",
-            "NoOfOpenFlues": "float64",
-            "NoOfSidesSheltered": "float64",
-            "PercentageDraughtStripped": "float64",
-            "ThirdEnerConsumedComment": "object",
-        },
+        output_filepath=path.join(interim_dir, f"{ber_filename}.parquet"),
+        dtypes_filepath=path.join(dtypes_dir, f"{ber_filename}.json"),
     )
 
     # Clean data
     # ----------
     ber_clean = transform_ber(
-        input_filepath=get_filepath(external_dir, ber_filename, ".parquet"),
+        input_filepath=get_filepath(interim_dir, ber_filename, ".parquet"),
         output_filepath=get_filepath(processed_dir, ber_filename, ".parquet"),
     )
     sa_geometries_clean = transform_sa_geometries(
