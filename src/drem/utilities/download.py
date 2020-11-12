@@ -86,12 +86,8 @@ class Download(Task):
 
         super().__init__(**kwargs)
 
-    def run(self) -> str:
-        """Download data directly from URL to savepath.
-
-        Returns:
-            str: Path to downloaded data
-        """
+    def run(self) -> None:
+        """Download data directly from URL to savepath."""
         savepath = path.join(self.dirpath, self.filename)
         if path.exists(savepath):
             self.logger.info(f"Skipping download as {savepath} exists!")
@@ -99,8 +95,6 @@ class Download(Task):
             with requests.get(url=self.url, stream=True) as response:
                 response.raise_for_status()
                 download_file_from_response(response, savepath)
-
-        return savepath
 
 
 if __name__ == "__main__":

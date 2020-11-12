@@ -91,11 +91,11 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Download all data
     # -----------------
-    path_to_raw_sa_statistics = download_sa_statistics()
-    path_to_raw_sa_glossary = download_sa_glossary()
-    path_to_raw_sa_geometries = download_sa_geometries()
-    path_to_raw_dublin_postcodes = download_dublin_postcode_geometries()
-    path_to_raw_cso_gas = download_cso_gas()
+    sa_statistics_downloaded = download_sa_statistics()
+    sa_glossary_downloaded = download_sa_glossary()
+    sa_geometries_downloaded = download_sa_geometries()
+    dublin_postcodes_downloaded = download_dublin_postcode_geometries()
+    cso_gas_downloaded = download_cso_gas()
     ber_downloaded = download_ber(
         email_address=email_address,
         filepath=path.join(external_dir, f"{ber_filename}.zip"),
@@ -230,11 +230,11 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Define dependencies
     # -------------------
-    sa_geometries_unzipped.set_upstream(path_to_raw_sa_geometries)
-    dublin_postcodes_unzipped.set_upstream(path_to_raw_dublin_postcodes)
-    sa_statistics_converted.set_upstream(path_to_raw_sa_statistics)
-    sa_glossary_converted.set_upstream(path_to_raw_sa_glossary)
-    cso_gas_clean.set_upstream(path_to_raw_cso_gas)
+    sa_geometries_unzipped.set_upstream(sa_geometries_downloaded)
+    dublin_postcodes_unzipped.set_upstream(dublin_postcodes_downloaded)
+    sa_statistics_converted.set_upstream(sa_statistics_downloaded)
+    sa_glossary_converted.set_upstream(sa_glossary_downloaded)
+    cso_gas_clean.set_upstream(cso_gas_downloaded)
     ber_unzipped.set_upstream(ber_downloaded)
 
     sa_geometries_converted.set_upstream(sa_geometries_unzipped)
