@@ -1,3 +1,4 @@
+import csv
 import json
 
 from os import path
@@ -33,13 +34,25 @@ class BerPublicSearchToDaskParquet(Task):
             with open(dtypes_filepath, "r") as json_file:
                 dtypes = json.load(json_file)
 
-            csv = dd.read_csv(
+            ber_raw = dd.read_csv(
                 input_filepath,
                 sep="\t",
-                encoding="unicode_escape",
-                error_bad_lines=False,
                 low_memory=False,
                 dtype=dtypes,
+                encoding="latin-1",
+                lineterminator="\n",
+                error_bad_lines=False,
+                quoting=csv.QUOTE_NONE,
             )
 
-            csv.to_parquet(output_filepath, schema="infer")
+            ber_raw.to_parquet(output_filepath, schema="infer")
+
+
+if __name__ == "__main__":
+
+    convert_ber = BerPublicSearchToDaskParquet()
+    convert_ber.run(
+        input_filepath="/drem/data/external/BERPublicsearch/BERPublicsearch.txt",
+        output_filepath="/drem/data/interim/BERPublicsearch.parquet",
+        dtypes_filepath="/drem/data/dtypes/BERPublicsearch.json",
+    )
