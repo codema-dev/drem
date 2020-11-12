@@ -9,7 +9,7 @@ from prefect.engine.state import State
 from prefect.tasks.secrets import PrefectSecret
 
 from drem import convert
-from drem.download.ber import DownloadBER
+from drem.download import download
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import VISUALIZATION_DIR
@@ -50,24 +50,35 @@ email_address = PrefectSecret("email_address")
 download_sa_statistics = Download(
     name="Download Small Area Statistics",
     url="https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS2016_SA2017.csv",
+    dirpath=external_dir,
+    filename=f"{small_area_statistics_filename}.zip",
 )
 download_sa_glossary = Download(
     name="Download Small Area Glossary",
     url="https://www.cso.ie/en/media/csoie/census/census2016/census2016boundaryfiles/SAPS_2016_Glossary.xlsx",
+    dirpath=external_dir,
+    filename=f"{small_area_glossary_filename}.xlsx",
 )
 download_sa_geometries = Download(
     name="Download Small Area Geometries",
     url="http://data-osi.opendata.arcgis.com/datasets/c85e610da1464178a2cd84a88020c8e2_3.zip",
+    dirpath=external_dir,
+    filename=f"{small_area_geometries_filename}.zip",
 )
 download_dublin_postcode_geometries = Download(
     name="Download Dublin Postcode Geometries",
     url="https://github.com/rdmolony/dublin-postcode-shapefiles/archive/master.zip",
+    dirpath=external_dir,
+    filename=f"{dublin_postcode_geometries_filename}.zip",
 )
-download_ber = DownloadBER(name="Download Ireland BER Data")
 download_cso_gas = Download(
     name="Download CSO 2019 Postcode Annual Network Gas Consumption",
     url="https://www.cso.ie/en/releasesandpublications/er/ngc/networkedgasconsumption2019/",
+    dirpath=external_dir,
+    filename=f"{cso_gas_filename}.html",
 )
+download_ber = download.BERPublicsearch(name="Download Ireland BER Data")
+
 
 # Setup convert tasks
 # -------------------
@@ -80,24 +91,14 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Download all data
     # -----------------
-    sa_statistics_downloaded = download_sa_statistics(
-        filepath=path.join(external_dir, f"{small_area_statistics_filename}.zip"),
-    )
-    sa_glossary_downloaded = download_sa_glossary(
-        filepath=path.join(external_dir, f"{small_area_glossary_filename}.zip"),
-    )
-    sa_geometries_downloaded = download_sa_geometries(
-        filepath=path.join(external_dir, f"{small_area_geometries_filename}.zip"),
-    )
-    dublin_postcodes_downloaded = download_dublin_postcode_geometries(
-        filepath=path.join(external_dir, f"{dublin_postcode_geometries_filename}.zip"),
-    )
+    path_to_raw_sa_statistics = download_sa_statistics()
+    path_to_raw_sa_glossary = download_sa_glossary()
+    path_to_raw_sa_geometries = download_sa_geometries()
+    path_to_raw_dublin_postcodes = download_dublin_postcode_geometries()
+    path_to_raw_cso_gas = download_cso_gas()
     ber_downloaded = download_ber(
         email_address=email_address,
         filepath=path.join(external_dir, f"{ber_filename}.zip"),
-    )
-    cso_gas_downloaded = download_cso_gas(
-        filepath=path.join(external_dir, f"{cso_gas_filename}.zip"),
     )
 
     # Unzip all zipped data folders
@@ -229,12 +230,13 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
 
     # Define dependencies
     # -------------------
-    sa_geometries_unzipped.set_upstream(sa_geometries_downloaded)
-    dublin_postcodes_unzipped.set_upstream(dublin_postcodes_downloaded)
+    sa_geometries_unzipped.set_upstream(path_to_raw_sa_geometries)
+    dublin_postcodes_unzipped.set_upstream(path_to_raw_dublin_postcodes)
+    sa_statistics_converted.set_upstream(path_to_raw_sa_statistics)
+    sa_glossary_converted.set_upstream(path_to_raw_sa_glossary)
+    cso_gas_clean.set_upstream(path_to_raw_cso_gas)
     ber_unzipped.set_upstream(ber_downloaded)
 
-    sa_statistics_converted.set_upstream(sa_statistics_downloaded)
-    sa_glossary_converted.set_upstream(sa_glossary_downloaded)
     sa_geometries_converted.set_upstream(sa_geometries_unzipped)
     dublin_postcodes_converted.set_upstream(dublin_postcodes_unzipped)
     ber_converted.set_upstream(ber_unzipped)
@@ -248,7 +250,6 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     sa_statistics_clean.set_upstream(sa_geometries_clean)
     sa_statistics_clean.set_upstream(dublin_postcodes_clean)
 
-    cso_gas_clean.set_upstream(cso_gas_downloaded)
     cso_gas_clean.set_upstream(dublin_postcodes_clean)
     cso_gas_clean.set_upstream(sa_statistics_clean)
 
