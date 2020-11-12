@@ -1,21 +1,19 @@
 from os import path
 from pathlib import Path
 from typing import Any
-from typing import Optional
 
 import requests
 
-import prefect
 from prefect import Task
 from tqdm import tqdm
 
 
-def download_file_from_response(response: requests.Response, filepath: Path) -> None:
+def download_file_from_response(response: requests.Response, filepath: str) -> None:
     """Download file to filepath via a HTTP response from a POST or GET request.
 
     Args:
         response (requests.Response): A HTTP response from a POST or GET request
-        filepath (Path): Save path destination for downloaded file
+        filepath (str): Save path destination for downloaded file
     """
     total_size_in_bytes = int(response.headers.get("content-length", 0))
     block_size = 1024  # 1 Kilobyte
@@ -71,29 +69,46 @@ class Download(Task):
     """
 
     def __init__(
-        self, url: Optional[str] = None, **kwargs: Any,
+        self, url: str, dirpath: str, filename: str, **kwargs: Any,
     ):
         """Initialise 'Download' Task.
 
         Args:
-            url (Optional[str], optional): Direct URL link to data such as
+            url (str): Direct URL link to data such as
                 http://www.urltodata.ie/data.csv. Defaults to None.
+            filename (str): Name of file to be downloaded
+            dirpath (str): Path to save directory
             **kwargs (Any): see https://docs.prefect.io/core/concepts/tasks.html
         """
         self.url = url
+        self.dirpath = dirpath
+        self.filename = filename
 
         super().__init__(**kwargs)
 
-    def run(self, filepath: str) -> None:
+    def run(self) -> str:
         """Download data directly from URL to savepath.
 
-        Args:
-            filepath (str): Path to Data
+        Returns:
+            str: Path to downloaded data
         """
-        if path.exists(filepath):
-            self.logger.info(f"Skipping download as {filepath} exists!")
+        savepath = path.join(self.dirpath, self.filename)
+        if path.exists(savepath):
+            self.logger.info(f"Skipping download as {savepath} exists!")
         else:
             with requests.get(url=self.url, stream=True) as response:
-
                 response.raise_for_status()
-                download_file_from_response(response, filepath)
+                download_file_from_response(response, savepath)
+
+        return savepath
+
+
+if __name__ == "__main__":
+
+    download_codema_homepage = Download(
+        name="Download the Codema homepage",
+        url="https://www.codema.ie/",
+        filename="codema-homepage.html",
+        dirpath="/drem/data/roughwork",
+    )
+    download_codema_homepage.run()
