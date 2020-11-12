@@ -77,7 +77,7 @@ download_cso_gas = Download(
     dirpath=external_dir,
     filename=f"{cso_gas_filename}.html",
 )
-download_ber = download.BER(name="Download Ireland BER Data")
+download_ber = download.BERPublicsearch(name="Download Ireland BER Data")
 
 
 # Setup convert tasks
