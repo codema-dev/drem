@@ -36,7 +36,7 @@ class BerPublicSearchToDaskParquet(Task):
             csv = dd.read_csv(
                 input_filepath,
                 sep="\t",
-                encoding="latin-1",
+                encoding="unicode_escape",
                 error_bad_lines=False,
                 low_memory=False,
                 dtype=dtypes,
