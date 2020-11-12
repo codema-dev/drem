@@ -48,6 +48,10 @@ The goal of `drem` is to:
 
     - Reopen the `drem` folder in a container by selecting 'Reopen in Container' in the popup menu or by opening the Command Palette (via View > Command Palette or by Ctrl + Shft + P) and searching 'Remote-Containers: Reopen in Container'
 
+        > If you want to view the installation progress click on 'Starting Dev Container (show log)' and once the installation is complete (files will appear in the left sidebar) click the + symbol in your Terminal window.
+
+        ![Show log](images/show-log.PNG)
+
 
 - To run `drem` (and consequently download & transform all `drem` related data):
 
