@@ -72,7 +72,7 @@ def etl_flow_state(monkeypatch: MonkeyPatch, mock_data_dir: Mock) -> State:
         residential.Download, "run", mock_task_run,
     )
     monkeypatch.setattr(
-        residential.DownloadBER, "run", mock_task_run,
+        residential.download.BERPublicsearch, "run", mock_task_run,
     )
 
     with raise_on_exception():
