@@ -8,6 +8,7 @@ estimate for residential energy demand in Dublin.
 
 """
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 from prefect import Flow
@@ -86,6 +87,29 @@ def _total_res_buildings_by_sa(
 
 
 @task
+def _apply_period_built_split(
+    df: pd.DataFrame,
+    sa: str,
+    yc: str,
+    split: str,
+    year: int,
+    post: str,
+    pre: str,
+    pre_post: str,
+) -> pd.DataFrame:
+
+    df = df.groupby([sa, yc])
+    df = df.head(300000)
+    df[yc] = df[yc].astype(int)
+    df[split] = np.where(df[yc] >= year, post, pre)
+    df = df.groupby(sa)[split].value_counts(normalize=True)
+    df = df.to_frame()
+    df = df.rename(columns={split: pre_post})
+
+    return df.reset_index()
+
+
+@task
 def _count_buildings_by_sa(
     df: pd.DataFrame, by: str, on: str, renamed: str,
 ) -> pd.DataFrame:
@@ -138,47 +162,48 @@ with Flow("Create synthetic residential building stock") as flow:
     geo_total = _total_res_buildings_by_sa(
         geo_joined, on="small_area", renamed="total_dwellings",
     )
-    ber_pre = _split_ber_construction(
+    ber_split = _split_ber_construction(
         df=ber_assigned, condition="`Year of construction`<1973",
     )
-    ber_post = _split_ber_construction(
-        df=ber_assigned, condition="`Year of construction`>1972",
+    period_built_split = _apply_period_built_split(
+        df=ber_assigned,
+        sa="small_area",
+        yc="Year of construction",
+        split="yc_split",
+        year=1973,
+        post="post",
+        pre="pre",
+        pre_post="pre_post",
     )
-    ber_pre_grouped = _count_buildings_by_sa(
-        ber_pre,
+    ber_grouped = _count_buildings_by_sa(
+        ber_split,
         by="cso_small_area",
         on="Dwelling type description",
         renamed="Dwelling Percentage",
     )
-    ber_post_grouped = _count_buildings_by_sa(
-        ber_post,
-        by="cso_small_area",
-        on="Dwelling type description",
-        renamed="Dwelling Percentage",
-    )
-    joined_pre = _merge_ber_sa(
+    joined = _merge_ber_sa(
         left=geo_total,
-        right=ber_pre_grouped,
+        right=ber_grouped,
         left_on="small_area",
         right_on="cso_small_area",
         how="inner",
     )
-    joined_post = _merge_ber_sa(
-        left=geo_total,
-        right=ber_post_grouped,
+    output = _final_count(
+        joined,
+        total="total_buildings_per_sa",
+        count="total_dwellings",
+        ratio="Dwelling Percentage",
+    )
+    output_split = _merge_ber_sa(
+        left=period_built_split,
+        right=output,
         left_on="small_area",
-        right_on="cso_small_area",
+        right_on="small_area",
         how="inner",
     )
-    output_pre = _final_count(
-        joined_pre,
-        total="total_buildings_per_sa",
-        count="total_dwellings",
-        ratio="Dwelling Percentage",
-    )
-    output_post = _final_count(
-        joined_post,
-        total="total_buildings_per_sa",
-        count="total_dwellings",
-        ratio="Dwelling Percentage",
+    output_dataframe = _final_count(
+        output_split,
+        total="total_sa_final",
+        count="total_buildings_per_sa",
+        ratio="pre_post",
     )
