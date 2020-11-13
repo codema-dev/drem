@@ -1,6 +1,6 @@
 import json
-from os import path
 
+from os import path
 from pathlib import Path
 
 import requests
@@ -16,7 +16,7 @@ from drem.utilities.download import download_file_from_response
 CWD: Path = Path.cwd()
 
 
-class DownloadBER(Task):
+class DownloadBERPublicsearch(Task):
     """Download BER via Prefect.
 
     Args:
