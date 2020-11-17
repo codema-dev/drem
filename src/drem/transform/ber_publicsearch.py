@@ -73,7 +73,7 @@ with Flow("Cleaning the BER Data...") as flow:
     )
 
 
-class TransformBER(Task, VisualizeMixin):
+class TransformBERPublicsearch(Task, VisualizeMixin):
     """Clean BER Data in a Prefect flow.
 
     Args:
@@ -98,10 +98,10 @@ class TransformBER(Task, VisualizeMixin):
             output_filepath (Path): Path to output data
         """
         with raise_on_exception():
-            state = self.flow.run(parameters=dict(ber_fpath=input_filepath))
+            state = self.flow.run(ber_fpath=input_filepath)
 
         result = state.result[bin_year_built_into_census_categories].result
         result.to_parquet(output_filepath)
 
 
-transform_ber = TransformBER()
+transform_ber_publicsearch = TransformBERPublicsearch()

@@ -2,7 +2,7 @@ import pandas as pd
 
 from pandas.testing import assert_frame_equal
 
-from drem.transform.ber import _bin_year_of_construction_as_in_census
+from drem.transform.ber_publicsearch import _bin_year_of_construction_as_in_census
 
 
 def test_bin_year_of_construction_as_in_census() -> None:
