@@ -16,6 +16,7 @@ from prefect import task
 
 from drem.filepaths import PROCESSED_DIR
 from drem.filepaths import RAW_DIR
+from drem.filepaths import ROUGHWORK_DIR
 
 
 @task
@@ -254,3 +255,7 @@ with Flow("Create synthetic residential building stock") as flow:
     energy_sa = _calculate_energy_by_sa(
         df=output_energy, by="small_area", on="energy_kwh", renamed="energy_per_sa_kwh",
     )
+
+if __name__ == "__main__":
+    state = flow.run()
+    flow.visualize(flow_state=state, filename=ROUGHWORK_DIR / "eplus-resi-model")
