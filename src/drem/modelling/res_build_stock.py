@@ -37,6 +37,12 @@ def _read_csv(input_filepath: str) -> pd.DataFrame:
 
 
 @task
+def _read_energy_csv(input_filepath: str) -> pd.DataFrame:
+
+    return pd.read_csv(input_filepath)
+
+
+@task
 def _merge_ber_sa(
     left: pd.DataFrame, right: pd.DataFrame, left_on: str, right_on: str, **kwargs,
 ) -> pd.DataFrame:
@@ -125,6 +131,24 @@ def _final_count(df: pd.DataFrame, total: str, count: str, ratio: str) -> pd.Dat
     return df
 
 
+@task
+def _add_energy_description(
+    df: pd.DataFrame, new: str, left: str, right: str,
+) -> pd.DataFrame:
+
+    df[new] = df[left] + df[right]
+
+    return df
+
+
+@task
+def _calculate_energy_by_sa(
+    df: pd.DataFrame, by: str, on: str, renamed: str,
+) -> pd.DataFrame:
+
+    return df.groupby(by)[on].sum().rename(renamed).reset_index()
+
+
 with Flow("Create synthetic residential building stock") as flow:
 
     dublin_sa = _read_sa_parquet(PROCESSED_DIR / "small_area_geometries_2016.parquet")
@@ -139,6 +163,7 @@ with Flow("Create synthetic residential building stock") as flow:
         indicator=True,
     )
     geo = _read_csv(RAW_DIR / "DublinBuildingsData.csv")
+    energyplus = _read_energy_csv(PROCESSED_DIR / "energy_demand_by_building_type.csv")
     geo_transformed = _transform_res(df=geo, lon=geo["LONGITUDE"], lat=geo["LATITUDE"])
     geo_extracted = _extract_res(df=geo_transformed, on="BUILDING_USE", value="R")
     geo_joined = _spatial_join(sa_geo, geo_extracted, how="right")
@@ -206,4 +231,26 @@ with Flow("Create synthetic residential building stock") as flow:
         total="total_sa_final",
         count="total_buildings_per_sa",
         ratio="pre_post",
+    )
+    output_added = _add_energy_description(
+        df=output_dataframe,
+        new="building_energyplus",
+        left="Dwelling type description",
+        right="yc_split",
+    )
+    output_merged = _merge_ber_sa(
+        left=output_added,
+        right=energyplus,
+        left_on="building_energyplus",
+        right_on="dwelling",
+        how="inner",
+    )
+    output_energy = _final_count(
+        df=output_merged,
+        total="energy_kwh",
+        count="total_sa_final",
+        ratio="total_site_energy_kwh",
+    )
+    energy_sa = _calculate_energy_by_sa(
+        df=output_energy, by="small_area", on="energy_kwh", renamed="energy_per_sa_kwh",
     )

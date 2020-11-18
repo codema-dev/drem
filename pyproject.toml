@@ -31,6 +31,8 @@ lxml = "^4.5.2"
 html5lib = "^1.1"
 jupyter = "^1.0.0"
 notebook = "^6.1.4"
+jupytext = "^1.6.0"
+jupyter-contrib-nbextensions = "^0.5.1"
 
 
 [tool.poetry.dev-dependencies]
