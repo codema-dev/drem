@@ -13,7 +13,7 @@ from drem.download import download
 from drem.estimate.ber_archetypes import create_ber_archetypes
 from drem.estimate.sa_demand import estimate_sa_demand
 from drem.filepaths import VISUALIZATION_DIR
-from drem.transform.ber import transform_ber
+from drem.transform.ber_publicsearch import transform_ber_publicsearch
 from drem.transform.cso_gas import transform_cso_gas
 from drem.transform.dublin_postcodes import transform_dublin_postcodes
 from drem.transform.sa_geometries import transform_sa_geometries
@@ -34,7 +34,7 @@ external_dir = path.join(data_dir, "external")
 interim_dir = path.join(data_dir, "interim")
 processed_dir = path.join(data_dir, "processed")
 
-ber_filename = "BERPublicsearch"
+ber_publicsearch_filename = "BERPublicsearch"
 cso_gas_filename = "cso_gas_2019"
 dublin_postcode_geometries_filename = "dublin_postcodes"
 small_area_statistics_filename = "small_area_statistics_2016"
@@ -98,7 +98,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     cso_gas_downloaded = download_cso_gas()
     ber_downloaded = download_ber(
         email_address=email_address,
-        filepath=path.join(external_dir, f"{ber_filename}.zip"),
+        filepath=path.join(external_dir, f"{ber_publicsearch_filename}.zip"),
     )
 
     # Unzip all zipped data folders
@@ -116,8 +116,8 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         ),
     )
     ber_unzipped = unzip_util(
-        input_filepath=path.join(external_dir, f"{ber_filename}.zip"),
-        output_filepath=path.join(external_dir, f"{ber_filename}"),
+        input_filepath=path.join(external_dir, f"{ber_publicsearch_filename}.zip"),
+        output_filepath=path.join(external_dir, f"{ber_publicsearch_filename}"),
     )
 
     # Convert all data to parquet for faster io
@@ -150,16 +150,20 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
         ),
     )
     ber_converted = convert_berpublicsearch_to_parquet(
-        input_filepath=path.join(external_dir, ber_filename, f"{ber_filename}.txt"),
-        output_filepath=path.join(interim_dir, f"{ber_filename}.parquet"),
-        dtypes_filepath=path.join(dtypes_dir, f"{ber_filename}.json"),
+        input_filepath=path.join(
+            external_dir, ber_publicsearch_filename, f"{ber_publicsearch_filename}.txt",
+        ),
+        output_filepath=path.join(interim_dir, f"{ber_publicsearch_filename}.parquet"),
+        dtypes_filepath=path.join(dtypes_dir, f"{ber_publicsearch_filename}.json"),
     )
 
     # Clean data
     # ----------
-    ber_clean = transform_ber(
-        input_filepath=path.join(interim_dir, f"{ber_filename}.parquet"),
-        output_filepath=path.join(processed_dir, f"{ber_filename}.parquet"),
+    ber_clean = transform_ber_publicsearch(
+        input_filepath=path.join(interim_dir, f"{ber_publicsearch_filename}.parquet"),
+        output_filepath=path.join(
+            processed_dir, f"{ber_publicsearch_filename}.parquet",
+        ),
     )
     sa_geometries_clean = transform_sa_geometries(
         input_filepath=path.join(
@@ -212,7 +216,7 @@ with Flow("Extract, Transform & Load DREM Data") as flow:
     )
 
     ber_archetypes = create_ber_archetypes(
-        input_filepath=path.join(processed_dir, f"{ber_filename}.parquet"),
+        input_filepath=path.join(processed_dir, f"{ber_publicsearch_filename}.parquet"),
         output_filepath=path.join(processed_dir, "ber_archetypes.parquet"),
     )
     sa_demand = estimate_sa_demand(
@@ -282,9 +286,9 @@ residential_etl = ResidentialETL()
 
 def visualize_subflows() -> None:
     """Create flow visualizations for each subflow."""
-    transform_ber.save_flow_visualization_to_file(
-        savepath=VISUALIZATION_DIR / "transform" / ber_filename,
-        flow=transform_ber.flow,
+    transform_ber_publicsearch.save_flow_visualization_to_file(
+        savepath=VISUALIZATION_DIR / "transform" / ber_publicsearch_filename,
+        flow=transform_ber_publicsearch.flow,
     )
     transform_dublin_postcodes.save_flow_visualization_to_file(
         savepath=VISUALIZATION_DIR / "transform" / dublin_postcode_geometries_filename,
