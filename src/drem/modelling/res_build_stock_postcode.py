@@ -50,7 +50,7 @@ def _extract_ber_dublin(df: pd.DataFrame, on: str, contains: str) -> pd.DataFram
 
 
 @task
-def _lowercase_postcode(df: pd.DataFrame, new: str, old: str) -> pd.DataFrame:
+def _set_postcodes_to_lowercase(df: pd.DataFrame, new: str, old: str) -> pd.DataFrame:
 
     df[new] = df[old].str.lower()
 
@@ -66,21 +66,11 @@ def _merge_ber_sa(
 
 
 @task
-def _split_ber_construction(df: pd.DataFrame, condition: str) -> pd.DataFrame:
+def _split_ber_by_year_of_construction(
+    df: pd.DataFrame, condition: str,
+) -> pd.DataFrame:
 
     return df.query(condition).drop_duplicates()
-
-
-@task
-def _extract_res(df: pd.DataFrame, on: str, value: str) -> pd.DataFrame:
-
-    return df.loc[df[on] == value].drop_duplicates().reset_index(drop=True)
-
-
-@task
-def _transform_res(df: pd.DataFrame, lon: str, lat: str) -> gpd.GeoDataFrame:
-
-    return gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(lon, lat))
 
 
 @task
@@ -100,7 +90,7 @@ def _assign_building_type(df: pd.DataFrame, on: str, equiv: list) -> pd.DataFram
 
 
 @task
-def _total_res_buildings_by_sa(
+def _count_resi_buildings_in_each_postcode_on_column(
     gdf: gpd.GeoDataFrame, on: str, renamed: str,
 ) -> pd.DataFrame:
 
@@ -110,8 +100,8 @@ def _total_res_buildings_by_sa(
 @task
 def _apply_period_built_split(
     df: pd.DataFrame,
-    sa: str,
-    yc: str,
+    small_area: str,
+    year_of_construction: str,
     split: str,
     year: int,
     post: str,
@@ -119,11 +109,11 @@ def _apply_period_built_split(
     pre_post: str,
 ) -> pd.DataFrame:
 
-    df = df.groupby([sa, yc])
+    df = df.groupby([small_area, year_of_construction])
     df = df.head(300000)
-    df[yc] = df[yc].astype(int)
-    df[split] = np.where(df[yc] >= year, post, pre)
-    df = df.groupby(sa)[split].value_counts(normalize=True)
+    df[year_of_construction] = df[year_of_construction].astype(int)
+    df[split] = np.where(df[year_of_construction] >= year, post, pre)
+    df = df.groupby(small_area)[split].value_counts(normalize=True)
     df = df.to_frame()
     df = df.rename(columns={split: pre_post})
 
@@ -139,7 +129,9 @@ def _count_buildings_by_sa(
 
 
 @task
-def _final_count(df: pd.DataFrame, total: str, count: str, ratio: str) -> pd.DataFrame:
+def _calculate_split_buildings_per_postcode(
+    df: pd.DataFrame, total: str, count: str, ratio: str,
+) -> pd.DataFrame:
 
     df[total] = df[count] * df[ratio]
 
@@ -147,7 +139,17 @@ def _final_count(df: pd.DataFrame, total: str, count: str, ratio: str) -> pd.Dat
 
 
 @task
-def _add_energy_description(
+def _calculate_energy_per_postcode(
+    df: pd.DataFrame, total: str, count: str, ratio: str,
+) -> pd.DataFrame:
+
+    df[total] = df[count] * df[ratio]
+
+    return df
+
+
+@task
+def _match_building_description_to_energyplus(
     df: pd.DataFrame, new: str, left: str, right: str,
 ) -> pd.DataFrame:
 
@@ -186,11 +188,15 @@ with Flow("Create synthetic residential building stock") as flow:
     post_geom = _read_sa_geometries(PROCESSED_DIR / "dublin_postcodes.parquet")
     ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
     ber_dublin = _extract_ber_dublin(ber, on="CountyName2", contains="DUBLIN")
-    ber_dub_lower = _lowercase_postcode(ber_dublin, new="postcode", old="CountyName2")
-    dublin_post_lower = _lowercase_postcode(
+    ber_dub_lower = _set_postcodes_to_lowercase(
+        ber_dublin, new="postcode", old="CountyName2",
+    )
+    dublin_post_lower = _set_postcodes_to_lowercase(
         dublin_post, new="postcode", old="postcodes",
     )
-    post_geom_lower = _lowercase_postcode(post_geom, new="postcode", old="postcodes")
+    post_geom_lower = _set_postcodes_to_lowercase(
+        post_geom, new="postcode", old="postcodes",
+    )
     ber_postcode = _merge_ber_sa(
         left=dublin_post_lower,
         right=ber_dub_lower,
@@ -217,16 +223,16 @@ with Flow("Create synthetic residential building stock") as flow:
             "None": "Not stated",
         },
     )
-    total_res = _total_res_buildings_by_sa(
+    total_res = _count_resi_buildings_in_each_postcode_on_column(
         ber_assigned, on="postcode", renamed="total_dwellings",
     )
-    ber_split = _split_ber_construction(
+    ber_split = _split_ber_by_year_of_construction(
         df=ber_assigned, condition="`Year of construction`<1973",
     )
     period_built_split = _apply_period_built_split(
         df=ber_assigned,
-        sa="postcode",
-        yc="Year of construction",
+        small_area="postcode",
+        year_of_construction="Year of construction",
         split="yc_split",
         year=1973,
         post="post",
@@ -246,7 +252,7 @@ with Flow("Create synthetic residential building stock") as flow:
         right_on="postcode",
         how="inner",
     )
-    output = _final_count(
+    output = _calculate_split_buildings_per_postcode(
         joined,
         total="total_buildings_per_postcode",
         count="total_dwellings",
@@ -259,13 +265,13 @@ with Flow("Create synthetic residential building stock") as flow:
         right_on="postcode",
         how="inner",
     )
-    output_dataframe = _final_count(
+    output_dataframe = _calculate_split_buildings_per_postcode(
         output_split,
         total="total_sa_final",
         count="total_buildings_per_postcode",
         ratio="pre_post",
     )
-    output_added = _add_energy_description(
+    output_added = _match_building_description_to_energyplus(
         df=output_dataframe,
         new="building_energyplus",
         left="Dwelling type description",
@@ -278,7 +284,7 @@ with Flow("Create synthetic residential building stock") as flow:
         right_on="dwelling",
         how="inner",
     )
-    output_energy = _final_count(
+    output_energy = _calculate_energy_per_postcode(
         df=output_merged,
         total="energy_kwh",
         count="total_sa_final",
