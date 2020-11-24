@@ -90,6 +90,16 @@ def _assign_building_type(df: pd.DataFrame, on: str, equiv: list) -> pd.DataFram
 
 
 @task
+def _assign_energy_rating_to_numerical(
+    df: pd.DataFrame, number: str, rating: str, equiv: list,
+) -> pd.DataFrame:
+
+    df[number] = df[rating].map(equiv)
+
+    return df
+
+
+@task
 def _count_resi_buildings_in_each_postcode_on_column(
     gdf: gpd.GeoDataFrame, on: str, renamed: str,
 ) -> pd.DataFrame:
@@ -112,7 +122,7 @@ def _apply_period_built_split(
     df = df.groupby([small_area, year_of_construction])
     df = df.head(300000)
     df[year_of_construction] = df[year_of_construction].astype(int)
-    df[split] = np.where(df[year_of_construction] >= year, post, pre)
+    df[split] = np.where(df[year_of_construction] <= year, post, pre)
     df = df.groupby(small_area)[split].value_counts(normalize=True)
     df = df.to_frame()
     df = df.rename(columns={split: pre_post})
@@ -205,9 +215,31 @@ with Flow("Create synthetic residential building stock") as flow:
         how="inner",
         indicator=True,
     )
+    ber_numbered = _assign_energy_rating_to_numerical(
+        ber_postcode,
+        number="Energy_Number",
+        rating="Energy Rating",
+        equiv={
+            "A1": 1,
+            "A2": 2,
+            "A3": 3,
+            "B1": 4,
+            "B2": 5,
+            "B3": 6,
+            "C1": 7,
+            "C2": 8,
+            "C3": 9,
+            "D1": 10,
+            "D2": 11,
+            "E1": 12,
+            "E2": 13,
+            "F": 14,
+            "G": 15,
+        },
+    )
     energyplus = _read_energy_csv(PROCESSED_DIR / "energy_demand_by_building_type.csv")
     ber_assigned = _assign_building_type(
-        ber_postcode,
+        ber_numbered,
         on="Dwelling type description",
         equiv={
             "Mid floor apt.": "Apartment",
@@ -227,14 +259,14 @@ with Flow("Create synthetic residential building stock") as flow:
         ber_assigned, on="postcode", renamed="total_dwellings",
     )
     ber_split = _split_ber_by_year_of_construction(
-        df=ber_assigned, condition="`Year of construction`<1973",
+        df=ber_assigned, condition="`Energy_Number`<6",
     )
     period_built_split = _apply_period_built_split(
         df=ber_assigned,
         small_area="postcode",
-        year_of_construction="Year of construction",
-        split="yc_split",
-        year=1973,
+        year_of_construction="Energy_Number",
+        split="er_split",
+        year=6,
         post="post",
         pre="pre",
         pre_post="pre_post",
@@ -275,7 +307,7 @@ with Flow("Create synthetic residential building stock") as flow:
         df=output_dataframe,
         new="building_energyplus",
         left="Dwelling type description",
-        right="yc_split",
+        right="er_split",
     )
     output_merged = _merge_ber_sa(
         left=output_added,
