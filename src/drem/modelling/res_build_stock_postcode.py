@@ -32,6 +32,12 @@ def _read_sa_geometries(input_filepath: str) -> gpd.GeoDataFrame:
 
 
 @task
+def _read_ed_geometries(input_filepath: str) -> pd.DataFrame:
+
+    return gpd.read_file(input_filepath)
+
+
+@task
 def _read_csv(input_filepath: str) -> pd.DataFrame:
 
     return pd.read_csv(input_filepath, encoding="unicode_escape").drop_duplicates()
@@ -66,6 +72,22 @@ def _merge_ber_sa(
 
 
 @task
+def _merge_cso_ed(
+    left: pd.DataFrame, right: pd.DataFrame, left_on: str, right_on: str, **kwargs,
+) -> pd.DataFrame:
+
+    return left.merge(right, left_on=left_on, right_on=right_on, **kwargs)
+
+
+@task
+def _extract_cso_columns(
+    df: pd.DataFrame, ed: str, res: str, geometry: str,
+) -> pd.DataFrame:
+
+    return df[[ed, res, geometry]]
+
+
+@task
 def _split_ber_by_year_of_construction(
     df: pd.DataFrame, condition: str,
 ) -> pd.DataFrame:
@@ -75,12 +97,19 @@ def _split_ber_by_year_of_construction(
 
 @task
 def _spatial_join(
-    left: gpd.GeoDataFrame, right: gpd.GeoDataFrame, **kwargs,
+    left: gpd.GeoDataFrame, right: pd.DataFrame, **kwargs,
 ) -> gpd.GeoDataFrame:
 
-    right = right.set_crs(epsg="4326")
+    right = gpd.GeoDataFrame(right)
+    right = right.to_crs(epsg="4326")
 
-    return gpd.sjoin(left, right)
+    return gpd.sjoin(left, right, **kwargs)
+
+
+@task
+def _drop_ed_duplicates(df: pd.DataFrame, on: str) -> pd.DataFrame:
+
+    return df.drop_duplicates(subset=[on])
 
 
 @task
@@ -108,7 +137,7 @@ def _count_resi_buildings_in_each_postcode_on_column(
 
 
 @task
-def _apply_period_built_split(
+def _apply_ber_rating_split(
     df: pd.DataFrame,
     small_area: str,
     year_of_construction: str,
@@ -128,6 +157,14 @@ def _apply_period_built_split(
     df = df.rename(columns={split: pre_post})
 
     return df.reset_index()
+
+
+@task
+def _count_buildings_by_ed(
+    df: pd.DataFrame, by: str, on: str, renamed: str,
+) -> pd.DataFrame:
+
+    return df.groupby(by)[on].sum().rename(renamed).reset_index()
 
 
 @task
@@ -169,7 +206,7 @@ def _match_building_description_to_energyplus(
 
 
 @task
-def _calculate_energy_by_sa(
+def _calculate_energy_by_postcode(
     df: pd.DataFrame, by: str, on: str, renamed: str,
 ) -> pd.DataFrame:
 
@@ -197,6 +234,8 @@ with Flow("Create synthetic residential building stock") as flow:
     dublin_post = _read_sa_parquet(PROCESSED_DIR / "dublin_postcodes.parquet")
     post_geom = _read_sa_geometries(PROCESSED_DIR / "dublin_postcodes.parquet")
     ber = _read_csv(RAW_DIR / "BER.09.06.2020.csv")
+    ed_geom = _read_ed_geometries(RAW_DIR / "cso_ed/dublin_ed_geometries_cso.shp")
+    cso_crosstab = _read_csv(RAW_DIR / "census2016_ed_crosstab.csv")
     ber_dublin = _extract_ber_dublin(ber, on="CountyName2", contains="DUBLIN")
     ber_dub_lower = _set_postcodes_to_lowercase(
         ber_dublin, new="postcode", old="CountyName2",
@@ -206,6 +245,25 @@ with Flow("Create synthetic residential building stock") as flow:
     )
     post_geom_lower = _set_postcodes_to_lowercase(
         post_geom, new="postcode", old="postcodes",
+    )
+    cso_geom_total = _count_buildings_by_ed(
+        cso_crosstab, by="ed_2016", on="value_2016_inferred", renamed="total_resi_ed",
+    )
+    ed_lower = _set_postcodes_to_lowercase(ed_geom, new="ed_lower", old="ED_ENGLISH")
+    ed_merged = _merge_cso_ed(
+        left=cso_geom_total,
+        right=ed_lower,
+        left_on="ed_2016",
+        right_on="ed_lower",
+        how="inner",
+    )
+    cso_extracted = _extract_cso_columns(
+        ed_merged, ed="ed_lower", res="total_resi_ed", geometry="geometry",
+    )
+    cso_postcode = _spatial_join(left=post_geom, right=cso_extracted, how="right")
+    cso_dropped = _drop_ed_duplicates(cso_postcode, on="ed_lower")
+    cso_final = _count_buildings_by_ed(
+        cso_dropped, by="postcode", on="total_resi_ed", renamed="res_per_postcode",
     )
     ber_postcode = _merge_ber_sa(
         left=dublin_post_lower,
@@ -255,13 +313,10 @@ with Flow("Create synthetic residential building stock") as flow:
             "None": "Not stated",
         },
     )
-    total_res = _count_resi_buildings_in_each_postcode_on_column(
-        ber_assigned, on="postcode", renamed="total_dwellings",
-    )
     ber_split = _split_ber_by_year_of_construction(
         df=ber_assigned, condition="`Energy_Number`<6",
     )
-    period_built_split = _apply_period_built_split(
+    ber_rating_split = _apply_ber_rating_split(
         df=ber_assigned,
         small_area="postcode",
         year_of_construction="Energy_Number",
@@ -278,7 +333,7 @@ with Flow("Create synthetic residential building stock") as flow:
         renamed="Dwelling Percentage",
     )
     joined = _merge_ber_sa(
-        left=total_res,
+        left=cso_final,
         right=ber_grouped,
         left_on="postcode",
         right_on="postcode",
@@ -287,11 +342,11 @@ with Flow("Create synthetic residential building stock") as flow:
     output = _calculate_split_buildings_per_postcode(
         joined,
         total="total_buildings_per_postcode",
-        count="total_dwellings",
+        count="res_per_postcode",
         ratio="Dwelling Percentage",
     )
     output_split = _merge_ber_sa(
-        left=period_built_split,
+        left=ber_rating_split,
         right=output,
         left_on="postcode",
         right_on="postcode",
@@ -322,7 +377,7 @@ with Flow("Create synthetic residential building stock") as flow:
         count="total_sa_final",
         ratio="total_site_energy_kwh",
     )
-    energy_post = _calculate_energy_by_sa(
+    energy_post = _calculate_energy_by_postcode(
         df=output_energy,
         by="postcode",
         on="energy_kwh",
