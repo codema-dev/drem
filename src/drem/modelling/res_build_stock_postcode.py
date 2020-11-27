@@ -137,7 +137,7 @@ def _count_resi_buildings_in_each_postcode_on_column(
 
 
 @task
-def _apply_period_built_split(
+def _apply_ber_rating_split(
     df: pd.DataFrame,
     small_area: str,
     year_of_construction: str,
@@ -206,7 +206,7 @@ def _match_building_description_to_energyplus(
 
 
 @task
-def _calculate_energy_by_sa(
+def _calculate_energy_by_postcode(
     df: pd.DataFrame, by: str, on: str, renamed: str,
 ) -> pd.DataFrame:
 
@@ -316,7 +316,7 @@ with Flow("Create synthetic residential building stock") as flow:
     ber_split = _split_ber_by_year_of_construction(
         df=ber_assigned, condition="`Energy_Number`<6",
     )
-    period_built_split = _apply_period_built_split(
+    ber_rating_split = _apply_ber_rating_split(
         df=ber_assigned,
         small_area="postcode",
         year_of_construction="Energy_Number",
@@ -346,7 +346,7 @@ with Flow("Create synthetic residential building stock") as flow:
         ratio="Dwelling Percentage",
     )
     output_split = _merge_ber_sa(
-        left=period_built_split,
+        left=ber_rating_split,
         right=output,
         left_on="postcode",
         right_on="postcode",
@@ -377,7 +377,7 @@ with Flow("Create synthetic residential building stock") as flow:
         count="total_sa_final",
         ratio="total_site_energy_kwh",
     )
-    energy_post = _calculate_energy_by_sa(
+    energy_post = _calculate_energy_by_postcode(
         df=output_energy,
         by="postcode",
         on="energy_kwh",
