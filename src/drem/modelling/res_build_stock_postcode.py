@@ -1,5 +1,5 @@
 """
-This script will create a synthetic residential building stock.
+This script will create postcode-level estimates for residential energy consumption.
 
 Our methodology is to divide each SA into several building types,
 using the Split-Apply-Combine pandas transform. These ratios will
@@ -237,6 +237,14 @@ def _merge_result(
     return energy.merge(elec, on=on).merge(heat, on=on)
 
 
+@task
+def _create_shapefile(df: pd.DataFrame, driver: str, path: str) -> gpd.GeoDataFrame:
+
+    gdf = gpd.GeoDataFrame(df)
+
+    return gdf.to_file(driver=driver, filename=path)
+
+
 with Flow("Create synthetic residential building stock") as flow:
 
     dublin_post = _read_sa_parquet(PROCESSED_DIR / "dublin_postcodes.parquet")
@@ -424,6 +432,11 @@ with Flow("Create synthetic residential building stock") as flow:
         postcode="postcodes",
         energy="energy_per_postcode_kwh",
         geometry="geometry",
+    )
+    output_shape = _create_shapefile(
+        energy_plot_final,
+        driver="ESRI Shapefile",
+        path=PROCESSED_DIR / "resi_demand_shape",
     )
 
 if __name__ == "__main__":
