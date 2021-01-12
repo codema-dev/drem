@@ -231,10 +231,14 @@ def _extract_plotting_columns(
 
 @task
 def _merge_result(
-    energy: pd.DataFrame, elec: pd.DataFrame, heat: pd.DataFrame, on: str,
+    energy: pd.DataFrame,
+    elec: pd.DataFrame,
+    heat: pd.DataFrame,
+    peak_elec: pd.DataFrame,
+    on: str,
 ) -> pd.DataFrame:
 
-    return energy.merge(elec, on=on).merge(heat, on=on)
+    return energy.merge(elec, on=on).merge(heat, on=on).merge(peak_elec, on=on)
 
 
 @task
@@ -405,6 +409,12 @@ with Flow("Create synthetic residential building stock") as flow:
         count="total_sa_final",
         ratio="total_site_heat_kwh",
     )
+    output_peak_elec = _calculate_demand_per_postcode(
+        df=output_elec,
+        total="peak_elec_kw",
+        count="total_sa_final",
+        ratio="peak_elec_demand_kw",
+    )
     energy_post = _calculate_energy_by_postcode(
         df=output_energy,
         by="postcode",
@@ -417,8 +427,18 @@ with Flow("Create synthetic residential building stock") as flow:
     heat_post = _calculate_energy_by_postcode(
         df=output_heat, by="postcode", on="heat_kwh", renamed="heat_per_postcode_kwh",
     )
+    peak_elec_post = _calculate_energy_by_postcode(
+        df=output_peak_elec,
+        by="postcode",
+        on="peak_elec_kw",
+        renamed="peak_elec_per_postcode_kw",
+    )
     postcode_final = _merge_result(
-        energy=energy_post, elec=elec_post, heat=heat_post, on="postcode",
+        energy=energy_post,
+        elec=elec_post,
+        heat=heat_post,
+        peak_elec=peak_elec_post,
+        on="postcode",
     )
     energy_plot = _merge_postcode_geometries(
         left=energy_post,
