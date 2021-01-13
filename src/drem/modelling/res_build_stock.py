@@ -301,6 +301,15 @@ def _link_sa_pcode_count(df: pd.DataFrame) -> pd.DataFrame:
     return df[["GEOGID", "sa_demand_kwh", "geometry"]]
 
 
+@task
+def _link_sa_centroids_geom(demand: pd.DataFrame, geom: pd.DataFrame) -> pd.DataFrame:
+
+    df = demand.merge(geom, left_on="GEOGID", right_on="small_area", how="inner")
+    df = df.rename(columns={"geometry_y": "geometry"})
+
+    return df[["GEOGID", "sa_demand_kwh", "geometry"]]
+
+
 with Flow("Create synthetic residential building stock") as flow:
 
     dublin_post = _read_sa_parquet(PROCESSED_DIR / "dublin_postcodes.parquet")
@@ -531,6 +540,7 @@ with Flow("Create synthetic residential building stock") as flow:
         indicator=True,
     )
     sa_demand = _link_sa_pcode_count(pcode_count)
+    sa_dem_geom = _link_sa_centroids_geom(sa_demand, sa)
 
 if __name__ == "__main__":
     state = flow.run()
