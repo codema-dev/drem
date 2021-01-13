@@ -168,6 +168,12 @@ def _count_buildings_by_ed(
 
 
 @task
+def _count_buildings_by_pcode(df: pd.DataFrame, by: str, on: str) -> pd.DataFrame:
+
+    return df.groupby(by)[on].sum().reset_index()
+
+
+@task
 def _count_buildings_by_sa(
     df: pd.DataFrame, by: str, on: str, renamed: str,
 ) -> pd.DataFrame:
@@ -247,6 +253,52 @@ def _create_shapefile(df: pd.DataFrame, driver: str, path: str) -> gpd.GeoDataFr
     gdf = gpd.GeoDataFrame(df)
 
     return gdf.to_file(driver=driver, filename=path)
+
+
+@task
+def _convert_postcode_to_sa(df: pd.DataFrame) -> pd.DataFrame:
+
+    df_loc = df.iloc[:, 310:339]
+    df_loc["sum"] = df_loc.sum(axis=1)
+    df = pd.DataFrame(df["GEOGID"])
+    df_sum = pd.concat([df, df_loc], axis=1)
+    df_tot = df_sum[["GEOGID", "sum"]]
+    df_tot["GEOGID"] = df_tot["GEOGID"].str.replace("SA2017_", "")
+
+    return df_tot
+
+
+@task
+def _small_area_centroid_join(
+    df: pd.DataFrame, pcode: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+
+    gdf = gpd.GeoDataFrame(df)
+    gdf["centroids"] = gdf.geometry.centroid
+    df_ext = gdf[["GEOGID", "sum", "centroids"]]
+    df_ext = df_ext.rename(columns={"centroids": "geometry"})
+    gdf = gpd.GeoDataFrame(df_ext)
+    gdf = gdf.set_crs(epsg="4326")
+    gdf2 = gpd.GeoDataFrame(pcode)
+
+    return gpd.sjoin(gdf, gdf2, op="within")
+
+
+@task
+def _compute_sa_demands(df: pd.DataFrame) -> pd.DataFrame:
+
+    df = df.groupby("postcodes")["sum"].sum()
+
+    return pd.DataFrame(df).reset_index()
+
+
+@task
+def _link_sa_pcode_count(df: pd.DataFrame) -> pd.DataFrame:
+
+    df["portion"] = df["sum_x"] / df["sum_y"]
+    df["sa_demand_kwh"] = df["energy_per_postcode_kwh"] * df["portion"]
+
+    return df[["GEOGID", "sa_demand_kwh", "geometry"]]
 
 
 with Flow("Create synthetic residential building stock") as flow:
@@ -458,6 +510,27 @@ with Flow("Create synthetic residential building stock") as flow:
         driver="ESRI Shapefile",
         path=PROCESSED_DIR / "resi_demand_shape",
     )
+    saps = _read_energy_csv(ROUGHWORK_DIR / "SAPS2016_SA2017.csv")
+    sa = _read_sa_geometries(PROCESSED_DIR / "small_area_geometries_2016.parquet")
+    pcode_count = _convert_postcode_to_sa(saps)
+    count_merge = _merge_ber_sa(
+        left=pcode_count,
+        right=sa,
+        left_on="GEOGID",
+        right_on="small_area",
+        how="inner",
+    )
+    sa_pcode = _small_area_centroid_join(count_merge, energy_plot_final)
+    total_pcode = _count_buildings_by_pcode(sa_pcode, by="postcodes", on="sum")
+    pcode_count = _merge_ber_sa(
+        left=sa_pcode,
+        right=total_pcode,
+        left_on="postcodes",
+        right_on="postcodes",
+        how="inner",
+        indicator=True,
+    )
+    sa_demand = _link_sa_pcode_count(pcode_count)
 
 if __name__ == "__main__":
     state = flow.run()
